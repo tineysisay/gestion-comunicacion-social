@@ -3,7 +3,7 @@
   <div class="encabezado">
     <div>
       <h1>Configuracion del Sistema</h1>
-      <p>Gestion de catalogos y opciones del sistema</p>
+      <p>Gestion de perfil, recursos y catalogos</p>
     </div>
   </div>
 
@@ -17,54 +17,205 @@
     </button>
   </div>
 
-  <div class="formulario-container" *ngIf="mostrarFormulario">
-    <div class="formulario-header">
-      <h2>{{ editando ? 'Editar registro' : 'Nuevo registro' }}</h2>
-      <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
+  <!-- PERFIL -->
+  <div *ngIf="pestanaActiva === 'perfil'" class="perfil-container">
+    <div class="perfil-header">
+      <h2>Mi Perfil</h2>
+      <button class="btn-editar-perfil" *ngIf="!editandoPerfil" (click)="editarPerfil()">Editar</button>
     </div>
 
-    <form (ngSubmit)="guardar()">
+    <div class="perfil-info" *ngIf="!editandoPerfil">
+      <div class="perfil-campo">
+        <label>Nombre de usuario</label>
+        <p>{{ perfil.nombre_usuario }}</p>
+      </div>
+      <div class="perfil-campo">
+        <label>Nombre completo</label>
+        <p>{{ perfil.primer_nombre }} {{ perfil.segundo_nombre }} {{ perfil.primer_apellido }} {{ perfil.segundo_apellido }}</p>
+      </div>
+      <div class="perfil-campo">
+        <label>Correo electronico</label>
+        <p>{{ perfil.correo_electronico }}</p>
+      </div>
+      <div class="perfil-campo">
+        <label>Cargo</label>
+        <p>{{ perfil.nombre_cargo }}</p>
+      </div>
+      <div class="perfil-campo">
+        <label>Rol</label>
+        <p>{{ perfil.nombre_rol }}</p>
+      </div>
+      <div class="perfil-campo">
+        <label>Estado</label>
+        <p>{{ perfil.nombre_estado }}</p>
+      </div>
+    </div>
+
+    <form *ngIf="editandoPerfil" (ngSubmit)="guardarPerfil()">
       <div class="form-grid">
         <div class="campo">
-          <label>{{ getPlaceholder() }}</label>
-          <input type="text" [(ngModel)]="nombreCampo" name="nombreCampo" required>
+          <label>Nombre de usuario</label>
+          <input type="text" [(ngModel)]="perfil.nombre_usuario" name="nombre_usuario" required>
+        </div>
+        <div class="campo">
+          <label>Primer nombre</label>
+          <input type="text" [(ngModel)]="perfil.primer_nombre" name="primer_nombre" required>
+        </div>
+        <div class="campo">
+          <label>Segundo nombre</label>
+          <input type="text" [(ngModel)]="perfil.segundo_nombre" name="segundo_nombre">
+        </div>
+        <div class="campo">
+          <label>Primer apellido</label>
+          <input type="text" [(ngModel)]="perfil.primer_apellido" name="primer_apellido" required>
+        </div>
+        <div class="campo">
+          <label>Segundo apellido</label>
+          <input type="text" [(ngModel)]="perfil.segundo_apellido" name="segundo_apellido">
+        </div>
+        <div class="campo">
+          <label>Correo electronico</label>
+          <input type="email" [(ngModel)]="perfil.correo_electronico" name="correo_electronico">
         </div>
       </div>
 
       <div class="formulario-botones">
-        <button type="button" class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+        <button type="button" class="btn-cancelar" (click)="cancelarEdicionPerfil()">Cancelar</button>
         <button type="submit" class="btn-guardar">Guardar</button>
       </div>
     </form>
   </div>
 
-  <div class="tabla-container">
+  <!-- RECURSOS -->
+  <div *ngIf="pestanaActiva === 'recursos'" class="recursos-container">
     <div class="tabla-header">
-      <h2>{{ nombrePestanaActual }}</h2>
-      <button class="btn-nuevo" (click)="nuevo()">+ Nuevo</button>
+      <h2>Recursos</h2>
+      <button class="btn-nuevo" (click)="nuevoRecurso()">+ Nuevo recurso</button>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Opciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of datos">
-          <td>{{ item[getIdCampo()] }}</td>
-          <td>{{ item[getNombreColumna()] }}</td>
-          <td>
-            <button class="btn-editar" (click)="editar(item)">Editar</button>
-            <button class="btn-eliminar" (click)="eliminar(item[getIdCampo()])">Eliminar</button>
-          </td>
-        </tr>
-        <tr *ngIf="datos.length === 0">
-          <td colspan="3" class="sin-datos">No hay registros</td>
-        </tr>
-      </tbody>
-    </table>
+
+    <div class="formulario-container" *ngIf="mostrarFormularioRecurso">
+      <div class="formulario-header">
+        <h2>{{ editandoRecurso ? 'Editar recurso' : 'Nuevo recurso' }}</h2>
+        <button class="btn-cerrar" (click)="mostrarFormularioRecurso = false">x</button>
+      </div>
+
+      <form (ngSubmit)="guardarRecurso()">
+        <div class="form-grid">
+          <div class="campo">
+            <label>Nombre del recurso</label>
+            <input type="text" [(ngModel)]="nombreRecurso" name="nombreRecurso" required>
+          </div>
+          <div class="campo">
+            <label>Tipo de recurso</label>
+            <select [(ngModel)]="idTipoRecurso" name="idTipoRecurso" required>
+              <option [value]="0">Seleccionar tipo</option>
+              <option *ngFor="let t of tiposRecurso" [value]="t.id_tipo_recurso">
+                {{ t.nombre_tipo_recurso }}
+              </option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Estado</label>
+            <select [(ngModel)]="estadoRecurso" name="estadoRecurso" required>
+              <option value="Disponible">Disponible</option>
+              <option value="En uso">En uso</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+            </select>
+          </div>
+          <div class="campo campo-completo">
+            <label>Descripcion</label>
+            <textarea [(ngModel)]="descripcionRecurso" name="descripcionRecurso" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="formulario-botones">
+          <button type="button" class="btn-cancelar" (click)="mostrarFormularioRecurso = false">Cancelar</button>
+          <button type="submit" class="btn-guardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="tabla-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of datos">
+            <td>{{ r.id_recurso }}</td>
+            <td>{{ r.nombre_recurso }}</td>
+            <td>{{ r.nombre_tipo_recurso }}</td>
+            <td>{{ r.estado_recurso }}</td>
+            <td>
+              <button class="btn-editar" (click)="editarRecurso(r)">Editar</button>
+              <button class="btn-eliminar" (click)="eliminarRecurso(r.id_recurso)">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="datos.length === 0">
+            <td colspan="5" class="sin-datos">No hay recursos registrados</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CATALOGOS -->
+  <div *ngIf="pestanaActiva !== 'perfil' && pestanaActiva !== 'recursos'">
+    <div class="formulario-container" *ngIf="mostrarFormulario">
+      <div class="formulario-header">
+        <h2>{{ editando ? 'Editar registro' : 'Nuevo registro' }}</h2>
+        <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
+      </div>
+
+      <form (ngSubmit)="guardar()">
+        <div class="form-grid">
+          <div class="campo">
+            <label>{{ getPlaceholder() }}</label>
+            <input type="text" [(ngModel)]="nombreCampo" name="nombreCampo" required>
+          </div>
+        </div>
+
+        <div class="formulario-botones">
+          <button type="button" class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+          <button type="submit" class="btn-guardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="tabla-container">
+      <div class="tabla-header">
+        <h2>{{ nombrePestanaActual }}</h2>
+        <button class="btn-nuevo" (click)="nuevo()">+ Nuevo</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of datos">
+            <td>{{ item[getIdCampo()] }}</td>
+            <td>{{ item[getNombreColumna()] }}</td>
+            <td>
+              <button class="btn-editar" (click)="editar(item)">Editar</button>
+              <button class="btn-eliminar" (click)="eliminar(item[getIdCampo()])">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="datos.length === 0">
+            <td colspan="3" class="sin-datos">No hay registros</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </div>

@@ -29,6 +29,12 @@ export class SolicitudesComponent implements OnInit {
   editando = false;
   idEditar = 0;
 
+  // Accordion sections
+  seccionDatos = true;
+  seccionSolicitante = false;
+  seccionResponsable = false;
+  seccionEstado = false;
+
   nombreActividad = '';
   descripcionActividad = '';
   fechaActividad = '';

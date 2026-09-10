@@ -50,4 +50,18 @@ export class AuthService {
       return false;
     }
   }
+
+  obtenerPerfil(): Observable<any> {
+    const token = this.getToken();
+    return this.http.get(`${this.apiUrl}/usuarios/perfil`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  actualizarPerfil(datos: any): Observable<any> {
+    const token = this.getToken();
+    return this.http.put(`${this.apiUrl}/usuarios/perfil`, datos, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
 }

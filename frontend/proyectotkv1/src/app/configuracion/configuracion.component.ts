@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CatalogoService } from '../services/catalogo.service';
+import { RecursoService } from '../services/recurso.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-configuracion',
@@ -13,9 +15,11 @@ import { CatalogoService } from '../services/catalogo.service';
 })
 export class ConfiguracionComponent implements OnInit {
 
-  pestanaActiva = 'estados-actividad';
+  pestanaActiva = 'perfil';
 
   pestanas = [
+    { id: 'perfil', nombre: 'Perfil' },
+    { id: 'recursos', nombre: 'Recursos' },
     { id: 'estados-actividad', nombre: 'Estados de Actividad' },
     { id: 'prioridades', nombre: 'Prioridades' },
     { id: 'tipos-recurso', nombre: 'Tipos de Recurso' },
@@ -32,9 +36,26 @@ export class ConfiguracionComponent implements OnInit {
   idEditar = 0;
   nombreCampo = '';
   descripcionCampo = '';
-  nombreCampoPlaceholder = '';
 
-  constructor(private catalogoService: CatalogoService) {}
+  // Perfil
+  perfil: any = {};
+  editandoPerfil = false;
+
+  // Recursos
+  mostrarFormularioRecurso = false;
+  editandoRecurso = false;
+  idEditarRecurso = 0;
+  tiposRecurso: any[] = [];
+  nombreRecurso = '';
+  descripcionRecurso = '';
+  estadoRecurso = 'Disponible';
+  idTipoRecurso = 0;
+
+  constructor(
+    private catalogoService: CatalogoService,
+    private recursoService: RecursoService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.cargarDatos();
@@ -43,9 +64,45 @@ export class ConfiguracionComponent implements OnInit {
   cambiarPestana(pestanha: string): void {
     this.pestanaActiva = pestanha;
     this.mostrarFormulario = false;
-    this.cargarDatos();
+    this.mostrarFormularioRecurso = false;
+    if (pestanha === 'recursos') {
+      this.cargarRecursos();
+      this.cargarTiposRecurso();
+    } else if (pestanha === 'perfil') {
+      this.cargarPerfil();
+    } else {
+      this.cargarDatos();
+    }
   }
 
+  // ===== PERFIL =====
+  cargarPerfil(): void {
+    this.authService.obtenerPerfil().subscribe({
+      next: (datos) => this.perfil = datos,
+      error: (error) => console.error('Error:', error)
+    });
+  }
+
+  editarPerfil(): void {
+    this.editandoPerfil = true;
+  }
+
+  cancelarEdicionPerfil(): void {
+    this.editandoPerfil = false;
+    this.cargarPerfil();
+  }
+
+  guardarPerfil(): void {
+    this.authService.actualizarPerfil(this.perfil).subscribe({
+      next: (respuesta) => {
+        alert(respuesta.mensaje);
+        this.editandoPerfil = false;
+      },
+      error: (error) => alert(error.error?.mensaje || 'Error al guardar')
+    });
+  }
+
+  // ===== CATALOGOS =====
   cargarDatos(): void {
     const method = this.getMethod();
     if (method) {
@@ -201,5 +258,81 @@ export class ConfiguracionComponent implements OnInit {
       'estados-usuario': (id) => this.catalogoService.eliminarEstadoUsuario(id)
     };
     return methods[this.pestanaActiva];
+  }
+
+  // ===== RECURSOS =====
+  cargarRecursos(): void {
+    this.recursoService.obtenerTodos().subscribe({
+      next: (datos) => this.datos = datos,
+      error: (error) => console.error('Error:', error)
+    });
+  }
+
+  cargarTiposRecurso(): void {
+    this.catalogoService.obtenerTiposRecurso().subscribe({
+      next: (datos) => this.tiposRecurso = datos,
+      error: (error) => console.error('Error:', error)
+    });
+  }
+
+  nuevoRecurso(): void {
+    this.editandoRecurso = false;
+    this.idEditarRecurso = 0;
+    this.nombreRecurso = '';
+    this.descripcionRecurso = '';
+    this.estadoRecurso = 'Disponible';
+    this.idTipoRecurso = 0;
+    this.mostrarFormularioRecurso = true;
+  }
+
+  editarRecurso(item: any): void {
+    this.editandoRecurso = true;
+    this.idEditarRecurso = item.id_recurso;
+    this.nombreRecurso = item.nombre_recurso;
+    this.descripcionRecurso = item.descripcion_recurso || '';
+    this.estadoRecurso = item.estado_recurso;
+    this.idTipoRecurso = item.id_tipo_recurso;
+    this.mostrarFormularioRecurso = true;
+  }
+
+  guardarRecurso(): void {
+    const data = {
+      nombreRecurso: this.nombreRecurso,
+      descripcionRecurso: this.descripcionRecurso,
+      estadoRecurso: this.estadoRecurso,
+      idTipoRecurso: this.idTipoRecurso
+    };
+
+    if (this.editandoRecurso) {
+      this.recursoService.actualizar(this.idEditarRecurso, data).subscribe({
+        next: (respuesta) => {
+          alert(respuesta.mensaje);
+          this.mostrarFormularioRecurso = false;
+          this.cargarRecursos();
+        },
+        error: (error) => alert(error.error?.mensaje || 'Error al actualizar')
+      });
+    } else {
+      this.recursoService.crear(data).subscribe({
+        next: (respuesta) => {
+          alert(respuesta.mensaje);
+          this.mostrarFormularioRecurso = false;
+          this.cargarRecursos();
+        },
+        error: (error) => alert(error.error?.mensaje || 'Error al crear')
+      });
+    }
+  }
+
+  eliminarRecurso(id: number): void {
+    if (confirm('Esta seguro de eliminar este recurso?')) {
+      this.recursoService.eliminar(id).subscribe({
+        next: (respuesta) => {
+          alert(respuesta.mensaje);
+          this.cargarRecursos();
+        },
+        error: (error) => alert(error.error?.mensaje || 'Error al eliminar')
+      });
+    }
   }
 }

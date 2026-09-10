@@ -15,58 +15,111 @@
     </div>
 
     <form (ngSubmit)="guardar()">
-      <h3>Datos de la actividad</h3>
-      <div class="form-grid">
-        <div class="campo campo-completo">
-          <label>Nombre de la actividad</label>
-          <input type="text" [(ngModel)]="nombreActividad" name="nombreActividad" required>
+      <!-- Accordion: Datos de la actividad -->
+      <div class="accordion" [class.abierto]="seccionDatos">
+        <div class="accordion-header" (click)="seccionDatos = !seccionDatos">
+          <span>Datos de la Actividad</span>
+          <span class="flecha">{{ seccionDatos ? '&#9660;' : '&#9654;' }}</span>
         </div>
-        <div class="campo">
-          <label>Solicitante</label>
-          <select [(ngModel)]="idSolicitante" name="idSolicitante" required>
-            <option [value]="0">Seleccionar solicitante</option>
-            <option *ngFor="let s of solicitantes" [value]="s.id_solicitante">
-              {{ s.primer_nombre }} {{ s.primer_apellido }}
-            </option>
-          </select>
+        <div class="accordion-contenido" *ngIf="seccionDatos">
+          <div class="form-grid">
+            <div class="campo campo-completo">
+              <label>Nombre de la actividad</label>
+              <input type="text" [(ngModel)]="nombreActividad" name="nombreActividad" required>
+            </div>
+            <div class="campo">
+              <label>Fecha de actividad</label>
+              <input type="date" [(ngModel)]="fechaActividad" name="fechaActividad" required>
+            </div>
+            <div class="campo">
+              <label>Hora inicio</label>
+              <input type="time" [(ngModel)]="horaInicio" name="horaInicio" required>
+            </div>
+            <div class="campo">
+              <label>Hora fin</label>
+              <input type="time" [(ngModel)]="horaFin" name="horaFin" required>
+            </div>
+            <div class="campo campo-completo">
+              <label>Lugar</label>
+              <input type="text" [(ngModel)]="lugarActividad" name="lugarActividad" required>
+            </div>
+            <div class="campo campo-completo">
+              <label>Descripcion</label>
+              <textarea [(ngModel)]="descripcionActividad" name="descripcionActividad" rows="3"></textarea>
+            </div>
+          </div>
         </div>
-        <div class="campo">
-          <label>Prioridad</label>
-          <select [(ngModel)]="idPrioridad" name="idPrioridad" required>
-            <option [value]="0">Seleccionar prioridad</option>
-            <option *ngFor="let p of prioridades" [value]="p.id_prioridad">
-              {{ p.nombre_prioridad }}
-            </option>
-          </select>
+      </div>
+
+      <!-- Accordion: Solicitante -->
+      <div class="accordion" [class.abierto]="seccionSolicitante">
+        <div class="accordion-header" (click)="seccionSolicitante = !seccionSolicitante">
+          <span>Solicitante</span>
+          <span class="flecha">{{ seccionSolicitante ? '&#9660;' : '&#9654;' }}</span>
         </div>
-        <div class="campo">
-          <label>Fecha de actividad</label>
-          <input type="date" [(ngModel)]="fechaActividad" name="fechaActividad" required>
+        <div class="accordion-contenido" *ngIf="seccionSolicitante">
+          <div class="form-grid">
+            <div class="campo campo-completo">
+              <label>Seleccionar solicitante</label>
+              <select [(ngModel)]="idSolicitante" name="idSolicitante" required>
+                <option [value]="0">Seleccionar solicitante</option>
+                <option *ngFor="let s of solicitantes" [value]="s.id_solicitante">
+                  {{ s.primer_nombre }} {{ s.primer_apellido }} - {{ s.correo_electronico || 'Sin correo' }}
+                </option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="campo">
-          <label>Estado</label>
-          <select [(ngModel)]="idEstadoActividad" name="idEstadoActividad" required>
-            <option [value]="0">Seleccionar estado</option>
-            <option *ngFor="let e of estadosActividad" [value]="e.id_estado_actividad">
-              {{ e.nombre_estado }}
-            </option>
-          </select>
+      </div>
+
+      <!-- Accordion: Responsable -->
+      <div class="accordion" [class.abierto]="seccionResponsable">
+        <div class="accordion-header" (click)="seccionResponsable = !seccionResponsable">
+          <span>Responsable / Asignacion</span>
+          <span class="flecha">{{ seccionResponsable ? '&#9660;' : '&#9654;' }}</span>
         </div>
-        <div class="campo">
-          <label>Hora inicio</label>
-          <input type="time" [(ngModel)]="horaInicio" name="horaInicio" required>
+        <div class="accordion-contenido" *ngIf="seccionResponsable">
+          <div class="form-grid">
+            <div class="campo campo-completo">
+              <label>Asignar responsable</label>
+              <select [(ngModel)]="idUsuarioAsignar" name="idUsuarioAsignar">
+                <option [value]="0">Seleccionar usuario</option>
+                <option *ngFor="let u of usuarios" [value]="u.id_cuenta">
+                  {{ u.nombre_usuario }} - {{ u.nombre_rol }}
+                </option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="campo">
-          <label>Hora fin</label>
-          <input type="time" [(ngModel)]="horaFin" name="horaFin" required>
+      </div>
+
+      <!-- Accordion: Estado y Prioridad -->
+      <div class="accordion" [class.abierto]="seccionEstado">
+        <div class="accordion-header" (click)="seccionEstado = !seccionEstado">
+          <span>Estado y Prioridad</span>
+          <span class="flecha">{{ seccionEstado ? '&#9660;' : '&#9654;' }}</span>
         </div>
-        <div class="campo campo-completo">
-          <label>Lugar</label>
-          <input type="text" [(ngModel)]="lugarActividad" name="lugarActividad" required>
-        </div>
-        <div class="campo campo-completo">
-          <label>Descripcion</label>
-          <textarea [(ngModel)]="descripcionActividad" name="descripcionActividad" rows="3"></textarea>
+        <div class="accordion-contenido" *ngIf="seccionEstado">
+          <div class="form-grid">
+            <div class="campo">
+              <label>Estado</label>
+              <select [(ngModel)]="idEstadoActividad" name="idEstadoActividad" required>
+                <option [value]="0">Seleccionar estado</option>
+                <option *ngFor="let e of estadosActividad" [value]="e.id_estado_actividad">
+                  {{ e.nombre_estado }}
+                </option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Prioridad</label>
+              <select [(ngModel)]="idPrioridad" name="idPrioridad" required>
+                <option [value]="0">Seleccionar prioridad</option>
+                <option *ngFor="let p of prioridades" [value]="p.id_prioridad">
+                  {{ p.nombre_prioridad }}
+                </option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -77,6 +130,7 @@
     </form>
   </div>
 
+  <!-- Detalle de solicitud -->
   <div class="detalle-container" *ngIf="mostrarDetalle && solicitudActual">
     <div class="formulario-header">
       <h2>{{ solicitudActual.nombre_actividad }}</h2>

@@ -84,6 +84,108 @@ app.post('/api/login', (req, res) => {
 
 });
 
+// GET - Obtener perfil del usuario logueado
+app.get('/api/usuarios/perfil', verificarToken, (req, res) => {
+  const sql = `
+    SELECT 
+      cu.id_cuenta,
+      cu.nombre_usuario,
+      du.primer_nombre,
+      du.segundo_nombre,
+      du.primer_apellido,
+      du.segundo_apellido,
+      du.correo_electronico,
+      du.telefono,
+      cu.id_usuario,
+      cu.id_rol,
+      r.nombre_rol,
+      cu.id_estado_usuario,
+      eu.nombre_estado_usuario AS nombre_estado,
+      ca.nombre_cargo
+    FROM cuenta_usuario cu
+    INNER JOIN datos_usuario du ON cu.id_usuario = du.id_usuario
+    INNER JOIN rol r ON cu.id_rol = r.id_rol
+    INNER JOIN estado_usuario eu ON cu.id_estado_usuario = eu.id_estado_usuario
+    INNER JOIN cargo_usuario ca ON du.id_cargo = ca.id_cargo
+    WHERE cu.id_cuenta = ?
+  `;
+
+  conexion.query(sql, [req.usuario.id_cuenta], (error, resultados) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al obtener perfil' });
+    }
+    if (resultados.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    res.json(resultados[0]);
+  });
+});
+
+// PUT - Actualizar perfil del usuario logueado
+app.put('/api/usuarios/perfil', verificarToken, (req, res) => {
+  const { primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo_electronico, nombre_usuario } = req.body;
+
+  const sqlActualizar = `
+    UPDATE datos_usuario SET
+      primer_nombre = ?,
+      segundo_nombre = ?,
+      primer_apellido = ?,
+      segundo_apellido = ?,
+      correo_electronico = ?
+    WHERE id_usuario = ?
+  `;
+
+  const sqlCuenta = `
+    UPDATE cuenta_usuario SET
+      nombre_usuario = ?
+    WHERE id_cuenta = ?
+  `;
+
+  conexion.beginTransaction((error) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al iniciar transaccion' });
+    }
+
+    conexion.query(
+      sqlActualizar,
+      [primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo_electronico, req.usuario.id_usuario],
+      (error) => {
+        if (error) {
+          return conexion.rollback(() => {
+            console.error('ERROR MYSQL:', error);
+            res.status(500).json({ mensaje: 'Error al actualizar perfil' });
+          });
+        }
+
+        conexion.query(
+          sqlCuenta,
+          [nombre_usuario, req.usuario.id_cuenta],
+          (error) => {
+            if (error) {
+              return conexion.rollback(() => {
+                console.error('ERROR MYSQL:', error);
+                res.status(500).json({ mensaje: 'Error al actualizar usuario' });
+              });
+            }
+
+            conexion.commit((error) => {
+              if (error) {
+                return conexion.rollback(() => {
+                  console.error('ERROR MYSQL:', error);
+                  res.status(500).json({ mensaje: 'Error al guardar' });
+                });
+              }
+              res.json({ mensaje: 'Perfil actualizado correctamente' });
+            });
+          }
+        );
+      }
+    );
+  });
+});
+
 app.use('/api', catalogosRoutes);
 app.use('/api', solicitantesRoutes);
 app.use('/api', recursosRoutes);

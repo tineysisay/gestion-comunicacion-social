@@ -1,0 +1,120 @@
+<div class="container">
+
+  <div class="encabezado">
+    <div>
+      <h1>Calendario de Actividades</h1>
+      <p>Vista de solicitudes agendadas</p>
+    </div>
+  </div>
+
+  <div class="calendario-controles">
+    <div class="controles-izquierda">
+      <button class="btn-hoy" (click)="irHoy()">Hoy</button>
+      <button class="btn-flecha" (click)="vista === 'mes' ? cambiarMes(-1) : cambiarSemana(-1)">&#8249;</button>
+      <h2 class="titulo-fecha">
+        {{ vista === 'dia' && diaSeleccionado ? (diaSeleccionado | date:'dd/MM/yyyy') : nombreMes + ' ' + anio }}
+      </h2>
+      <button class="btn-flecha" (click)="vista === 'mes' ? cambiarMes(1) : cambiarSemana(1)">&#8250;</button>
+    </div>
+    <div class="controles-derecha">
+      <button class="btn-vista" [class.activa]="vista === 'mes'" (click)="cambiarVista('mes')">Mes</button>
+      <button class="btn-vista" [class.activa]="vista === 'semana'" (click)="cambiarVista('semana')">Semana</button>
+      <button class="btn-vista" [class.activa]="vista === 'dia'" (click)="cambiarVista('dia')">Dia</button>
+    </div>
+  </div>
+
+  <!-- VISTA MES -->
+  <div class="calendario-grid" *ngIf="vista === 'mes'">
+    <div class="calendario-header" *ngFor="let dia of diasSemana">
+      {{ dia }}
+    </div>
+    <div class="calendario-dia"
+         *ngFor="let dia of diasMes"
+         [class.vacio]="!dia"
+         [class.hoy]="dia && esHoy(dia)"
+         [class.seleccionado]="dia && diaSeleccionado && esMismoDia(dia, diaSeleccionado)"
+         (click)="dia && seleccionarDia(dia)">
+      <span class="numero-dia" *ngIf="dia">{{ dia.getDate() }}</span>
+      <div class="eventos-dia" *ngIf="dia">
+        <div class="evento"
+             *ngFor="let s of obtenerSolicitudesDelDia(dia).slice(0, 3)"
+             [style.background]="getColorPrioridad(s.prioridad)"
+             (click)="verDetalle(s); $event.stopPropagation()">
+          {{ s.nombre_actividad }}
+        </div>
+        <div class="mas-eventos" *ngIf="obtenerSolicitudesDelDia(dia).length > 3">
+          +{{ obtenerSolicitudesDelDia(dia).length - 3 }} mas
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA SEMANA -->
+  <div class="semana-grid" *ngIf="vista === 'semana'">
+    <div class="semana-dia" *ngFor="let dia of diasSemanaActual"
+         [class.hoy]="esHoy(dia)"
+         [class.seleccionado]="diaSeleccionado && esMismoDia(dia, diaSeleccionado)"
+         (click)="seleccionarDia(dia)">
+      <div class="semana-dia-header">
+        <span class="semana-dia-nombre">{{ diasSemana[dia.getDay()] }}</span>
+        <span class="semana-dia-numero">{{ dia.getDate() }}</span>
+      </div>
+      <div class="semana-eventos">
+        <div class="evento"
+             *ngFor="let s of obtenerSolicitudesDelDia(dia)"
+             [style.background]="getColorPrioridad(s.prioridad)"
+             (click)="verDetalle(s); $event.stopPropagation()">
+          <span class="evento-hora">{{ s.hora_inicio }}</span>
+          {{ s.nombre_actividad }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA DIA -->
+  <div class="dia-vista" *ngIf="vista === 'dia' && diaSeleccionado">
+    <div class="dia-header">
+      <h3>{{ diaSeleccionado | date:'EEEE, dd/MM/yyyy' }}</h3>
+    </div>
+    <div class="dia-eventos">
+      <div class="evento-dia"
+           *ngFor="let s of solicitudesFiltradas"
+           (click)="verDetalle(s)">
+        <div class="evento-hora">{{ s.hora_inicio }} - {{ s.hora_fin }}</div>
+        <div class="evento-info">
+          <strong>{{ s.nombre_actividad }}</strong>
+          <span class="evento-solicitante">{{ s.nombre_solicitante }}</span>
+          <span class="evento-estado">{{ s.estado }}</span>
+        </div>
+        <div class="evento-prioridad" [style.background]="getColorPrioridad(s.prioridad)">
+          {{ s.prioridad }}
+        </div>
+      </div>
+      <div class="sin-eventos" *ngIf="solicitudesFiltradas.length === 0">
+        No hay actividades programadas para este dia
+      </div>
+    </div>
+  </div>
+
+  <!-- DETALLE SOLICITUD -->
+  <div class="detalle-container" *ngIf="mostrarDetalle && solicitudSeleccionada">
+    <div class="formulario-header">
+      <h2>{{ solicitudSeleccionada.nombre_actividad }}</h2>
+      <button class="btn-cerrar" (click)="cerrarDetalle()">x</button>
+    </div>
+    <div class="detalle-info">
+      <div class="detalle-columna">
+        <p><strong>Solicitante:</strong> {{ solicitudSeleccionada.nombre_solicitante }}</p>
+        <p><strong>Lugar:</strong> {{ solicitudSeleccionada.lugar_actividad }}</p>
+        <p><strong>Fecha:</strong> {{ solicitudSeleccionada.fecha_actividad }}</p>
+        <p><strong>Horario:</strong> {{ solicitudSeleccionada.hora_inicio }} - {{ solicitudSeleccionada.hora_fin }}</p>
+      </div>
+      <div class="detalle-columna">
+        <p><strong>Estado:</strong> {{ solicitudSeleccionada.estado }}</p>
+        <p><strong>Prioridad:</strong> {{ solicitudSeleccionada.prioridad }}</p>
+        <p><strong>Creada:</strong> {{ solicitudSeleccionada.fecha_creacion }}</p>
+      </div>
+    </div>
+  </div>
+
+</div>
