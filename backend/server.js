@@ -8,6 +8,7 @@ const catalogosRoutes = require('./routes/catalogos');
 const solicitantesRoutes = require('./routes/solicitantes');
 const recursosRoutes = require('./routes/recursos');
 const solicitudesRoutes = require('./routes/solicitudes');
+const asignacionesRoutes = require('./routes/asignaciones');
 
 const app = express();
 
@@ -84,6 +85,7 @@ app.use('/api', catalogosRoutes);
 app.use('/api', solicitantesRoutes);
 app.use('/api', recursosRoutes);
 app.use('/api', solicitudesRoutes);
+app.use('/api', asignacionesRoutes);
 
 app.post('/api/usuarios', verificarToken, (req, res) => {
 
