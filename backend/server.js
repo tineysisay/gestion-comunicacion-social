@@ -12,9 +12,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', catalogosRoutes);
-app.use('/api', solicitantesRoutes);
-
 app.post('/api/login', (req, res) => {
 
   const { usuario, contrasena } = req.body;
@@ -80,6 +77,9 @@ app.post('/api/login', (req, res) => {
   });
 
 });
+
+app.use('/api', catalogosRoutes);
+app.use('/api', solicitantesRoutes);
 
 app.post('/api/usuarios', verificarToken, (req, res) => {
 
