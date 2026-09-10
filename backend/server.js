@@ -9,6 +9,8 @@ const solicitantesRoutes = require('./routes/solicitantes');
 const recursosRoutes = require('./routes/recursos');
 const solicitudesRoutes = require('./routes/solicitudes');
 const asignacionesRoutes = require('./routes/asignaciones');
+const historialRoutes = require('./routes/historial');
+const notificacionesRoutes = require('./routes/notificaciones');
 
 const app = express();
 
@@ -86,6 +88,8 @@ app.use('/api', solicitantesRoutes);
 app.use('/api', recursosRoutes);
 app.use('/api', solicitudesRoutes);
 app.use('/api', asignacionesRoutes);
+app.use('/api', historialRoutes);
+app.use('/api', notificacionesRoutes);
 
 app.post('/api/usuarios', verificarToken, (req, res) => {
 
