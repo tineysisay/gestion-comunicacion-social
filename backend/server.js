@@ -11,6 +11,7 @@ const solicitudesRoutes = require('./routes/solicitudes');
 const asignacionesRoutes = require('./routes/asignaciones');
 const historialRoutes = require('./routes/historial');
 const notificacionesRoutes = require('./routes/notificaciones');
+const reportesRoutes = require('./routes/reportes');
 
 const app = express();
 
@@ -90,6 +91,7 @@ app.use('/api', solicitudesRoutes);
 app.use('/api', asignacionesRoutes);
 app.use('/api', historialRoutes);
 app.use('/api', notificacionesRoutes);
+app.use('/api', reportesRoutes);
 
 app.post('/api/usuarios', verificarToken, (req, res) => {
 
