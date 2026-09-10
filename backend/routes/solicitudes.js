@@ -1,0 +1,344 @@
+const express = require('express');
+const router = express.Router();
+const conexion = require('../db');
+const verificarToken = require('../middleware/auth');
+
+router.use(verificarToken);
+
+// GET - Listar todas las solicitudes con informacion completa
+router.get('/solicitudes', (req, res) => {
+  const sql = `
+    SELECT 
+      sa.id_solicitud,
+      sa.nombre_actividad,
+      sa.descripcion_actividad,
+      sa.fecha_actividad,
+      sa.hora_inicio,
+      sa.hora_fin,
+      sa.lugar_actividad,
+      sa.fecha_creacion,
+      ea.nombre_estado AS estado,
+      pa.nombre_prioridad AS prioridad,
+      pa.nivel_prioridad,
+      CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS nombre_solicitante,
+      s.id_solicitante
+    FROM solicitud_actividad sa
+    INNER JOIN estado_actividad ea ON sa.id_estado_actividad = ea.id_estado_actividad
+    INNER JOIN prioridad_actividad pa ON sa.id_prioridad = pa.id_prioridad
+    INNER JOIN solicitante s ON sa.id_solicitante = s.id_solicitante
+    ORDER BY sa.fecha_creacion DESC
+  `;
+  conexion.query(sql, (error, resultados) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al obtener solicitudes' });
+    }
+    res.json(resultados);
+  });
+});
+
+// GET - Obtener una solicitud por ID con toda la info
+router.get('/solicitudes/:id', (req, res) => {
+  const { id } = req.params;
+
+  const sqlSolicitud = `
+    SELECT 
+      sa.*,
+      ea.nombre_estado,
+      pa.nombre_prioridad,
+      pa.nivel_prioridad,
+      s.primer_nombre AS s_nombre,
+      s.segundo_nombre AS s_segundo_nombre,
+      s.primer_apellido AS s_apellido,
+      s.segundo_apellido AS s_segundo_apellido,
+      s.telefono AS s_telefono,
+      s.correo_electronico AS s_correo,
+      s.descripcion_solicitante,
+      i.nombre_institucion,
+      i.representante,
+      i.tel_representante,
+      i.tel_institucion,
+      i.direccion AS direccion_institucion
+    FROM solicitud_actividad sa
+    INNER JOIN estado_actividad ea ON sa.id_estado_actividad = ea.id_estado_actividad
+    INNER JOIN prioridad_actividad pa ON sa.id_prioridad = pa.id_prioridad
+    INNER JOIN solicitante s ON sa.id_solicitante = s.id_solicitante
+    LEFT JOIN institucion i ON s.id_institucion = i.id_institucion
+    WHERE sa.id_solicitud = ?
+  `;
+
+  conexion.query(sqlSolicitud, [id], (error, resultados) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al obtener la solicitud' });
+    }
+
+    if (resultados.length === 0) {
+      return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+    }
+
+    const solicitud = resultados[0];
+
+    // Obtener personal asignado
+    const sqlPersonal = `
+      SELECT 
+        au.id_asignacion_usuario,
+        au.fecha_asignacion,
+        au.observacion,
+        du.id_usuario,
+        du.primer_nombre,
+        du.primer_apellido,
+        ca.nombre_cargo
+      FROM asignacion_usuario au
+      INNER JOIN datos_usuario du ON au.id_usuario = du.id_usuario
+      INNER JOIN cargo_usuario ca ON du.id_cargo = ca.id_cargo
+      WHERE au.id_solicitud = ?
+    `;
+
+    conexion.query(sqlPersonal, [id], (error, personal) => {
+      if (error) {
+        console.error('ERROR MYSQL:', error);
+        return res.status(500).json({ mensaje: 'Error al obtener personal asignado' });
+      }
+
+      // Obtener recursos asignados
+      const sqlRecursos = `
+        SELECT 
+          ar.id_asignacion_recurso,
+          ar.cantidad,
+          ar.fecha_asignacion,
+          ar.observacion,
+          r.id_recurso,
+          r.nombre_recurso,
+          r.estado_recurso,
+          tr.nombre_tipo_recurso
+        FROM asignacion_recurso ar
+        INNER JOIN recurso r ON ar.id_recurso = r.id_recurso
+        INNER JOIN tipo_recurso tr ON r.id_tipo_recurso = tr.id_tipo_recurso
+        WHERE ar.id_solicitud = ?
+      `;
+
+      conexion.query(sqlRecursos, [id], (error, recursos) => {
+        if (error) {
+          console.error('ERROR MYSQL:', error);
+          return res.status(500).json({ mensaje: 'Error al obtener recursos asignados' });
+        }
+
+        // Obtener detalle de solicitud
+        const sqlDetalle = `
+          SELECT 
+            ds.id_detalle_solicitud,
+            ds.descripcion_detalle,
+            ds.cantidad
+          FROM detalle_solicitud ds
+          WHERE ds.id_solicitud = ?
+        `;
+
+        conexion.query(sqlDetalle, [id], (error, detalle) => {
+          if (error) {
+            console.error('ERROR MYSQL:', error);
+            return res.status(500).json({ mensaje: 'Error al obtener detalle de solicitud' });
+          }
+
+          solicitud.personal = personal;
+          solicitud.recursos = recursos;
+          solicitud.detalle = detalle;
+
+          res.json(solicitud);
+        });
+      });
+    });
+  });
+});
+
+// POST - Crear solicitud
+router.post('/solicitudes', (req, res) => {
+  const {
+    idSolicitante,
+    idEstadoActividad,
+    idPrioridad,
+    fechaActividad,
+    horaInicio,
+    horaFin,
+    nombreActividad,
+    descripcionActividad,
+    lugarActividad,
+    detalle,
+    personalAsignado,
+    recursosAsignados
+  } = req.body;
+
+  conexion.beginTransaction((error) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al iniciar la transaccion' });
+    }
+
+    const sqlSolicitud = `
+      INSERT INTO solicitud_actividad (
+        id_solicitante,
+        id_estado_actividad,
+        id_prioridad,
+        fecha_creacion,
+        fecha_actividad,
+        hora_inicio,
+        hora_fin,
+        nombre_actividad,
+        descripcion_actividad,
+        lugar_actividad
+      ) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)
+    `;
+
+    conexion.query(
+      sqlSolicitud,
+      [
+        idSolicitante,
+        idEstadoActividad,
+        idPrioridad,
+        fechaActividad,
+        horaInicio,
+        horaFin,
+        nombreActividad,
+        descripcionActividad || null,
+        lugarActividad
+      ],
+      (error, resultado) => {
+        if (error) {
+          return conexion.rollback(() => {
+            console.error('ERROR MYSQL:', error);
+            res.status(500).json({ mensaje: 'Error al crear la solicitud' });
+          });
+        }
+
+        const idSolicitud = resultado.insertId;
+
+        // Insertar detalle si existe
+        if (detalle && detalle.length > 0) {
+          const sqlDetalle = 'INSERT INTO detalle_solicitud (id_solicitud, descripcion_detalle, cantidad) VALUES ?';
+          const valoresDetalle = detalle.map(d => [idSolicitud, d.descripcionDetalle, d.cantidad]);
+
+          conexion.query(sqlDetalle, [valoresDetalle], (error) => {
+            if (error) {
+              return conexion.rollback(() => {
+                console.error('ERROR MYSQL:', error);
+                res.status(500).json({ mensaje: 'Error al insertar detalle' });
+              });
+            }
+          });
+        }
+
+        // Asignar personal si existe
+        if (personalAsignado && personalAsignado.length > 0) {
+          const sqlPersonal = 'INSERT INTO asignacion_usuario (id_solicitud, id_usuario, fecha_asignacion, observacion) VALUES ?';
+          const valoresPersonal = personalAsignado.map(p => [idSolicitud, p.idUsuario, new Date(), p.observacion || null]);
+
+          conexion.query(sqlPersonal, [valoresPersonal], (error) => {
+            if (error) {
+              return conexion.rollback(() => {
+                console.error('ERROR MYSQL:', error);
+                res.status(500).json({ mensaje: 'Error al asignar personal' });
+              });
+            }
+          });
+        }
+
+        // Asignar recursos si existe
+        if (recursosAsignados && recursosAsignados.length > 0) {
+          const sqlRecursos = 'INSERT INTO asignacion_recurso (id_solicitud, id_recurso, cantidad, fecha_asignacion, observacion) VALUES ?';
+          const valoresRecursos = recursosAsignados.map(r => [idSolicitud, r.idRecurso, r.cantidad || 1, new Date(), r.observacion || null]);
+
+          conexion.query(sqlRecursos, [valoresRecursos], (error) => {
+            if (error) {
+              return conexion.rollback(() => {
+                console.error('ERROR MYSQL:', error);
+                res.status(500).json({ mensaje: 'Error al asignar recursos' });
+              });
+            }
+          });
+        }
+
+        conexion.commit((error) => {
+          if (error) {
+            return conexion.rollback(() => {
+              console.error('ERROR MYSQL:', error);
+              res.status(500).json({ mensaje: 'Error al guardar la solicitud' });
+            });
+          }
+
+          res.status(201).json({
+            mensaje: 'Solicitud creada correctamente',
+            id: idSolicitud
+          });
+        });
+      }
+    );
+  });
+});
+
+// PUT - Actualizar solicitud
+router.put('/solicitudes/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    idSolicitante,
+    idEstadoActividad,
+    idPrioridad,
+    fechaActividad,
+    horaInicio,
+    horaFin,
+    nombreActividad,
+    descripcionActividad,
+    lugarActividad
+  } = req.body;
+
+  const sql = `
+    UPDATE solicitud_actividad SET
+      id_solicitante = ?,
+      id_estado_actividad = ?,
+      id_prioridad = ?,
+      fecha_actividad = ?,
+      hora_inicio = ?,
+      hora_fin = ?,
+      nombre_actividad = ?,
+      descripcion_actividad = ?,
+      lugar_actividad = ?
+    WHERE id_solicitud = ?
+  `;
+
+  conexion.query(
+    sql,
+    [
+      idSolicitante,
+      idEstadoActividad,
+      idPrioridad,
+      fechaActividad,
+      horaInicio,
+      horaFin,
+      nombreActividad,
+      descripcionActividad || null,
+      lugarActividad,
+      id
+    ],
+    (error) => {
+      if (error) {
+        console.error('ERROR MYSQL:', error);
+        return res.status(500).json({ mensaje: 'Error al actualizar la solicitud' });
+      }
+      res.json({ mensaje: 'Solicitud actualizada correctamente' });
+    }
+  );
+});
+
+// DELETE - Eliminar solicitud
+router.delete('/solicitudes/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM solicitud_actividad WHERE id_solicitud = ?';
+  conexion.query(sql, [id], (error) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al eliminar la solicitud' });
+    }
+    res.json({ mensaje: 'Solicitud eliminada correctamente' });
+  });
+});
+
+module.exports = router;

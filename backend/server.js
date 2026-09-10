@@ -6,6 +6,8 @@ const conexion = require('./db');
 const verificarToken = require('./middleware/auth');
 const catalogosRoutes = require('./routes/catalogos');
 const solicitantesRoutes = require('./routes/solicitantes');
+const recursosRoutes = require('./routes/recursos');
+const solicitudesRoutes = require('./routes/solicitudes');
 
 const app = express();
 
@@ -80,6 +82,8 @@ app.post('/api/login', (req, res) => {
 
 app.use('/api', catalogosRoutes);
 app.use('/api', solicitantesRoutes);
+app.use('/api', recursosRoutes);
+app.use('/api', solicitudesRoutes);
 
 app.post('/api/usuarios', verificarToken, (req, res) => {
 
