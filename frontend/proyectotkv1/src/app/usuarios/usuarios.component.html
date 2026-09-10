@@ -1,0 +1,275 @@
+<div class="usuarios-container">
+
+  <div class="encabezado">
+    <div>
+      <h1>Gestión de Usuarios</h1>
+      <p>Administración del personal y cuentas de acceso al sistema.</p>
+    </div>
+
+    <button class="btn-nuevo" (click)="mostrarFormulario = true">
+      + Nuevo usuario
+    </button>
+  </div>
+
+  <div class="formulario-container" *ngIf="mostrarFormulario">
+
+    <div class="formulario-header">
+      <h2>{{ editando ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+
+      <button
+        type="button"
+        class="btn-cerrar"
+        (click)="mostrarFormulario = false">
+        ×
+      </button>
+    </div>
+
+    <form (ngSubmit)="guardarUsuario()">
+
+      <h3>Datos personales</h3>
+
+      <div class="form-grid">
+
+        <div class="campo">
+          <label>Primer nombre</label>
+          <input
+            type="text"
+            [(ngModel)]="primerNombre"
+            name="primerNombre"
+            placeholder="Ingrese primer nombre">
+        </div>
+
+        <div class="campo">
+          <label>Segundo nombre</label>
+          <input
+            type="text"
+            [(ngModel)]="segundoNombre"
+            name="segundoNombre"
+            placeholder="Ingrese segundo nombre">
+        </div>
+
+        <div class="campo">
+          <label>Primer apellido</label>
+          <input
+            type="text"
+            [(ngModel)]="primerApellido"
+            name="primerApellido"
+            placeholder="Ingrese primer apellido">
+        </div>
+
+        <div class="campo">
+          <label>Segundo apellido</label>
+          <input
+            type="text"
+            [(ngModel)]="segundoApellido"
+            name="segundoApellido"
+            placeholder="Ingrese segundo apellido">
+        </div>
+
+        <div class="campo">
+          <label>DPI</label>
+          <input
+            type="text"
+            [(ngModel)]="dpi"
+            name="dpi"
+            placeholder="Ingrese DPI">
+        </div>
+
+        <div class="campo">
+          <label>Teléfono</label>
+          <input
+            type="text"
+            [(ngModel)]="telefono"
+            name="telefono"
+            placeholder="Ingrese teléfono">
+        </div>
+
+        <div class="campo campo-completo">
+          <label>Correo electrónico</label>
+          <input
+            type="email"
+            [(ngModel)]="correoElectronico"
+            name="correoElectronico"
+            placeholder="Ingrese correo electrónico">
+        </div>
+
+      </div>
+
+      <h3>Información laboral</h3>
+
+      <div class="form-grid">
+
+        <div class="campo">
+          <label>Tipo de empleado</label>
+
+          <select
+            [(ngModel)]="idTipoEmpleado"
+            name="idTipoEmpleado">
+
+            <option [ngValue]="0">
+              Seleccione tipo de empleado
+            </option>
+
+            <option
+              *ngFor="let tipo of tiposEmpleado"
+              [ngValue]="tipo.id_tipo_empleado">
+              {{ tipo.nombre_tipo_empleado }}
+            </option>
+
+          </select>
+        </div>
+
+        <div class="campo">
+          <label>Cargo</label>
+
+          <select
+            [(ngModel)]="idCargo"
+            name="idCargo">
+
+            <option [ngValue]="0">
+              Seleccione cargo
+            </option>
+
+            <option
+              *ngFor="let cargo of cargos"
+              [ngValue]="cargo.id_cargo">
+              {{ cargo.nombre_cargo }}
+            </option>
+
+          </select>
+        </div>
+
+      </div>
+
+      <h3>Cuenta de acceso</h3>
+
+      <div class="form-grid">
+
+        <div class="campo">
+          <label>Nombre de usuario</label>
+
+          <input
+            type="text"
+            [(ngModel)]="nombreUsuario"
+            name="nombreUsuario"
+            placeholder="Ingrese nombre de usuario">
+        </div>
+
+        <div class="campo">
+          <label>Contraseña</label>
+
+          <input
+            type="password"
+            [(ngModel)]="contrasena"
+            name="contrasena"
+            placeholder="Ingrese contraseña">
+        </div>
+
+        <div class="campo">
+          <label>Rol</label>
+
+          <select
+            [(ngModel)]="idRol"
+            name="idRol">
+
+            <option [ngValue]="0">
+              Seleccione rol
+            </option>
+
+            <option
+              *ngFor="let rol of roles"
+              [ngValue]="rol.id_rol">
+              {{ rol.nombre_rol }}
+            </option>
+
+          </select>
+        </div>
+
+        <div class="campo">
+          <label>Estado</label>
+
+          <select
+            [(ngModel)]="idEstadoUsuario"
+            name="idEstadoUsuario">
+
+            <option [ngValue]="0">
+              Seleccione estado
+            </option>
+
+            <option
+              *ngFor="let estado of estadosUsuario"
+              [ngValue]="estado.id_estado_usuario">
+              {{ estado.nombre_estado }}
+            </option>
+
+          </select>
+        </div>
+
+      </div>
+
+      <div class="formulario-botones">
+
+        <button
+          type="button"
+          class="btn-cancelar"
+          (click)="mostrarFormulario = false">
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn-guardar">
+          Guardar usuario
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+  <div class="tabla-container">
+
+    <h2>Usuarios registrados</h2>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Opciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let usuario of usuarios">
+
+          <td>{{ usuario.id_cuenta }}</td>
+          <td>{{ usuario.nombre_usuario }}</td>
+          <td>{{ usuario.nombre_rol }}</td>
+          <td>{{ usuario.nombre_estado }}</td>
+
+          <td>
+            <button
+              type="button"
+              class="btn-editar"
+              (click)="editarUsuario(usuario.id_cuenta)">
+              Editar
+            </button>
+
+           
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>

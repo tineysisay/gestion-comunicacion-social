@@ -1,6 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const conexion = require('./db');
+const verificarToken = require('./middleware/auth');
 
 const app = express();
 
@@ -13,14 +16,17 @@ app.post('/api/login', (req, res) => {
 
   const sql = `
     SELECT 
-      id_cuenta,
-      id_usuario,
-      id_rol,
-      nombre_usuario,
-      id_estado_usuario
-    FROM cuenta_usuario
-    WHERE nombre_usuario = ? 
-      AND contrasena = ?
+      cu.id_cuenta,
+      cu.id_usuario,
+      cu.id_rol,
+      cu.nombre_usuario,
+      cu.id_estado_usuario,
+      du.primer_nombre,
+      du.primer_apellido
+    FROM cuenta_usuario cu
+    INNER JOIN datos_usuario du ON cu.id_usuario = du.id_usuario
+    WHERE cu.nombre_usuario = ? 
+      AND cu.contrasena = ?
   `;
 
   conexion.query(sql, [usuario, contrasena], (error, resultados) => {
@@ -41,16 +47,36 @@ app.post('/api/login', (req, res) => {
 
     }
 
+    const usuarioData = resultados[0];
+
+    const token = jwt.sign(
+      {
+        id_cuenta: usuarioData.id_cuenta,
+        id_usuario: usuarioData.id_usuario,
+        id_rol: usuarioData.id_rol,
+        nombre_usuario: usuarioData.nombre_usuario
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN }
+    );
+
     res.json({
       mensaje: 'Login exitoso',
-      usuario: resultados[0]
+      token: token,
+      usuario: {
+        id_cuenta: usuarioData.id_cuenta,
+        nombre_usuario: usuarioData.nombre_usuario,
+        id_rol: usuarioData.id_rol,
+        primer_nombre: usuarioData.primer_nombre,
+        primer_apellido: usuarioData.primer_apellido
+      }
     });
 
   });
 
 });
 
-app.post('/api/usuarios', (req, res) => {
+app.post('/api/usuarios', verificarToken, (req, res) => {
 
   const {
     primerNombre,
@@ -175,7 +201,7 @@ console.log('ID PERSONA INSERTADA:', idUsuario);
   });
 
 });
-app.get('/api/usuarios', (req, res) => {
+app.get('/api/usuarios', verificarToken, (req, res) => {
 
   const sql = `
     SELECT 
@@ -206,7 +232,7 @@ app.get('/api/usuarios', (req, res) => {
 
 });
 
-app.get('/api/tipos-empleado', (req, res) => {
+app.get('/api/tipos-empleado', verificarToken, (req, res) => {
 
   const sql = `
     SELECT 
@@ -231,7 +257,7 @@ app.get('/api/tipos-empleado', (req, res) => {
 
 });
 
-app.get('/api/usuarios/:id', (req, res) => {
+app.get('/api/usuarios/:id', verificarToken, (req, res) => {
 
   const { id } = req.params;
 
@@ -282,7 +308,7 @@ app.get('/api/usuarios/:id', (req, res) => {
 
 });
 
-app.put('/api/usuarios/:id', (req, res) => {
+app.put('/api/usuarios/:id', verificarToken, (req, res) => {
 
   const { id } = req.params;
 
@@ -404,7 +430,7 @@ app.put('/api/usuarios/:id', (req, res) => {
   });
 
 });
-app.get('/api/cargos', (req, res) => {
+app.get('/api/cargos', verificarToken, (req, res) => {
 
   const sql = `
     SELECT 
@@ -429,7 +455,7 @@ app.get('/api/cargos', (req, res) => {
 
 });
 
-app.get('/api/roles', (req, res) => {
+app.get('/api/roles', verificarToken, (req, res) => {
 
   const sql = `
     SELECT 
@@ -454,7 +480,7 @@ app.get('/api/roles', (req, res) => {
 
 });
 
-app.get('/api/estados-usuario', (req, res) => {
+app.get('/api/estados-usuario', verificarToken, (req, res) => {
 
   const sql = `
     SELECT 
@@ -487,60 +513,7 @@ app.get('/', (req, res) => {
 
 });
 
-const PORT = 3000;
-app.get('/api/usuarios/:id', (req, res) => {
-
-  const idCuenta = req.params.id;
-
-  const sql = `
-    SELECT
-      cu.id_cuenta,
-      du.id_usuario,
-      du.primer_nombre,
-      du.segundo_nombre,
-      du.primer_apellido,
-      du.segundo_apellido,
-      du.dpi,
-      du.telefono,
-      du.correo_electronico,
-      te.id_tipo_empleado,
-      cu2.id_cargo,
-      cu.id_rol,
-      cu.nombre_usuario,
-      cu.contrasena,
-      cu.id_estado_usuario
-    FROM cuenta_usuario cu
-    INNER JOIN datos_usuario du
-      ON cu.id_usuario = du.id_usuario
-    INNER JOIN cargo_usuario cu2
-      ON du.id_cargo = cu2.id_cargo
-    INNER JOIN tipo_empleado te
-      ON cu2.id_tipo_empleado = te.id_tipo_empleado
-    WHERE cu.id_cuenta = ?
-  `;
-
-  conexion.query(sql, [idCuenta], (error, resultados) => {
-
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-
-      return res.status(500).json({
-        mensaje: 'Error al obtener el usuario'
-      });
-    }
-
-    if (resultados.length === 0) {
-      return res.status(404).json({
-        mensaje: 'Usuario no encontrado'
-      });
-    }
-
-    res.json(resultados[0]);
-
-  });
-
-});
-app.delete('/api/usuarios/:id', (req, res) => {
+app.delete('/api/usuarios/:id', verificarToken, (req, res) => {
 
   const idCuenta = req.params.id;
 
@@ -646,10 +619,12 @@ app.delete('/api/usuarios/:id', (req, res) => {
 
 });
 
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
 
   console.log(
-    `Servidor ejecutándose en http://localhost:${PORT}`
+    `Servidor ejecutandose en http://localhost:${PORT}`
   );
 
 });
