@@ -1,0 +1,94 @@
+<div class="container">
+
+  <div class="encabezado">
+    <div>
+      <h1>Gestion de Solicitantes</h1>
+      <p>Administracion de personas e instituciones que solicitan servicios</p>
+    </div>
+    <button class="btn-nuevo" (click)="nuevo()">+ Nuevo solicitante</button>
+  </div>
+
+  <div class="formulario-container" *ngIf="mostrarFormulario">
+    <div class="formulario-header">
+      <h2>{{ editando ? 'Editar solicitante' : 'Nuevo solicitante' }}</h2>
+      <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
+    </div>
+
+    <form (ngSubmit)="guardar()">
+      <h3>Datos personales</h3>
+      <div class="form-grid">
+        <div class="campo">
+          <label>Primer nombre</label>
+          <input type="text" [(ngModel)]="primerNombre" name="primerNombre" required>
+        </div>
+        <div class="campo">
+          <label>Segundo nombre</label>
+          <input type="text" [(ngModel)]="segundoNombre" name="segundoNombre">
+        </div>
+        <div class="campo">
+          <label>Primer apellido</label>
+          <input type="text" [(ngModel)]="primerApellido" name="primerApellido" required>
+        </div>
+        <div class="campo">
+          <label>Segundo apellido</label>
+          <input type="text" [(ngModel)]="segundoApellido" name="segundoApellido">
+        </div>
+        <div class="campo">
+          <label>Telefono</label>
+          <input type="text" [(ngModel)]="telefono" name="telefono">
+        </div>
+        <div class="campo">
+          <label>Correo electronico</label>
+          <input type="email" [(ngModel)]="correoElectronico" name="correoElectronico">
+        </div>
+        <div class="campo campo-completo">
+          <label>Institucion</label>
+          <select [(ngModel)]="idInstitucion" name="idInstitucion">
+            <option [value]="0">Sin institucion</option>
+            <option *ngFor="let inst of instituciones" [value]="inst.id_institucion">
+              {{ inst.nombre_institucion }}
+            </option>
+          </select>
+        </div>
+        <div class="campo campo-completo">
+          <label>Descripcion</label>
+          <textarea [(ngModel)]="descripcionSolicitante" name="descripcionSolicitante" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="formulario-botones">
+        <button type="button" class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+        <button type="submit" class="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="tabla-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Telefono</th>
+          <th>Correo</th>
+          <th>Institucion</th>
+          <th>Opciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of solicitantes">
+          <td>{{ s.id_solicitante }}</td>
+          <td>{{ s.primer_nombre }} {{ s.primer_apellido }}</td>
+          <td>{{ s.telefono }}</td>
+          <td>{{ s.correo_electronico }}</td>
+          <td>{{ s.nombre_institucion || 'Sin institucion' }}</td>
+          <td>
+            <button class="btn-editar" (click)="editar(s.id_solicitante)">Editar</button>
+            <button class="btn-eliminar" (click)="eliminar(s.id_solicitante)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

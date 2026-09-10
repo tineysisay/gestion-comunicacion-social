@@ -1,0 +1,81 @@
+<div class="container">
+
+  <div class="encabezado">
+    <div>
+      <h1>Gestion de Recursos</h1>
+      <p>Administracion de equipos y recursos disponibles</p>
+    </div>
+    <button class="btn-nuevo" (click)="nuevo()">+ Nuevo recurso</button>
+  </div>
+
+  <div class="formulario-container" *ngIf="mostrarFormulario">
+    <div class="formulario-header">
+      <h2>{{ editando ? 'Editar recurso' : 'Nuevo recurso' }}</h2>
+      <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
+    </div>
+
+    <form (ngSubmit)="guardar()">
+      <div class="form-grid">
+        <div class="campo">
+          <label>Nombre del recurso</label>
+          <input type="text" [(ngModel)]="nombreRecurso" name="nombreRecurso" required>
+        </div>
+        <div class="campo">
+          <label>Tipo de recurso</label>
+          <select [(ngModel)]="idTipoRecurso" name="idTipoRecurso" required>
+            <option [value]="0">Seleccionar tipo</option>
+            <option *ngFor="let t of tiposRecurso" [value]="t.id_tipo_recurso">
+              {{ t.nombre_tipo_recurso }}
+            </option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Estado</label>
+          <select [(ngModel)]="estadoRecurso" name="estadoRecurso" required>
+            <option value="Disponible">Disponible</option>
+            <option value="En uso">En uso</option>
+            <option value="Mantenimiento">Mantenimiento</option>
+          </select>
+        </div>
+        <div class="campo campo-completo">
+          <label>Descripcion</label>
+          <textarea [(ngModel)]="descripcionRecurso" name="descripcionRecurso" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="formulario-botones">
+        <button type="button" class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+        <button type="submit" class="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="tabla-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Descripcion</th>
+          <th>Opciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of recursos">
+          <td>{{ r.id_recurso }}</td>
+          <td>{{ r.nombre_recurso }}</td>
+          <td>{{ r.nombre_tipo_recurso }}</td>
+          <td>{{ r.estado_recurso }}</td>
+          <td>{{ r.descripcion_recurso }}</td>
+          <td>
+            <button class="btn-editar" (click)="editar(r.id_recurso)">Editar</button>
+            <button class="btn-eliminar" (click)="eliminar(r.id_recurso)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

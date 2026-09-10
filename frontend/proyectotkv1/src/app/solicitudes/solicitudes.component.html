@@ -1,0 +1,194 @@
+<div class="container">
+
+  <div class="encabezado">
+    <div>
+      <h1>Gestion de Solicitudes</h1>
+      <p>Administracion de solicitudes de servicios de Comunicacion Social</p>
+    </div>
+    <button class="btn-nuevo" (click)="nuevo()">+ Nueva solicitud</button>
+  </div>
+
+  <div class="formulario-container" *ngIf="mostrarFormulario">
+    <div class="formulario-header">
+      <h2>{{ editando ? 'Editar solicitud' : 'Nueva solicitud' }}</h2>
+      <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
+    </div>
+
+    <form (ngSubmit)="guardar()">
+      <h3>Datos de la actividad</h3>
+      <div class="form-grid">
+        <div class="campo campo-completo">
+          <label>Nombre de la actividad</label>
+          <input type="text" [(ngModel)]="nombreActividad" name="nombreActividad" required>
+        </div>
+        <div class="campo">
+          <label>Solicitante</label>
+          <select [(ngModel)]="idSolicitante" name="idSolicitante" required>
+            <option [value]="0">Seleccionar solicitante</option>
+            <option *ngFor="let s of solicitantes" [value]="s.id_solicitante">
+              {{ s.primer_nombre }} {{ s.primer_apellido }}
+            </option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Prioridad</label>
+          <select [(ngModel)]="idPrioridad" name="idPrioridad" required>
+            <option [value]="0">Seleccionar prioridad</option>
+            <option *ngFor="let p of prioridades" [value]="p.id_prioridad">
+              {{ p.nombre_prioridad }}
+            </option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Fecha de actividad</label>
+          <input type="date" [(ngModel)]="fechaActividad" name="fechaActividad" required>
+        </div>
+        <div class="campo">
+          <label>Estado</label>
+          <select [(ngModel)]="idEstadoActividad" name="idEstadoActividad" required>
+            <option [value]="0">Seleccionar estado</option>
+            <option *ngFor="let e of estadosActividad" [value]="e.id_estado_actividad">
+              {{ e.nombre_estado }}
+            </option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Hora inicio</label>
+          <input type="time" [(ngModel)]="horaInicio" name="horaInicio" required>
+        </div>
+        <div class="campo">
+          <label>Hora fin</label>
+          <input type="time" [(ngModel)]="horaFin" name="horaFin" required>
+        </div>
+        <div class="campo campo-completo">
+          <label>Lugar</label>
+          <input type="text" [(ngModel)]="lugarActividad" name="lugarActividad" required>
+        </div>
+        <div class="campo campo-completo">
+          <label>Descripcion</label>
+          <textarea [(ngModel)]="descripcionActividad" name="descripcionActividad" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="formulario-botones">
+        <button type="button" class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+        <button type="submit" class="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="detalle-container" *ngIf="mostrarDetalle && solicitudActual">
+    <div class="formulario-header">
+      <h2>{{ solicitudActual.nombre_actividad }}</h2>
+      <button class="btn-cerrar" (click)="mostrarDetalle = false">x</button>
+    </div>
+
+    <div class="detalle-info">
+      <div class="detalle-columna">
+        <p><strong>Solicitante:</strong> {{ solicitudActual.s_nombre }} {{ solicitudActual.s_apellido }}</p>
+        <p><strong>Lugar:</strong> {{ solicitudActual.lugar_actividad }}</p>
+        <p><strong>Fecha:</strong> {{ solicitudActual.fecha_actividad }}</p>
+        <p><strong>Horario:</strong> {{ solicitudActual.hora_inicio }} - {{ solicitudActual.hora_fin }}</p>
+      </div>
+      <div class="detalle-columna">
+        <p><strong>Estado:</strong> {{ solicitudActual.nombre_estado }}</p>
+        <p><strong>Prioridad:</strong> {{ solicitudActual.nombre_prioridad }}</p>
+        <p><strong>Creada:</strong> {{ solicitudActual.fecha_creacion }}</p>
+      </div>
+    </div>
+
+    <div class="detalle-acciones">
+      <h3>Cambiar estado</h3>
+      <div class="btn-estados">
+        <button *ngFor="let e of estadosActividad"
+          class="btn-estado"
+          [class.activo]="e.id_estado_actividad == solicitudActual.id_estado_actividad"
+          (click)="cambiarEstado(e.id_estado_actividad)">
+          {{ e.nombre_estado }}
+        </button>
+      </div>
+    </div>
+
+    <div class="detalle-asignaciones">
+      <h3>Personal asignado</h3>
+      <div class="asignar-row">
+        <select [(ngModel)]="idUsuarioAsignar">
+          <option [value]="0">Seleccionar usuario</option>
+          <option *ngFor="let u of usuarios" [value]="u.id_cuenta">
+            {{ u.nombre_usuario }} - {{ u.nombre_rol }}
+          </option>
+        </select>
+        <button class="btn-asignar" (click)="asignarPersonal()">Asignar</button>
+      </div>
+      <table *ngIf="solicitudActual.personal?.length > 0">
+        <thead>
+          <tr><th>Nombre</th><th>Cargo</th><th>Accion</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of solicitudActual.personal">
+            <td>{{ p.primer_nombre }} {{ p.primer_apellido }}</td>
+            <td>{{ p.nombre_cargo }}</td>
+            <td><button class="btn-eliminar" (click)="eliminarAsignacionUsuario(p.id_asignacion_usuario)">Quitar</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="detalle-asignaciones">
+      <h3>Recursos asignados</h3>
+      <div class="asignar-row">
+        <select [(ngModel)]="idRecursoAsignar">
+          <option [value]="0">Seleccionar recurso</option>
+          <option *ngFor="let r of recursos" [value]="r.id_recurso">
+            {{ r.nombre_recurso }} ({{ r.nombre_tipo_recurso }})
+          </option>
+        </select>
+        <button class="btn-asignar" (click)="asignarRecurso()">Asignar</button>
+      </div>
+      <table *ngIf="solicitudActual.recursos?.length > 0">
+        <thead>
+          <tr><th>Nombre</th><th>Tipo</th><th>Accion</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of solicitudActual.recursos">
+            <td>{{ r.nombre_recurso }}</td>
+            <td>{{ r.nombre_tipo_recurso }}</td>
+            <td><button class="btn-eliminar" (click)="eliminarAsignacionRecurso(r.id_asignacion_recurso)">Quitar</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tabla-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Actividad</th>
+          <th>Solicitante</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Prioridad</th>
+          <th>Opciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of solicitudes">
+          <td>{{ s.id_solicitud }}</td>
+          <td>{{ s.nombre_actividad }}</td>
+          <td>{{ s.nombre_solicitante }}</td>
+          <td>{{ s.fecha_actividad }}</td>
+          <td>{{ s.estado }}</td>
+          <td>{{ s.prioridad }}</td>
+          <td>
+            <button class="btn-ver" (click)="verDetalle(s.id_solicitud)">Ver</button>
+            <button class="btn-editar" (click)="editar(s.id_solicitud)">Editar</button>
+            <button class="btn-eliminar" (click)="eliminar(s.id_solicitud)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

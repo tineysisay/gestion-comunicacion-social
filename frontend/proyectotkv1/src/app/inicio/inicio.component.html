@@ -4,18 +4,20 @@
 
     <div class="logo">
       <img src="assets/LOGOT.png" alt="Logo Municipalidad">
-      <h2>Municipalidad de Santiago Atitlán</h2>
+      <h2>Municipalidad de Santiago Atitlan</h2>
     </div>
 
     <nav>
-      <a>Tablero Kanban</a>
-      <a>Solicitudes</a>
-      <a>Calendario</a>
-      <a routerLink="/inicio/usuarios">Usuarios</a>
-      <a>Reportes</a>
-      <a>Solicitantes</a>
-      <a>Configuración</a>
+      <a routerLink="/inicio/solicitudes" routerLinkActive="activo">Solicitudes</a>
+      <a routerLink="/inicio/solicitantes" routerLinkActive="activo">Solicitantes</a>
+      <a routerLink="/inicio/recursos" routerLinkActive="activo">Recursos</a>
+      <a routerLink="/inicio/usuarios" routerLinkActive="activo">Usuarios</a>
+      <a routerLink="/inicio/configuracion" routerLinkActive="activo">Configuracion</a>
     </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="cerrarSesion()">Cerrar sesion</button>
+    </div>
 
   </aside>
 

@@ -1,0 +1,70 @@
+<div class="container">
+
+  <div class="encabezado">
+    <div>
+      <h1>Configuracion del Sistema</h1>
+      <p>Gestion de catalogos y opciones del sistema</p>
+    </div>
+  </div>
+
+  <div class="pestanhas-container">
+    <button
+      *ngFor="let p of pestanas"
+      class="pestana"
+      [class.activa]="pestanaActiva === p.id"
+      (click)="cambiarPestana(p.id)">
+      {{ p.nombre }}
+    </button>
+  </div>
+
+  <div class="formulario-container" *ngIf="mostrarFormulario">
+    <div class="formulario-header">
+      <h2>{{ editando ? 'Editar registro' : 'Nuevo registro' }}</h2>
+      <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
+    </div>
+
+    <form (ngSubmit)="guardar()">
+      <div class="form-grid">
+        <div class="campo">
+          <label>{{ getPlaceholder() }}</label>
+          <input type="text" [(ngModel)]="nombreCampo" name="nombreCampo" required>
+        </div>
+      </div>
+
+      <div class="formulario-botones">
+        <button type="button" class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+        <button type="submit" class="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="tabla-container">
+    <div class="tabla-header">
+      <h2>{{ nombrePestanaActual }}</h2>
+      <button class="btn-nuevo" (click)="nuevo()">+ Nuevo</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Opciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of datos">
+          <td>{{ item[getIdCampo()] }}</td>
+          <td>{{ item[getNombreColumna()] }}</td>
+          <td>
+            <button class="btn-editar" (click)="editar(item)">Editar</button>
+            <button class="btn-eliminar" (click)="eliminar(item[getIdCampo()])">Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="datos.length === 0">
+          <td colspan="3" class="sin-datos">No hay registros</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
