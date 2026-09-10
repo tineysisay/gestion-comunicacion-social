@@ -4,11 +4,16 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const conexion = require('./db');
 const verificarToken = require('./middleware/auth');
+const catalogosRoutes = require('./routes/catalogos');
+const solicitantesRoutes = require('./routes/solicitantes');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api', catalogosRoutes);
+app.use('/api', solicitantesRoutes);
 
 app.post('/api/login', (req, res) => {
 
@@ -232,31 +237,6 @@ app.get('/api/usuarios', verificarToken, (req, res) => {
 
 });
 
-app.get('/api/tipos-empleado', verificarToken, (req, res) => {
-
-  const sql = `
-    SELECT 
-      id_tipo_empleado,
-      nombre_tipo_empleado
-    FROM tipo_empleado
-  `;
-
-  conexion.query(sql, (error, resultados) => {
-
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-
-      return res.status(500).json({
-        mensaje: 'Error al obtener tipos de empleado'
-      });
-    }
-
-    res.json(resultados);
-
-  });
-
-});
-
 app.get('/api/usuarios/:id', verificarToken, (req, res) => {
 
   const { id } = req.params;
@@ -426,80 +406,6 @@ app.put('/api/usuarios/:id', verificarToken, (req, res) => {
 
       }
     );
-
-  });
-
-});
-app.get('/api/cargos', verificarToken, (req, res) => {
-
-  const sql = `
-    SELECT 
-      id_cargo,
-      nombre_cargo
-    FROM cargo_usuario
-  `;
-
-  conexion.query(sql, (error, resultados) => {
-
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-
-      return res.status(500).json({
-        mensaje: 'Error al obtener cargos'
-      });
-    }
-
-    res.json(resultados);
-
-  });
-
-});
-
-app.get('/api/roles', verificarToken, (req, res) => {
-
-  const sql = `
-    SELECT 
-      id_rol,
-      nombre_rol
-    FROM rol_usuario
-  `;
-
-  conexion.query(sql, (error, resultados) => {
-
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-
-      return res.status(500).json({
-        mensaje: 'Error al obtener roles'
-      });
-    }
-
-    res.json(resultados);
-
-  });
-
-});
-
-app.get('/api/estados-usuario', verificarToken, (req, res) => {
-
-  const sql = `
-    SELECT 
-      id_estado_usuario,
-      nombre_estado
-    FROM estado_usuario
-  `;
-
-  conexion.query(sql, (error, resultados) => {
-
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-
-      return res.status(500).json({
-        mensaje: 'Error al obtener estados'
-      });
-    }
-
-    res.json(resultados);
 
   });
 
