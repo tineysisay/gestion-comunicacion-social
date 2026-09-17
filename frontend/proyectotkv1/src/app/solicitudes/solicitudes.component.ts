@@ -49,6 +49,7 @@ export class SolicitudesComponent implements OnInit {
 
   idUsuarioAsignar = 0;
   idRecursoAsignar = 0;
+  personalAsignado: number[] = [];
 
   constructor(
     private solicitudService: SolicitudService,
@@ -132,6 +133,13 @@ export class SolicitudesComponent implements OnInit {
         this.idSolicitante = solicitud.id_solicitante;
         this.idEstadoActividad = solicitud.id_estado_actividad;
         this.idPrioridad = solicitud.id_prioridad;
+
+        this.solicitudService.obtenerAsignacionesUsuario(id).subscribe({
+          next: (asignaciones) => {
+            this.personalAsignado = asignaciones.map((a: any) => a.id_usuario);
+          },
+          error: (err) => console.error('Error al cargar asignaciones', err)
+        });
       },
       error: (error) => console.error('Error:', error)
     });
@@ -157,7 +165,8 @@ export class SolicitudesComponent implements OnInit {
       lugarActividad: this.lugarActividad,
       idSolicitante: this.idSolicitante,
       idEstadoActividad: this.idEstadoActividad,
-      idPrioridad: this.idPrioridad
+      idPrioridad: this.idPrioridad,
+      personalAsignado: this.personalAsignado
     };
 
     if (this.editando) {
@@ -265,5 +274,19 @@ export class SolicitudesComponent implements OnInit {
     this.idSolicitante = 0;
     this.idEstadoActividad = 0;
     this.idPrioridad = 0;
+    this.personalAsignado = [];
+  }
+
+  toggleResponsable(idUsuario: number): void {
+    const idx = this.personalAsignado.indexOf(idUsuario);
+    if (idx >= 0) {
+      this.personalAsignado.splice(idx, 1);
+    } else {
+      this.personalAsignado.push(idUsuario);
+    }
+  }
+
+  estaAsignado(idUsuario: number): boolean {
+    return this.personalAsignado.includes(idUsuario);
   }
 }

@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { CatalogoService } from '../services/catalogo.service';
 import { SolicitanteService } from '../services/solicitante.service';
+import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
 import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
 import { Subscription } from 'rxjs';
@@ -30,10 +31,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
   solicitantes: any[] = [];
   estadosActividad: any[] = [];
   prioridades: any[] = [];
+  usuarios: any[] = [];
 
   // Accordion
   seccionDatos = true;
   seccionSolicitante = false;
+  seccionResponsable = false;
   seccionEstado = false;
 
   // Formulario
@@ -46,11 +49,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
   idSolicitante = 0;
   idEstadoActividad = 0;
   idPrioridad = 0;
+  personalAsignado: number[] = [];
 
   constructor(
     private solicitudService: SolicitudService,
     private catalogoService: CatalogoService,
     private solicitanteService: SolicitanteService,
+    private api: ApiService,
     public authService: AuthService
   ) {}
 
@@ -90,6 +95,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.catalogoService.obtenerPrioridades().subscribe({
       next: (datos) => this.prioridades = datos,
       error: (err) => console.error('Error al cargar prioridades', err)
+    });
+
+    this.api.get<any[]>('usuarios').subscribe({
+      next: (datos) => this.usuarios = datos,
+      error: (err) => console.error('Error al cargar usuarios', err)
     });
   }
 
@@ -149,10 +159,31 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.idSolicitante = s.id_solicitante || 0;
     this.idEstadoActividad = s.id_estado_actividad || 0;
     this.idPrioridad = s.id_prioridad || 0;
+
+    this.solicitudService.obtenerAsignacionesUsuario(s.id_solicitud).subscribe({
+      next: (asignaciones) => {
+        this.personalAsignado = asignaciones.map((a: any) => a.id_usuario);
+      },
+      error: (err) => console.error('Error al cargar asignaciones', err)
+    });
   }
 
   cancelarEdicion(): void {
     this.modoEdicion = false;
+    this.personalAsignado = [];
+  }
+
+  toggleResponsable(idUsuario: number): void {
+    const idx = this.personalAsignado.indexOf(idUsuario);
+    if (idx >= 0) {
+      this.personalAsignado.splice(idx, 1);
+    } else {
+      this.personalAsignado.push(idUsuario);
+    }
+  }
+
+  estaAsignado(idUsuario: number): boolean {
+    return this.personalAsignado.includes(idUsuario);
   }
 
   guardarEdicion(): void {
@@ -165,7 +196,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
       lugarActividad: this.lugarActividad,
       idSolicitante: this.idSolicitante,
       idEstadoActividad: this.idEstadoActividad,
-      idPrioridad: this.idPrioridad
+      idPrioridad: this.idPrioridad,
+      personalAsignado: this.personalAsignado
     };
 
     this.solicitudService.actualizar(this.idEditar, data).subscribe({
@@ -174,6 +206,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
         this.showModal = false;
         this.modoEdicion = false;
         this.solicitudSeleccionada = null;
+        this.personalAsignado = [];
         this.cargarSolicitudes();
         this.solicitudService.notificarCambio();
       },

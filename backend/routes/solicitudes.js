@@ -298,48 +298,109 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
     horaFin,
     nombreActividad,
     descripcionActividad,
-    lugarActividad
+    lugarActividad,
+    personalAsignado
   } = req.body;
 
-  const sql = `
-    UPDATE solicitud_actividad SET
-      id_solicitante = ?,
-      id_estado_actividad = ?,
-      id_prioridad = ?,
-      fecha_actividad = ?,
-      hora_inicio = ?,
-      hora_fin = ?,
-      nombre_actividad = ?,
-      descripcion_actividad = ?,
-      lugar_actividad = ?
-    WHERE id_solicitud = ?
-  `;
-
-  conexion.query(
-    sql,
-    [
-      idSolicitante,
-      idEstadoActividad,
-      idPrioridad,
-      fechaActividad,
-      horaInicio,
-      horaFin,
-      nombreActividad,
-      descripcionActividad || null,
-      lugarActividad,
-      id
-    ],
-    (error, resultados) => {
-      if (error) {
-        console.error('ERROR MYSQL:', error);
-        return res.status(500).json({ mensaje: 'Error al actualizar la solicitud' });
-      }
-      if (resultados.affectedRows === 0) {
-        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
-      }
-      res.json({ mensaje: 'Solicitud actualizada correctamente' });
+  conexion.beginTransaction((error) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al iniciar transaccion' });
     }
-  );
+
+    const sql = `
+      UPDATE solicitud_actividad SET
+        id_solicitante = ?,
+        id_estado_actividad = ?,
+        id_prioridad = ?,
+        fecha_actividad = ?,
+        hora_inicio = ?,
+        hora_fin = ?,
+        nombre_actividad = ?,
+        descripcion_actividad = ?,
+        lugar_actividad = ?
+      WHERE id_solicitud = ?
+    `;
+
+    conexion.query(
+      sql,
+      [
+        idSolicitante,
+        idEstadoActividad,
+        idPrioridad,
+        fechaActividad,
+        horaInicio,
+        horaFin,
+        nombreActividad,
+        descripcionActividad || null,
+        lugarActividad,
+        id
+      ],
+      (error) => {
+        if (error) {
+          console.error('ERROR MYSQL:', error);
+          return conexion.rollback(() => {
+            res.status(500).json({ mensaje: 'Error al actualizar la solicitud' });
+          });
+        }
+
+        if (personalAsignado && Array.isArray(personalAsignado)) {
+          const sqlDelete = 'DELETE FROM asignacion_usuario WHERE id_solicitud = ?';
+          conexion.query(sqlDelete, [id], (error) => {
+            if (error) {
+              return conexion.rollback(() => {
+                console.error('ERROR MYSQL:', error);
+                res.status(500).json({ mensaje: 'Error al actualizar responsables' });
+              });
+            }
+
+            if (personalAsignado.length === 0) {
+              conexion.commit((error) => {
+                if (error) {
+                  return conexion.rollback(() => {
+                    console.error('ERROR MYSQL:', error);
+                    res.status(500).json({ mensaje: 'Error al confirmar cambios' });
+                  });
+                }
+                res.json({ mensaje: 'Solicitud actualizada correctamente' });
+              });
+              return;
+            }
+
+            const sqlInsert = 'INSERT INTO asignacion_usuario (id_solicitud, id_usuario, fecha_asignacion) VALUES ?';
+            const valores = personalAsignado.map(idUsuario => [id, idUsuario, new Date()]);
+            conexion.query(sqlInsert, [valores], (error) => {
+              if (error) {
+                return conexion.rollback(() => {
+                  console.error('ERROR MYSQL:', error);
+                  res.status(500).json({ mensaje: 'Error al asignar responsables' });
+                });
+              }
+              conexion.commit((error) => {
+                if (error) {
+                  return conexion.rollback(() => {
+                    console.error('ERROR MYSQL:', error);
+                    res.status(500).json({ mensaje: 'Error al confirmar cambios' });
+                  });
+                }
+                res.json({ mensaje: 'Solicitud actualizada correctamente' });
+              });
+            });
+          });
+        } else {
+          conexion.commit((error) => {
+            if (error) {
+              return conexion.rollback(() => {
+                console.error('ERROR MYSQL:', error);
+                res.status(500).json({ mensaje: 'Error al confirmar cambios' });
+              });
+            }
+            res.json({ mensaje: 'Solicitud actualizada correctamente' });
+          });
+        }
+      }
+    );
+  });
 });
 
 // DELETE - Eliminar solicitud (limpia registros relacionados)

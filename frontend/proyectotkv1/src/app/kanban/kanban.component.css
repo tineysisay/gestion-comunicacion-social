@@ -407,6 +407,44 @@
   border-top: 1px solid #eee;
 }
 
+/* === RESPONSABLES === */
+.responsables-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.responsable-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8f8fc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.responsable-item:hover {
+  background: #f0f0f5;
+}
+
+.responsable-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #075ca8;
+  cursor: pointer;
+}
+
+.sin-responsables {
+  color: #999;
+  font-size: 0.875rem;
+  font-style: italic;
+  margin: 0;
+}
+
 /* === BOTONES FORMULARIO === */
 .formulario-botones {
   display: flex;

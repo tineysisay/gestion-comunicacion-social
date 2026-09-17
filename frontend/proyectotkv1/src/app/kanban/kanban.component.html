@@ -169,6 +169,25 @@
             </div>
           </div>
 
+          <!-- Accordion: Responsable -->
+          <div class="accordion" [class.abierto]="seccionResponsable">
+            <div class="accordion-header" (click)="seccionResponsable = !seccionResponsable">
+              <span>Responsable(s)</span>
+              <span class="flecha">{{ seccionResponsable ? '&#9660;' : '&#9654;' }}</span>
+            </div>
+            <div class="accordion-contenido" *ngIf="seccionResponsable">
+              <div class="responsables-lista">
+                <label class="responsable-item" *ngFor="let u of usuarios">
+                  <input type="checkbox"
+                         [checked]="estaAsignado(u.id_usuario)"
+                         (change)="toggleResponsable(u.id_usuario)">
+                  <span>{{ u.nombre_usuario }} - {{ u.nombre_rol }}</span>
+                </label>
+                <p class="sin-responsables" *ngIf="usuarios.length === 0">No hay usuarios disponibles</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Accordion: Estado y Prioridad -->
           <div class="accordion" [class.abierto]="seccionEstado">
             <div class="accordion-header" (click)="seccionEstado = !seccionEstado">
