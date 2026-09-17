@@ -97,22 +97,45 @@
   </div>
 
   <!-- DETALLE SOLICITUD -->
-  <div class="detalle-container" *ngIf="mostrarDetalle && solicitudSeleccionada">
-    <div class="formulario-header">
-      <h2>{{ solicitudSeleccionada.nombre_actividad }}</h2>
-      <button class="btn-cerrar" (click)="cerrarDetalle()">x</button>
-    </div>
-    <div class="detalle-info">
-      <div class="detalle-columna">
-        <p><strong>Solicitante:</strong> {{ solicitudSeleccionada.nombre_solicitante }}</p>
-        <p><strong>Lugar:</strong> {{ solicitudSeleccionada.lugar_actividad }}</p>
-        <p><strong>Fecha:</strong> {{ solicitudSeleccionada.fecha_actividad | formatoFecha:'fecha' }}</p>
-        <p><strong>Horario:</strong> {{ solicitudSeleccionada.hora_inicio | formatoFecha:'hora' }} - {{ solicitudSeleccionada.hora_fin | formatoFecha:'hora' }}</p>
+  <div class="detalle-overlay" *ngIf="mostrarDetalle && solicitudSeleccionada" (click)="cerrarDetalle()">
+    <div class="detalle-card" (click)="$event.stopPropagation()">
+      <div class="detalle-header">
+        <h2>{{ solicitudSeleccionada.nombre_actividad }}</h2>
+        <button class="btn-cerrar" (click)="cerrarDetalle()">&times;</button>
       </div>
-      <div class="detalle-columna">
-        <p><strong>Estado:</strong> {{ solicitudSeleccionada.estado }}</p>
-        <p><strong>Prioridad:</strong> {{ solicitudSeleccionada.prioridad }}</p>
-        <p><strong>Creada:</strong> {{ solicitudSeleccionada.fecha_creacion | formatoFecha:'fecha' }}</p>
+      <div class="detalle-body">
+        <div class="detalle-row">
+          <label>Actividad:</label>
+          <span>{{ solicitudSeleccionada.nombre_actividad }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Solicitante:</label>
+          <span>{{ solicitudSeleccionada.nombre_solicitante }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Lugar:</label>
+          <span>{{ solicitudSeleccionada.lugar_actividad }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Fecha:</label>
+          <span>{{ solicitudSeleccionada.fecha_actividad | formatoFecha:'fecha' }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Horario:</label>
+          <span>{{ solicitudSeleccionada.hora_inicio | formatoFecha:'hora' }} - {{ solicitudSeleccionada.hora_fin | formatoFecha:'hora' }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Estado:</label>
+          <span>{{ solicitudSeleccionada.estado }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Prioridad:</label>
+          <span>{{ solicitudSeleccionada.prioridad }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Creada:</label>
+          <span>{{ solicitudSeleccionada.fecha_creacion | formatoFecha:'fecha' }}</span>
+        </div>
       </div>
     </div>
   </div>
