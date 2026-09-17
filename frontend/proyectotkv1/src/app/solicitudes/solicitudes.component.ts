@@ -6,11 +6,13 @@ import { CatalogoService } from '../services/catalogo.service';
 import { SolicitanteService } from '../services/solicitante.service';
 import { RecursoService } from '../services/recurso.service';
 import { ApiService } from '../services/api.service';
+import { AuthService } from '../services/auth.service';
+import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
 
 @Component({
   selector: 'app-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FormatoFechaPipe],
   templateUrl: './solicitudes.component.html',
   styleUrl: './solicitudes.component.css'
 })
@@ -53,7 +55,8 @@ export class SolicitudesComponent implements OnInit {
     private catalogoService: CatalogoService,
     private solicitanteService: SolicitanteService,
     private recursoService: RecursoService,
-    private api: ApiService
+    private api: ApiService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -163,6 +166,7 @@ export class SolicitudesComponent implements OnInit {
           alert(respuesta.mensaje);
           this.mostrarFormulario = false;
           this.obtenerSolicitudes();
+          this.solicitudService.notificarCambio();
         },
         error: (error) => alert(error.error?.mensaje || 'Error al actualizar')
       });
@@ -172,6 +176,7 @@ export class SolicitudesComponent implements OnInit {
           alert(respuesta.mensaje);
           this.mostrarFormulario = false;
           this.obtenerSolicitudes();
+          this.solicitudService.notificarCambio();
         },
         error: (error) => alert(error.error?.mensaje || 'Error al crear')
       });
@@ -184,6 +189,7 @@ export class SolicitudesComponent implements OnInit {
         next: (respuesta) => {
           alert(respuesta.mensaje);
           this.obtenerSolicitudes();
+          this.solicitudService.notificarCambio();
         },
         error: (error) => alert(error.error?.mensaje || 'Error al eliminar')
       });
@@ -243,6 +249,7 @@ export class SolicitudesComponent implements OnInit {
         alert(respuesta.mensaje);
         this.obtenerSolicitudes();
         this.verDetalle(solicitud.id_solicitud);
+        this.solicitudService.notificarCambio();
       },
       error: (error) => alert(error.error?.mensaje || 'Error al cambiar estado')
     });

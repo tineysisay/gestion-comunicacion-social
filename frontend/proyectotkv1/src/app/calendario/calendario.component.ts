@@ -1,16 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SolicitudService } from '../services/solicitud.service';
+import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-calendario',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FormatoFechaPipe],
   templateUrl: './calendario.component.html',
   styleUrl: './calendario.component.css'
 })
-export class CalendarioComponent implements OnInit {
+export class CalendarioComponent implements OnInit, OnDestroy {
 
   fechaActual = new Date();
   anio = this.fechaActual.getFullYear();
@@ -29,12 +31,23 @@ export class CalendarioComponent implements OnInit {
 
   solicitudSeleccionada: any = null;
   mostrarDetalle = false;
+  private subscription: Subscription = new Subscription();
 
   constructor(private solicitudService: SolicitudService) {}
 
   ngOnInit(): void {
     this.cargarSolicitudes();
     this.generarCalendario();
+    // Suscribirse a cambios para recargar automaticamente
+    this.subscription.add(
+      this.solicitudService.observarCambios().subscribe(() => {
+        this.cargarSolicitudes();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   cargarSolicitudes(): void {
@@ -119,7 +132,7 @@ export class CalendarioComponent implements OnInit {
   obtenerSolicitudesDelDia(fecha: Date | null): any[] {
     if (!fecha) return [];
     const fechaStr = this.formatearFecha(fecha);
-    return this.solicitudes.filter(s => s.fecha_actividad === fechaStr);
+    return this.solicitudesFiltradas.filter(s => s.fecha_actividad === fechaStr);
   }
 
   esMismoDia(fecha1: Date, fecha2: Date): boolean {
