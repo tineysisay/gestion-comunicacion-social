@@ -23,14 +23,14 @@ router.get('/solicitudes', (req, res) => {
       pa.nivel_prioridad,
       CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS nombre_solicitante,
       s.id_solicitante,
-      CONCAT(u.primer_nombre, ' ', u.primer_apellido) AS nombre_responsable,
-      u.id_usuario AS id_responsable
+      GROUP_CONCAT(DISTINCT CONCAT(du.primer_nombre, ' ', du.primer_apellido) SEPARATOR ', ') AS nombre_responsable
     FROM solicitud_actividad sa
     INNER JOIN estado_actividad ea ON sa.id_estado_actividad = ea.id_estado_actividad
     INNER JOIN prioridad_actividad pa ON sa.id_prioridad = pa.id_prioridad
     INNER JOIN solicitante s ON sa.id_solicitante = s.id_solicitante
     LEFT JOIN asignacion_usuario au ON sa.id_solicitud = au.id_solicitud
-    LEFT JOIN usuario u ON au.id_usuario = u.id_usuario
+    LEFT JOIN datos_usuario du ON au.id_usuario = du.id_usuario
+    GROUP BY sa.id_solicitud
     ORDER BY sa.fecha_creacion DESC
   `;
   conexion.query(sql, (error, resultados) => {
