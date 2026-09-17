@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { CatalogoService } from '../services/catalogo.service';
 import { AuthService } from '../services/auth.service';
@@ -25,7 +25,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
   constructor(
     private solicitudService: SolicitudService,
     private catalogoService: CatalogoService,
-    public authService: AuthService
+    public authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -96,5 +97,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (nivel === 1) return 'prioridad-alta';
     if (nivel === 2) return 'prioridad-media';
     return 'prioridad-baja';
+  }
+
+  editarSolicitud(solicitud: any): void {
+    this.cerrarModal();
+    this.router.navigate(['/inicio/solicitudes'], { queryParams: { editar: solicitud.id_solicitud } });
   }
 }

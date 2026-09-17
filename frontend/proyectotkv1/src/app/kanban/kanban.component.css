@@ -220,6 +220,27 @@
   color: #075ca8;
 }
 
+.header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-editar {
+  padding: 6px 14px;
+  background: #075ca8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-editar:hover {
+  background: #064a8a;
+}
+
 .btn-close {
   display: flex;
   align-items: center;

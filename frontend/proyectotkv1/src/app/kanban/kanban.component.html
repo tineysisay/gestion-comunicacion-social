@@ -1,0 +1,115 @@
+<div class="kanban-container">
+  <div class="kanban-header">
+    <h2>Tablero Kanban</h2>
+  </div>
+
+  <div class="kanban-board">
+    <div class="kanban-column" *ngFor="let columna of columnas">
+      <div class="column-header">
+        <h3>{{ columna.nombre }}</h3>
+        <span class="badge">{{ columna.solicitudes.length }}</span>
+      </div>
+
+      <div class="column-body">
+        <div
+          class="kanban-card"
+          *ngFor="let solicitud of columna.solicitudes"
+          [class]="getPrioridadClase(solicitud.nivel_prioridad)"
+          (click)="verDetalle(solicitud)"
+        >
+          <div class="card-header">
+            <span class="card-id">#{{ solicitud.id_solicitud }}</span>
+            <span class="card-prioridad">{{ solicitud.prioridad }}</span>
+          </div>
+          <h4 class="card-title">{{ solicitud.nombre_actividad }}</h4>
+          <p class="card-solicitante">{{ solicitud.nombre_solicitante }}</p>
+          <div class="card-footer">
+            <span class="card-fecha">{{ solicitud.fecha_actividad | formatoFecha:'fecha' }}</span>
+            <span class="card-hora">{{ solicitud.hora_inicio | formatoFecha:'hora' }} - {{ solicitud.hora_fin | formatoFecha:'hora' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de detalle -->
+<div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Solicitud #{{ solicitudSeleccionada?.id_solicitud }}</h2>
+      <div class="header-buttons">
+        <button class="btn-editar" *ngIf="authService.esAdmin()" (click)="editarSolicitud(solicitudSeleccionada)">
+          Editar
+        </button>
+        <button class="btn-close" (click)="cerrarModal()">&times;</button>
+      </div>
+    </div>
+
+    <div class="modal-body" *ngIf="solicitudSeleccionada">
+      <div class="detail-row">
+        <label>Actividad:</label>
+        <span>{{ solicitudSeleccionada.nombre_actividad }}</span>
+      </div>
+      <div class="detail-row">
+        <label>Descripcion:</label>
+        <span>{{ solicitudSeleccionada.descripcion_actividad || 'Sin descripcion' }}</span>
+      </div>
+      <div class="detail-row">
+        <label>Estado:</label>
+        <span>{{ solicitudSeleccionada.nombre_estado }}</span>
+      </div>
+      <div class="detail-row">
+        <label>Prioridad:</label>
+        <span>{{ solicitudSeleccionada.nombre_prioridad }}</span>
+      </div>
+      <div class="detail-row">
+        <label>Fecha:</label>
+        <span>{{ solicitudSeleccionada.fecha_actividad | formatoFecha:'fecha' }}</span>
+      </div>
+      <div class="detail-row">
+        <label>Hora:</label>
+        <span>{{ solicitudSeleccionada.hora_inicio | formatoFecha:'hora' }} - {{ solicitudSeleccionada.hora_fin | formatoFecha:'hora' }}</span>
+      </div>
+      <div class="detail-row">
+        <label>Lugar:</label>
+        <span>{{ solicitudSeleccionada.lugar_actividad }}</span>
+      </div>
+      <div class="detail-row">
+        <label>Solicitante:</label>
+        <span>{{ solicitudSeleccionada.s_nombre }} {{ solicitudSeleccionada.s_apellido }}</span>
+      </div>
+      <div class="detail-row" *ngIf="solicitudSeleccionada.nombre_institucion">
+        <label>Institucion:</label>
+        <span>{{ solicitudSeleccionada.nombre_institucion }}</span>
+      </div>
+
+      <div class="detail-section" *ngIf="solicitudSeleccionada.personal?.length > 0">
+        <h4>Personal Asignado</h4>
+        <ul>
+          <li *ngFor="let p of solicitudSeleccionada.personal">
+            {{ p.primer_nombre }} {{ p.primer_apellido }} - {{ p.nombre_cargo }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="detail-section" *ngIf="solicitudSeleccionada.recursos?.length > 0">
+        <h4>Recursos Asignados</h4>
+        <ul>
+          <li *ngFor="let r of solicitudSeleccionada.recursos">
+            {{ r.nombre_recurso }} ({{ r.nombre_tipo_recurso }}) - Cant: {{ r.cantidad }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="detail-section" *ngIf="solicitudSeleccionada.detalle?.length > 0">
+        <h4>Detalle</h4>
+        <ul>
+          <li *ngFor="let d of solicitudSeleccionada.detalle">
+            {{ d.descripcion_detalle }} - Cant: {{ d.cantidad }}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
