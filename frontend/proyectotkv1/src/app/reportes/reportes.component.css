@@ -1,0 +1,42 @@
+.container { padding: 30px; }
+.encabezado { margin-bottom: 25px; }
+.encabezado h1 { margin: 0; font-size: 24px; }
+.encabezado p { margin: 5px 0 0; color: #666; }
+
+/* Tarjetas resumen */
+.tarjetas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+.tarjeta { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border-left: 4px solid #075ca8; }
+.tarjeta-azul { border-left-color: #3498db; }
+.tarjeta-verde { border-left-color: #2ecc71; }
+.tarjeta-naranja { border-left-color: #f39c12; }
+.tarjeta-numero { font-size: 36px; font-weight: bold; color: #075ca8; }
+.tarjeta-label { color: #666; margin-top: 5px; }
+
+/* Graficos */
+.grid-graficos { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.grafico-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.grafico-card h3 { margin: 0 0 15px; color: #075ca8; font-size: 16px; }
+.grafico-container { position: relative; height: 250px; }
+.grafico-container canvas { max-height: 100%; }
+
+/* Reporte por fechas */
+.reporte-fechas { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.reporte-fechas h3 { margin: 0 0 15px; color: #075ca8; }
+.filtro-fechas { display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px; }
+.filtro-fechas .campo { display: flex; flex-direction: column; }
+.filtro-fechas .campo label { font-weight: bold; margin-bottom: 5px; font-size: 13px; }
+.filtro-fechas .campo input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+.btn-buscar { padding: 8px 20px; background: #075ca8; color: white; border: none; border-radius: 5px; cursor: pointer; }
+.btn-buscar:hover { background: #064d8d; }
+
+/* Tabla */
+.tabla-container { margin-top: 15px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; border: 1px solid #ddd; text-align: left; font-size: 13px; }
+th { background: #075ca8; color: white; }
+
+@media (max-width: 700px) {
+  .tarjetas { grid-template-columns: 1fr 1fr; }
+  .grid-graficos { grid-template-columns: 1fr; }
+  .filtro-fechas { flex-direction: column; }
+}

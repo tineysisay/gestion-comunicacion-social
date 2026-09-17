@@ -1,0 +1,108 @@
+<div class="container">
+
+  <div class="encabezado">
+    <div>
+      <h1>Reportes y Estadisticas</h1>
+      <p>Dashboard de analisis de solicitudes</p>
+    </div>
+  </div>
+
+  <!-- Tarjetas resumen -->
+  <div class="tarjetas">
+    <div class="tarjeta">
+      <div class="tarjeta-numero">{{ estadisticas.totalSolicitudes || 0 }}</div>
+      <div class="tarjeta-label">Total Solicitudes</div>
+    </div>
+    <div class="tarjeta tarjeta-azul">
+      <div class="tarjeta-numero">{{ estadisticas.porEstado?.[0]?.total || 0 }}</div>
+      <div class="tarjeta-label">Pendientes</div>
+    </div>
+    <div class="tarjeta tarjeta-verde">
+      <div class="tarjeta-numero">{{ estadisticas.porEstado?.[1]?.total || 0 }}</div>
+      <div class="tarjeta-label">En Proceso</div>
+    </div>
+    <div class="tarjeta tarjeta-naranja">
+      <div class="tarjeta-numero">{{ estadisticas.notificacionesNoLeidas || 0 }}</div>
+      <div class="tarjeta-label">Notificaciones</div>
+    </div>
+  </div>
+
+  <!-- Graficos principales -->
+  <div class="grid-graficos">
+    <div class="grafico-card">
+      <h3>Solicitudes por Estado</h3>
+      <div class="grafico-container">
+        <canvas #chartEstados></canvas>
+      </div>
+    </div>
+
+    <div class="grafico-card">
+      <h3>Solicitudes por Prioridad</h3>
+      <div class="grafico-container">
+        <canvas #chartPrioridades></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-graficos">
+    <div class="grafico-card">
+      <h3>Solicitudes por Institucion</h3>
+      <div class="grafico-container">
+        <canvas #chartInstituciones></canvas>
+      </div>
+    </div>
+
+    <div class="grafico-card">
+      <h3>Carga de Trabajo por Usuario</h3>
+      <div class="grafico-container">
+        <canvas #chartCarga></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reporte por fecha -->
+  <div class="reporte-fechas">
+    <h3>Reporte por Rango de Fechas</h3>
+    <div class="filtro-fechas">
+      <div class="campo">
+        <label>Fecha inicio</label>
+        <input type="date" [(ngModel)]="fechaInicio">
+      </div>
+      <div class="campo">
+        <label>Fecha fin</label>
+        <input type="date" [(ngModel)]="fechaFin">
+      </div>
+      <button class="btn-buscar" (click)="buscarPorFecha()">Buscar</button>
+    </div>
+
+    <div class="tabla-container" *ngIf="solicitudesPorFecha.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Actividad</th>
+            <th>Fecha</th>
+            <th>Horario</th>
+            <th>Lugar</th>
+            <th>Estado</th>
+            <th>Prioridad</th>
+            <th>Solicitante</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of solicitudesPorFecha">
+            <td>{{ s.id_solicitud }}</td>
+            <td>{{ s.nombre_actividad }}</td>
+            <td>{{ s.fecha_actividad }}</td>
+            <td>{{ s.hora_inicio }} - {{ s.hora_fin }}</td>
+            <td>{{ s.lugar_actividad }}</td>
+            <td>{{ s.nombre_estado }}</td>
+            <td>{{ s.nombre_prioridad }}</td>
+            <td>{{ s.solicitante }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

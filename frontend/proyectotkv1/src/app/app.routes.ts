@@ -7,7 +7,10 @@ import { SolicitantesComponent } from './solicitantes/solicitantes.component';
 import { SolicitudesComponent } from './solicitudes/solicitudes.component';
 import { CalendarioComponent } from './calendario/calendario.component';
 import { ConfiguracionComponent } from './configuracion/configuracion.component';
+import { KanbanComponent } from './kanban/kanban.component';
+import { ReportesComponent } from './reportes/reportes.component';
 import { authGuard } from './guards/auth.guard';
+import { soloAdminGuard, accesoTotalGuard } from './guards/roles.guard';
 
 export const routes: Routes = [
   {
@@ -25,24 +28,39 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {
+        path: 'kanban',
+        component: KanbanComponent,
+        canActivate: [accesoTotalGuard]
+      },
+      {
         path: 'usuarios',
-        component: UsuariosComponent
+        component: UsuariosComponent,
+        canActivate: [soloAdminGuard]
       },
       {
         path: 'solicitantes',
-        component: SolicitantesComponent
+        component: SolicitantesComponent,
+        canActivate: [soloAdminGuard]
       },
       {
         path: 'solicitudes',
-        component: SolicitudesComponent
+        component: SolicitudesComponent,
+        canActivate: [accesoTotalGuard]
       },
       {
         path: 'calendario',
-        component: CalendarioComponent
+        component: CalendarioComponent,
+        canActivate: [accesoTotalGuard]
       },
       {
         path: 'configuracion',
-        component: ConfiguracionComponent
+        component: ConfiguracionComponent,
+        canActivate: [accesoTotalGuard]
+      },
+      {
+        path: 'reportes',
+        component: ReportesComponent,
+        canActivate: [soloAdminGuard]
       }
     ]
   }

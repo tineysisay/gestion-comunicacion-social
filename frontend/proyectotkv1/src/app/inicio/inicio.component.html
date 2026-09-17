@@ -1,30 +1,64 @@
-<div class="layout">
+<div class="layout" [class.sidebar-collapsed]="sidebarColapsado">
+
+  <button class="hamburger" (click)="toggleSidebar()" [class.activo]="sidebarColapsado">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 
   <aside class="sidebar">
-
-    <div class="logo">
-      <img src="assets/LOGOT.png" alt="Logo Municipalidad">
-      <h2>Municipalidad de Santiago Atitlan</h2>
+    <div class="sidebar-header">
+      <img src="assets/LOGOT.png" alt="Logo" class="logo-img">
+      <div class="logo-text" *ngIf="!sidebarColapsado">
+        <h2>Municipalidad de</h2>
+        <h3>Santiago Atitlan</h3>
+      </div>
     </div>
 
-    <nav>
-      <a routerLink="/inicio/solicitudes" routerLinkActive="activo">Solicitudes</a>
-      <a routerLink="/inicio/solicitantes" routerLinkActive="activo">Solicitantes</a>
-      <a routerLink="/inicio/calendario" routerLinkActive="activo">Calendario</a>
-      <a routerLink="/inicio/usuarios" routerLinkActive="activo">Usuarios</a>
-      <a routerLink="/inicio/configuracion" routerLinkActive="activo">Configuracion</a>
+    <nav class="sidebar-nav">
+      <a routerLink="/inicio/kanban" routerLinkActive="activo" title="Kanban">
+        <span class="nav-icon">&#9632;</span>
+        <span class="nav-label" *ngIf="!sidebarColapsado">Kanban</span>
+      </a>
+      <a routerLink="/inicio/solicitudes" routerLinkActive="activo" title="Solicitudes">
+        <span class="nav-icon">&#9998;</span>
+        <span class="nav-label" *ngIf="!sidebarColapsado">Solicitudes</span>
+      </a>
+      <a routerLink="/inicio/calendario" routerLinkActive="activo" title="Calendario">
+        <span class="nav-icon">&#9783;</span>
+        <span class="nav-label" *ngIf="!sidebarColapsado">Calendario</span>
+      </a>
+      <a *ngIf="authService.esAdmin() && !sidebarColapsado"
+         routerLink="/inicio/solicitantes" routerLinkActive="activo" title="Solicitantes">
+        <span class="nav-icon">&#9787;</span>
+        <span class="nav-label">Solicitantes</span>
+      </a>
+      <a *ngIf="authService.esAdmin() && !sidebarColapsado"
+         routerLink="/inicio/usuarios" routerLinkActive="activo" title="Usuarios">
+        <span class="nav-icon">&#9786;</span>
+        <span class="nav-label">Usuarios</span>
+      </a>
+      <a *ngIf="authService.esAdmin() && !sidebarColapsado"
+         routerLink="/inicio/reportes" routerLinkActive="activo" title="Reportes">
+        <span class="nav-icon">&#9733;</span>
+        <span class="nav-label">Reportes</span>
+      </a>
+      <a routerLink="/inicio/configuracion" routerLinkActive="activo" title="Configuracion">
+        <span class="nav-icon">&#9881;</span>
+        <span class="nav-label" *ngIf="!sidebarColapsado">Configuracion</span>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
-      <button class="btn-logout" (click)="cerrarSesion()">Cerrar sesion</button>
+      <button class="btn-logout" (click)="cerrarSesion()" title="Cerrar sesion">
+        <span class="nav-icon">&#10140;</span>
+        <span class="nav-label" *ngIf="!sidebarColapsado">Cerrar sesion</span>
+      </button>
     </div>
-
   </aside>
 
   <main class="contenido">
-
     <router-outlet></router-outlet>
-
   </main>
 
 </div>

@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
+const { soloAdmin } = require('../middleware/roles');
 
 router.use(verificarToken);
+router.use(soloAdmin);
 
 // GET - Estadisticas generales para dashboard
 router.get('/dashboard/estadisticas', (req, res) => {
