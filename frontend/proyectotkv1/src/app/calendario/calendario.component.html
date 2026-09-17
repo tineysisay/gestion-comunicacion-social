@@ -10,11 +10,11 @@
   <div class="calendario-controles">
     <div class="controles-izquierda">
       <button class="btn-hoy" (click)="irHoy()">Hoy</button>
-      <button class="btn-flecha" (click)="vista === 'mes' ? cambiarMes(-1) : cambiarSemana(-1)">&#8249;</button>
+      <button class="btn-flecha" (click)="vista === 'mes' ? cambiarMes(-1) : vista === 'semana' ? cambiarSemana(-1) : cambiarDia(-1)">&#8249;</button>
       <h2 class="titulo-fecha">
         {{ vista === 'dia' && diaSeleccionado ? (diaSeleccionado | date:'dd/MM/yyyy') : nombreMes + ' ' + anio }}
       </h2>
-      <button class="btn-flecha" (click)="vista === 'mes' ? cambiarMes(1) : cambiarSemana(1)">&#8250;</button>
+      <button class="btn-flecha" (click)="vista === 'mes' ? cambiarMes(1) : vista === 'semana' ? cambiarSemana(1) : cambiarDia(1)">&#8250;</button>
     </div>
     <div class="controles-derecha">
       <button class="btn-vista" [class.activa]="vista === 'mes'" (click)="cambiarVista('mes')">Mes</button>

@@ -171,6 +171,15 @@ export class CalendarioComponent implements OnInit, OnDestroy {
     this.filtrarPorFecha();
   }
 
+  cambiarDia(delta: number): void {
+    const nueva = new Date(this.diaSeleccionado!);
+    nueva.setDate(nueva.getDate() + delta);
+    this.diaSeleccionado = nueva;
+    this.fechaActual = new Date(nueva);
+    this.anio = nueva.getFullYear();
+    this.mes = nueva.getMonth();
+  }
+
   cambiarVista(vista: 'mes' | 'semana' | 'dia'): void {
     this.vista = vista;
     if (vista === 'semana') {
