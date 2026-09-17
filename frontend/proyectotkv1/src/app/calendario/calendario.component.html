@@ -64,7 +64,7 @@
              *ngFor="let s of obtenerSolicitudesDelDia(dia)"
              [style.background]="getColorPrioridad(s.prioridad)"
              (click)="verDetalle(s); $event.stopPropagation()">
-          <span class="evento-hora">{{ s.hora_inicio }}</span>
+          <span class="evento-hora">{{ s.hora_inicio | formatoFecha:'hora' }}</span>
           {{ s.nombre_actividad }}
         </div>
       </div>
@@ -78,9 +78,9 @@
     </div>
     <div class="dia-eventos">
       <div class="evento-dia"
-           *ngFor="let s of solicitudesFiltradas"
+           *ngFor="let s of obtenerSolicitudesDelDia(diaSeleccionado)"
            (click)="verDetalle(s)">
-        <div class="evento-hora">{{ s.hora_inicio }} - {{ s.hora_fin }}</div>
+        <div class="evento-hora">{{ s.hora_inicio | formatoFecha:'hora' }} - {{ s.hora_fin | formatoFecha:'hora' }}</div>
         <div class="evento-info">
           <strong>{{ s.nombre_actividad }}</strong>
           <span class="evento-solicitante">{{ s.nombre_solicitante }}</span>
@@ -90,7 +90,7 @@
           {{ s.prioridad }}
         </div>
       </div>
-      <div class="sin-eventos" *ngIf="solicitudesFiltradas.length === 0">
+      <div class="sin-eventos" *ngIf="obtenerSolicitudesDelDia(diaSeleccionado).length === 0">
         No hay actividades programadas para este dia
       </div>
     </div>
@@ -106,13 +106,13 @@
       <div class="detalle-columna">
         <p><strong>Solicitante:</strong> {{ solicitudSeleccionada.nombre_solicitante }}</p>
         <p><strong>Lugar:</strong> {{ solicitudSeleccionada.lugar_actividad }}</p>
-        <p><strong>Fecha:</strong> {{ solicitudSeleccionada.fecha_actividad }}</p>
-        <p><strong>Horario:</strong> {{ solicitudSeleccionada.hora_inicio }} - {{ solicitudSeleccionada.hora_fin }}</p>
+        <p><strong>Fecha:</strong> {{ solicitudSeleccionada.fecha_actividad | formatoFecha:'fecha' }}</p>
+        <p><strong>Horario:</strong> {{ solicitudSeleccionada.hora_inicio | formatoFecha:'hora' }} - {{ solicitudSeleccionada.hora_fin | formatoFecha:'hora' }}</p>
       </div>
       <div class="detalle-columna">
         <p><strong>Estado:</strong> {{ solicitudSeleccionada.estado }}</p>
         <p><strong>Prioridad:</strong> {{ solicitudSeleccionada.prioridad }}</p>
-        <p><strong>Creada:</strong> {{ solicitudSeleccionada.fecha_creacion }}</p>
+        <p><strong>Creada:</strong> {{ solicitudSeleccionada.fecha_creacion | formatoFecha:'fecha' }}</p>
       </div>
     </div>
   </div>

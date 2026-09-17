@@ -54,6 +54,7 @@ export class CalendarioComponent implements OnInit, OnDestroy {
     this.solicitudService.obtenerTodas().subscribe({
       next: (datos) => {
         this.solicitudes = datos;
+        this.generarCalendario();
         this.filtrarPorFecha();
       },
       error: (error) => console.error('Error:', error)
@@ -132,7 +133,11 @@ export class CalendarioComponent implements OnInit, OnDestroy {
   obtenerSolicitudesDelDia(fecha: Date | null): any[] {
     if (!fecha) return [];
     const fechaStr = this.formatearFecha(fecha);
-    return this.solicitudesFiltradas.filter(s => s.fecha_actividad === fechaStr);
+    return this.solicitudes.filter(s => {
+      if (!s.fecha_actividad) return false;
+      const fechaSol = s.fecha_actividad.substring(0, 10);
+      return fechaSol === fechaStr;
+    });
   }
 
   esMismoDia(fecha1: Date, fecha2: Date): boolean {
