@@ -17,7 +17,7 @@
           [class]="getPrioridadClase(solicitud.nivel_prioridad)"
           (click)="verDetalle(solicitud)"
         >
-          <div class="card-header">
+          <div class="card-header" [style.background]="getColorPrioridad(solicitud.nivel_prioridad)">
             <span class="card-id">#{{ solicitud.id_solicitud }}</span>
             <span class="card-prioridad">{{ solicitud.prioridad }}</span>
           </div>

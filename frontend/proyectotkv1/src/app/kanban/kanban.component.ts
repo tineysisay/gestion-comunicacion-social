@@ -146,6 +146,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return 'prioridad-baja';
   }
 
+  getColorPrioridad(nivel: number): string {
+    if (nivel === 4) return '#e74c3c';
+    if (nivel === 3) return '#e67e22';
+    if (nivel === 2) return '#f1c40f';
+    return '#27ae60';
+  }
+
   editarSolicitud(): void {
     const s = this.solicitudSeleccionada;
     this.modoEdicion = true;

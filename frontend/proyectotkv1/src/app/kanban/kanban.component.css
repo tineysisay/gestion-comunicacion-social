@@ -80,10 +80,9 @@
 .kanban-card {
   background: white;
   border-radius: 6px;
-  padding: 8px;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border-left: 3px solid #ddd;
+  overflow: hidden;
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
@@ -92,32 +91,16 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.kanban-card.prioridad-urgente {
-  border-left-color: #e74c3c;
-}
-
-.kanban-card.prioridad-alta {
-  border-left-color: #e67e22;
-}
-
-.kanban-card.prioridad-media {
-  border-left-color: #f1c40f;
-}
-
-.kanban-card.prioridad-baja {
-  border-left-color: #27ae60;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  padding: 6px 10px;
 }
 
 .card-id {
   font-size: 0.75rem;
-  color: #999;
+  color: rgba(255,255,255,0.85);
   font-weight: 600;
 }
 
@@ -127,30 +110,13 @@
   border-radius: 3px;
   font-weight: 600;
   text-transform: uppercase;
-}
-
-.card-prioridad.prioridad-urgente {
-  background: #fde8e8;
-  color: #e74c3c;
-}
-
-.card-prioridad.prioridad-alta {
-  background: #fef3e2;
-  color: #e67e22;
-}
-
-.card-prioridad.prioridad-media {
-  background: #fef9e7;
-  color: #f39c12;
-}
-
-.card-prioridad.prioridad-baja {
-  background: #e8f8f0;
-  color: #27ae60;
+  background: rgba(255,255,255,0.25);
+  color: white;
 }
 
 .card-title {
-  margin: 0 0 6px;
+  margin: 0;
+  padding: 8px 10px 4px;
   font-size: 0.875rem;
   font-weight: 600;
   color: #333;
@@ -163,7 +129,8 @@
 }
 
 .card-responsable {
-  margin: 0 0 8px;
+  margin: 0;
+  padding: 0 10px 8px;
   font-size: 0.8125rem;
   color: #666;
   overflow: hidden;
@@ -174,10 +141,10 @@
 .card-footer {
   display: flex;
   justify-content: space-between;
+  padding: 6px 10px;
   font-size: 0.6875rem;
   color: #777;
   border-top: 1px solid #eee;
-  padding-top: 6px;
 }
 
 /* === MODAL DETALLE === */
