@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { CatalogoService } from '../services/catalogo.service';
 import { SolicitanteService } from '../services/solicitante.service';
@@ -57,8 +56,7 @@ export class SolicitudesComponent implements OnInit {
     private solicitanteService: SolicitanteService,
     private recursoService: RecursoService,
     private api: ApiService,
-    public authService: AuthService,
-    private route: ActivatedRoute
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -68,13 +66,6 @@ export class SolicitudesComponent implements OnInit {
     this.obtenerPrioridades();
     this.obtenerUsuarios();
     this.obtenerRecursos();
-
-    this.route.queryParams.subscribe(params => {
-      if (params['editar'] && this.authService.esAdmin()) {
-        const id = +params['editar'];
-        setTimeout(() => this.editar(id), 500);
-      }
-    });
   }
 
   obtenerSolicitudes(): void {

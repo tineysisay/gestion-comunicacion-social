@@ -33,83 +33,179 @@
   </div>
 </div>
 
-<!-- Modal de detalle -->
+<!-- Modal detalle / edicion -->
 <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>Solicitud #{{ solicitudSeleccionada?.id_solicitud }}</h2>
-      <div class="header-buttons">
-        <button class="btn-editar" *ngIf="authService.esAdmin()" (click)="editarSolicitud(solicitudSeleccionada)">
-          Editar
-        </button>
-        <button class="btn-close" (click)="cerrarModal()">&times;</button>
-      </div>
-    </div>
 
-    <div class="modal-body" *ngIf="solicitudSeleccionada">
-      <div class="detail-row">
-        <label>Actividad:</label>
-        <span>{{ solicitudSeleccionada.nombre_actividad }}</span>
-      </div>
-      <div class="detail-row">
-        <label>Descripcion:</label>
-        <span>{{ solicitudSeleccionada.descripcion_actividad || 'Sin descripcion' }}</span>
-      </div>
-      <div class="detail-row">
-        <label>Estado:</label>
-        <span>{{ solicitudSeleccionada.nombre_estado }}</span>
-      </div>
-      <div class="detail-row">
-        <label>Prioridad:</label>
-        <span>{{ solicitudSeleccionada.nombre_prioridad }}</span>
-      </div>
-      <div class="detail-row">
-        <label>Fecha:</label>
-        <span>{{ solicitudSeleccionada.fecha_actividad | formatoFecha:'fecha' }}</span>
-      </div>
-      <div class="detail-row">
-        <label>Hora:</label>
-        <span>{{ solicitudSeleccionada.hora_inicio | formatoFecha:'hora' }} - {{ solicitudSeleccionada.hora_fin | formatoFecha:'hora' }}</span>
-      </div>
-      <div class="detail-row">
-        <label>Lugar:</label>
-        <span>{{ solicitudSeleccionada.lugar_actividad }}</span>
-      </div>
-      <div class="detail-row">
-        <label>Solicitante:</label>
-        <span>{{ solicitudSeleccionada.s_nombre }} {{ solicitudSeleccionada.s_apellido }}</span>
-      </div>
-      <div class="detail-row" *ngIf="solicitudSeleccionada.nombre_institucion">
-        <label>Institucion:</label>
-        <span>{{ solicitudSeleccionada.nombre_institucion }}</span>
+    <!-- MODO DETALLE -->
+    <ng-container *ngIf="!modoEdicion">
+      <div class="modal-header">
+        <h2>Solicitud #{{ solicitudSeleccionada?.id_solicitud }}</h2>
+        <div class="header-buttons">
+          <button class="btn-editar" *ngIf="authService.esAdmin()" (click)="editarSolicitud()">Editar</button>
+          <button class="btn-close" (click)="cerrarModal()">&times;</button>
+        </div>
       </div>
 
-      <div class="detail-section" *ngIf="solicitudSeleccionada.personal?.length > 0">
-        <h4>Personal Asignado</h4>
-        <ul>
-          <li *ngFor="let p of solicitudSeleccionada.personal">
-            {{ p.primer_nombre }} {{ p.primer_apellido }} - {{ p.nombre_cargo }}
-          </li>
-        </ul>
+      <div class="modal-body" *ngIf="solicitudSeleccionada">
+        <div class="detail-row">
+          <label>Actividad:</label>
+          <span>{{ solicitudSeleccionada.nombre_actividad }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Descripcion:</label>
+          <span>{{ solicitudSeleccionada.descripcion_actividad || 'Sin descripcion' }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Estado:</label>
+          <span>{{ solicitudSeleccionada.nombre_estado }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Prioridad:</label>
+          <span>{{ solicitudSeleccionada.nombre_prioridad }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Fecha:</label>
+          <span>{{ solicitudSeleccionada.fecha_actividad | formatoFecha:'fecha' }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Hora:</label>
+          <span>{{ solicitudSeleccionada.hora_inicio | formatoFecha:'hora' }} - {{ solicitudSeleccionada.hora_fin | formatoFecha:'hora' }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Lugar:</label>
+          <span>{{ solicitudSeleccionada.lugar_actividad }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Solicitante:</label>
+          <span>{{ solicitudSeleccionada.s_nombre }} {{ solicitudSeleccionada.s_apellido }}</span>
+        </div>
+
+        <div class="detail-section" *ngIf="solicitudSeleccionada.personal?.length > 0">
+          <h4>Personal Asignado</h4>
+          <ul>
+            <li *ngFor="let p of solicitudSeleccionada.personal">
+              {{ p.primer_nombre }} {{ p.primer_apellido }} - {{ p.nombre_cargo }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="detail-section" *ngIf="solicitudSeleccionada.recursos?.length > 0">
+          <h4>Recursos Asignados</h4>
+          <ul>
+            <li *ngFor="let r of solicitudSeleccionada.recursos">
+              {{ r.nombre_recurso }} ({{ r.nombre_tipo_recurso }}) - Cant: {{ r.cantidad }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- MODO EDICION -->
+    <ng-container *ngIf="modoEdicion">
+      <div class="modal-header">
+        <h2>Editar Solicitud #{{ idEditar }}</h2>
+        <div class="header-buttons">
+          <button class="btn-close" (click)="cancelarEdicion()">&times;</button>
+        </div>
       </div>
 
-      <div class="detail-section" *ngIf="solicitudSeleccionada.recursos?.length > 0">
-        <h4>Recursos Asignados</h4>
-        <ul>
-          <li *ngFor="let r of solicitudSeleccionada.recursos">
-            {{ r.nombre_recurso }} ({{ r.nombre_tipo_recurso }}) - Cant: {{ r.cantidad }}
-          </li>
-        </ul>
-      </div>
+      <div class="modal-body formulario-body">
+        <form (ngSubmit)="guardarEdicion()">
+          <!-- Accordion: Datos de la actividad -->
+          <div class="accordion" [class.abierto]="seccionDatos">
+            <div class="accordion-header" (click)="seccionDatos = !seccionDatos">
+              <span>Datos de la Actividad</span>
+              <span class="flecha">{{ seccionDatos ? '&#9660;' : '&#9654;' }}</span>
+            </div>
+            <div class="accordion-contenido" *ngIf="seccionDatos">
+              <div class="form-grid">
+                <div class="campo campo-completo">
+                  <label>Nombre de la actividad</label>
+                  <input type="text" [(ngModel)]="nombreActividad" name="nombreActividad" required>
+                </div>
+                <div class="campo">
+                  <label>Fecha de actividad</label>
+                  <input type="date" [(ngModel)]="fechaActividad" name="fechaActividad" required>
+                </div>
+                <div class="campo">
+                  <label>Hora inicio</label>
+                  <input type="time" [(ngModel)]="horaInicio" name="horaInicio" required>
+                </div>
+                <div class="campo">
+                  <label>Hora fin</label>
+                  <input type="time" [(ngModel)]="horaFin" name="horaFin" required>
+                </div>
+                <div class="campo campo-completo">
+                  <label>Lugar</label>
+                  <input type="text" [(ngModel)]="lugarActividad" name="lugarActividad" required>
+                </div>
+                <div class="campo campo-completo">
+                  <label>Descripcion</label>
+                  <textarea [(ngModel)]="descripcionActividad" name="descripcionActividad" rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      <div class="detail-section" *ngIf="solicitudSeleccionada.detalle?.length > 0">
-        <h4>Detalle</h4>
-        <ul>
-          <li *ngFor="let d of solicitudSeleccionada.detalle">
-            {{ d.descripcion_detalle }} - Cant: {{ d.cantidad }}
-          </li>
-        </ul>
+          <!-- Accordion: Solicitante -->
+          <div class="accordion" [class.abierto]="seccionSolicitante">
+            <div class="accordion-header" (click)="seccionSolicitante = !seccionSolicitante">
+              <span>Solicitante</span>
+              <span class="flecha">{{ seccionSolicitante ? '&#9660;' : '&#9654;' }}</span>
+            </div>
+            <div class="accordion-contenido" *ngIf="seccionSolicitante">
+              <div class="form-grid">
+                <div class="campo campo-completo">
+                  <label>Seleccionar solicitante</label>
+                  <select [(ngModel)]="idSolicitante" name="idSolicitante" required>
+                    <option [ngValue]="0">Seleccionar solicitante</option>
+                    <option *ngFor="let s of solicitantes" [ngValue]="s.id_solicitante">
+                      {{ s.primer_nombre }} {{ s.primer_apellido }} - {{ s.correo_electronico || 'Sin correo' }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion: Estado y Prioridad -->
+          <div class="accordion" [class.abierto]="seccionEstado">
+            <div class="accordion-header" (click)="seccionEstado = !seccionEstado">
+              <span>Estado y Prioridad</span>
+              <span class="flecha">{{ seccionEstado ? '&#9660;' : '&#9654;' }}</span>
+            </div>
+            <div class="accordion-contenido" *ngIf="seccionEstado">
+              <div class="form-grid">
+                <div class="campo">
+                  <label>Estado</label>
+                  <select [(ngModel)]="idEstadoActividad" name="idEstadoActividad" required>
+                    <option [ngValue]="0">Seleccionar estado</option>
+                    <option *ngFor="let e of estadosActividad" [ngValue]="e.id_estado_actividad">
+                      {{ e.nombre_estado }}
+                    </option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label>Prioridad</label>
+                  <select [(ngModel)]="idPrioridad" name="idPrioridad" required>
+                    <option [ngValue]="0">Seleccionar prioridad</option>
+                    <option *ngFor="let p of prioridades" [ngValue]="p.id_prioridad">
+                      {{ p.nombre_prioridad }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="formulario-botones">
+            <button type="button" class="btn-cancelar" (click)="cancelarEdicion()">Cancelar</button>
+            <button type="submit" class="btn-guardar">Guardar</button>
+          </div>
+        </form>
       </div>
-    </div>
+    </ng-container>
+
   </div>
 </div>

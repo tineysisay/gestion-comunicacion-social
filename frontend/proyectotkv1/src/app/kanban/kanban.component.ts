@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { CatalogoService } from '../services/catalogo.service';
+import { SolicitanteService } from '../services/solicitante.service';
 import { AuthService } from '../services/auth.service';
 import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
 import { Subscription } from 'rxjs';
@@ -10,7 +12,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-kanban',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormatoFechaPipe],
+  imports: [CommonModule, FormsModule, RouterLink, FormatoFechaPipe],
   templateUrl: './kanban.component.html',
   styleUrl: './kanban.component.css'
 })
@@ -20,18 +22,40 @@ export class KanbanComponent implements OnInit, OnDestroy {
   solicitudes: any[] = [];
   solicitudSeleccionada: any = null;
   showModal = false;
+  modoEdicion = false;
+  idEditar = 0;
   private subscription: Subscription = new Subscription();
+
+  // Catalogos
+  solicitantes: any[] = [];
+  estadosActividad: any[] = [];
+  prioridades: any[] = [];
+
+  // Accordion
+  seccionDatos = true;
+  seccionSolicitante = false;
+  seccionEstado = false;
+
+  // Formulario
+  nombreActividad = '';
+  descripcionActividad = '';
+  fechaActividad = '';
+  horaInicio = '';
+  horaFin = '';
+  lugarActividad = '';
+  idSolicitante = 0;
+  idEstadoActividad = 0;
+  idPrioridad = 0;
 
   constructor(
     private solicitudService: SolicitudService,
     private catalogoService: CatalogoService,
-    public authService: AuthService,
-    private router: Router
+    private solicitanteService: SolicitanteService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.cargarDatos();
-    // Suscribirse a cambios para recargar automaticamente
+    this.cargarCatalogos();
     this.subscription.add(
       this.solicitudService.observarCambios().subscribe(() => {
         this.cargarSolicitudes();
@@ -43,9 +67,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  cargarDatos(): void {
+  cargarCatalogos(): void {
     this.catalogoService.obtenerEstadosActividad().subscribe({
       next: (estados) => {
+        this.estadosActividad = estados;
         this.columnas = estados.map((e: any) => ({
           id: e.id_estado_actividad,
           nombre: e.nombre_estado,
@@ -55,6 +80,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
         this.cargarSolicitudes();
       },
       error: (err) => console.error('Error al cargar estados', err)
+    });
+
+    this.solicitanteService.obtenerTodos().subscribe({
+      next: (datos) => this.solicitantes = datos,
+      error: (err) => console.error('Error al cargar solicitantes', err)
+    });
+
+    this.catalogoService.obtenerPrioridades().subscribe({
+      next: (datos) => this.prioridades = datos,
+      error: (err) => console.error('Error al cargar prioridades', err)
     });
   }
 
@@ -79,6 +114,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   verDetalle(solicitud: any): void {
+    this.modoEdicion = false;
     this.solicitudService.obtenerPorId(solicitud.id_solicitud).subscribe({
       next: (detalle) => {
         this.solicitudSeleccionada = detalle;
@@ -91,6 +127,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   cerrarModal(): void {
     this.showModal = false;
     this.solicitudSeleccionada = null;
+    this.modoEdicion = false;
   }
 
   getPrioridadClase(nivel: number): string {
@@ -99,8 +136,48 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return 'prioridad-baja';
   }
 
-  editarSolicitud(solicitud: any): void {
-    this.cerrarModal();
-    this.router.navigate(['/inicio/solicitudes'], { queryParams: { editar: solicitud.id_solicitud } });
+  editarSolicitud(): void {
+    const s = this.solicitudSeleccionada;
+    this.modoEdicion = true;
+    this.idEditar = s.id_solicitud;
+    this.nombreActividad = s.nombre_actividad;
+    this.descripcionActividad = s.descripcion_actividad || '';
+    this.fechaActividad = s.fecha_actividad ? s.fecha_actividad.substring(0, 10) : '';
+    this.horaInicio = s.hora_inicio || '';
+    this.horaFin = s.hora_fin || '';
+    this.lugarActividad = s.lugar_actividad || '';
+    this.idSolicitante = s.id_solicitante || 0;
+    this.idEstadoActividad = s.id_estado_actividad || 0;
+    this.idPrioridad = s.id_prioridad || 0;
+  }
+
+  cancelarEdicion(): void {
+    this.modoEdicion = false;
+  }
+
+  guardarEdicion(): void {
+    const data = {
+      nombreActividad: this.nombreActividad,
+      descripcionActividad: this.descripcionActividad,
+      fechaActividad: this.fechaActividad,
+      horaInicio: this.horaInicio,
+      horaFin: this.horaFin,
+      lugarActividad: this.lugarActividad,
+      idSolicitante: this.idSolicitante,
+      idEstadoActividad: this.idEstadoActividad,
+      idPrioridad: this.idPrioridad
+    };
+
+    this.solicitudService.actualizar(this.idEditar, data).subscribe({
+      next: (respuesta) => {
+        alert(respuesta.mensaje);
+        this.showModal = false;
+        this.modoEdicion = false;
+        this.solicitudSeleccionada = null;
+        this.cargarSolicitudes();
+        this.solicitudService.notificarCambio();
+      },
+      error: (error) => alert(error.error?.mensaje || 'Error al actualizar')
+    });
   }
 }

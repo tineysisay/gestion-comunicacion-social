@@ -308,6 +308,150 @@
   font-size: 0.8125rem;
 }
 
+/* === FORMULARIO EDICION === */
+.formulario-body {
+  padding: 0 20px 20px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+}
+
+.campo-completo {
+  grid-column: 1 / -1;
+}
+
+.campo label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.8125rem;
+  margin-bottom: 4px;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: #333;
+  background: white;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  border-color: #075ca8;
+  box-shadow: 0 0 0 3px rgba(7, 92, 168, 0.1);
+}
+
+/* === ACCORDION === */
+.accordion {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f8f8fc;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.accordion-header:hover {
+  background: #f0f0f5;
+}
+
+.accordion-header span:first-child {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.flecha {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.accordion.abierto .accordion-header {
+  background: #075ca8;
+  color: white;
+}
+
+.accordion.abierto .accordion-header span:first-child {
+  color: white;
+}
+
+.accordion.abierto .flecha {
+  color: white;
+}
+
+.accordion-contenido {
+  padding: 14px;
+  border-top: 1px solid #eee;
+}
+
+/* === BOTONES FORMULARIO === */
+.formulario-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
+}
+
+.btn-guardar {
+  padding: 8px 18px;
+  background: #075ca8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-guardar:hover {
+  background: #064a8a;
+}
+
+.btn-cancelar {
+  padding: 8px 18px;
+  background: white;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-cancelar:hover {
+  background: #f5f5fa;
+  border-color: #ccc;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
   .kanban-board {
