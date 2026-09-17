@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
+const { soloLectura } = require('../middleware/roles');
 
 router.use(verificarToken);
 
@@ -21,11 +22,15 @@ router.get('/solicitudes', (req, res) => {
       pa.nombre_prioridad AS prioridad,
       pa.nivel_prioridad,
       CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS nombre_solicitante,
-      s.id_solicitante
+      s.id_solicitante,
+      CONCAT(u.primer_nombre, ' ', u.primer_apellido) AS nombre_responsable,
+      u.id_usuario AS id_responsable
     FROM solicitud_actividad sa
     INNER JOIN estado_actividad ea ON sa.id_estado_actividad = ea.id_estado_actividad
     INNER JOIN prioridad_actividad pa ON sa.id_prioridad = pa.id_prioridad
     INNER JOIN solicitante s ON sa.id_solicitante = s.id_solicitante
+    LEFT JOIN asignacion_usuario au ON sa.id_solicitud = au.id_solicitud
+    LEFT JOIN usuario u ON au.id_usuario = u.id_usuario
     ORDER BY sa.fecha_creacion DESC
   `;
   conexion.query(sql, (error, resultados) => {
@@ -152,7 +157,7 @@ router.get('/solicitudes/:id', (req, res) => {
 });
 
 // POST - Crear solicitud
-router.post('/solicitudes', (req, res) => {
+router.post('/solicitudes', soloLectura, (req, res) => {
   const {
     idSolicitante,
     idEstadoActividad,
@@ -167,6 +172,10 @@ router.post('/solicitudes', (req, res) => {
     personalAsignado,
     recursosAsignados
   } = req.body;
+
+  if (!idSolicitante || !idEstadoActividad || !idPrioridad || !nombreActividad || !fechaActividad || !horaInicio || !horaFin || !lugarActividad) {
+    return res.status(400).json({ mensaje: 'Faltan campos obligatorios' });
+  }
 
   conexion.beginTransaction((error) => {
     if (error) {
@@ -212,71 +221,73 @@ router.post('/solicitudes', (req, res) => {
 
         const idSolicitud = resultado.insertId;
 
-        // Insertar detalle si existe
+        const insertsPendientes = [];
+
         if (detalle && detalle.length > 0) {
           const sqlDetalle = 'INSERT INTO detalle_solicitud (id_solicitud, descripcion_detalle, cantidad) VALUES ?';
           const valoresDetalle = detalle.map(d => [idSolicitud, d.descripcionDetalle, d.cantidad]);
-
-          conexion.query(sqlDetalle, [valoresDetalle], (error) => {
-            if (error) {
-              return conexion.rollback(() => {
-                console.error('ERROR MYSQL:', error);
-                res.status(500).json({ mensaje: 'Error al insertar detalle' });
-              });
-            }
-          });
+          insertsPendientes.push({ sql: sqlDetalle, values: [valoresDetalle], msg: 'Error al insertar detalle' });
         }
 
-        // Asignar personal si existe
         if (personalAsignado && personalAsignado.length > 0) {
           const sqlPersonal = 'INSERT INTO asignacion_usuario (id_solicitud, id_usuario, fecha_asignacion, observacion) VALUES ?';
           const valoresPersonal = personalAsignado.map(p => [idSolicitud, p.idUsuario, new Date(), p.observacion || null]);
-
-          conexion.query(sqlPersonal, [valoresPersonal], (error) => {
-            if (error) {
-              return conexion.rollback(() => {
-                console.error('ERROR MYSQL:', error);
-                res.status(500).json({ mensaje: 'Error al asignar personal' });
-              });
-            }
-          });
+          insertsPendientes.push({ sql: sqlPersonal, values: [valoresPersonal], msg: 'Error al asignar personal' });
         }
 
-        // Asignar recursos si existe
         if (recursosAsignados && recursosAsignados.length > 0) {
           const sqlRecursos = 'INSERT INTO asignacion_recurso (id_solicitud, id_recurso, cantidad, fecha_asignacion, observacion) VALUES ?';
           const valoresRecursos = recursosAsignados.map(r => [idSolicitud, r.idRecurso, r.cantidad || 1, new Date(), r.observacion || null]);
+          insertsPendientes.push({ sql: sqlRecursos, values: [valoresRecursos], msg: 'Error al asignar recursos' });
+        }
 
-          conexion.query(sqlRecursos, [valoresRecursos], (error) => {
+        if (insertsPendientes.length === 0) {
+          conexion.commit((error) => {
             if (error) {
               return conexion.rollback(() => {
                 console.error('ERROR MYSQL:', error);
-                res.status(500).json({ mensaje: 'Error al asignar recursos' });
+                res.status(500).json({ mensaje: 'Error al guardar la solicitud' });
               });
             }
+            res.status(201).json({ mensaje: 'Solicitud creada correctamente', id: idSolicitud });
           });
+          return;
         }
 
-        conexion.commit((error) => {
-          if (error) {
-            return conexion.rollback(() => {
-              console.error('ERROR MYSQL:', error);
-              res.status(500).json({ mensaje: 'Error al guardar la solicitud' });
+        let i = 0;
+        function ejecutarSiguiente() {
+          if (i >= insertsPendientes.length) {
+            conexion.commit((error) => {
+              if (error) {
+                return conexion.rollback(() => {
+                  console.error('ERROR MYSQL:', error);
+                  res.status(500).json({ mensaje: 'Error al guardar la solicitud' });
+                });
+              }
+              res.status(201).json({ mensaje: 'Solicitud creada correctamente', id: idSolicitud });
             });
+            return;
           }
-
-          res.status(201).json({
-            mensaje: 'Solicitud creada correctamente',
-            id: idSolicitud
+          const actual = insertsPendientes[i];
+          conexion.query(actual.sql, actual.values, (error) => {
+            if (error) {
+              return conexion.rollback(() => {
+                console.error('ERROR MYSQL:', error);
+                res.status(500).json({ mensaje: actual.msg });
+              });
+            }
+            i++;
+            ejecutarSiguiente();
           });
-        });
+        }
+        ejecutarSiguiente();
       }
     );
   });
 });
 
 // PUT - Actualizar solicitud
-router.put('/solicitudes/:id', (req, res) => {
+router.put('/solicitudes/:id', soloLectura, (req, res) => {
   const { id } = req.params;
   const {
     idSolicitante,
@@ -318,26 +329,88 @@ router.put('/solicitudes/:id', (req, res) => {
       lugarActividad,
       id
     ],
-    (error) => {
+    (error, resultados) => {
       if (error) {
         console.error('ERROR MYSQL:', error);
         return res.status(500).json({ mensaje: 'Error al actualizar la solicitud' });
+      }
+      if (resultados.affectedRows === 0) {
+        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
       }
       res.json({ mensaje: 'Solicitud actualizada correctamente' });
     }
   );
 });
 
-// DELETE - Eliminar solicitud
-router.delete('/solicitudes/:id', (req, res) => {
+// DELETE - Eliminar solicitud (limpia registros relacionados)
+router.delete('/solicitudes/:id', soloLectura, (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM solicitud_actividad WHERE id_solicitud = ?';
-  conexion.query(sql, [id], (error) => {
+
+  conexion.beginTransaction((error) => {
     if (error) {
       console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al eliminar la solicitud' });
+      return res.status(500).json({ mensaje: 'Error al iniciar transaccion' });
     }
-    res.json({ mensaje: 'Solicitud eliminada correctamente' });
+
+    const sqlVerificar = 'SELECT id_solicitud FROM solicitud_actividad WHERE id_solicitud = ?';
+    conexion.query(sqlVerificar, [id], (error, resultados) => {
+      if (error) {
+        return conexion.rollback(() => {
+          console.error('ERROR MYSQL:', error);
+          res.status(500).json({ mensaje: 'Error al buscar la solicitud' });
+        });
+      }
+      if (resultados.length === 0) {
+        return conexion.rollback(() => {
+          res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+        });
+      }
+
+      const deletes = [
+        'DELETE FROM notificacion_usuario WHERE id_solicitud = ?',
+        'DELETE FROM historial_reportes WHERE id_solicitud = ?',
+        'DELETE FROM historial_estado_actividad WHERE id_solicitud = ?',
+        'DELETE FROM asignacion_recurso WHERE id_solicitud = ?',
+        'DELETE FROM asignacion_usuario WHERE id_solicitud = ?',
+        'DELETE FROM detalle_solicitud WHERE id_solicitud = ?'
+      ];
+
+      let i = 0;
+      function ejecutarDelete() {
+        if (i >= deletes.length) {
+          const sqlEliminar = 'DELETE FROM solicitud_actividad WHERE id_solicitud = ?';
+          conexion.query(sqlEliminar, [id], (error) => {
+            if (error) {
+              return conexion.rollback(() => {
+                console.error('ERROR MYSQL:', error);
+                res.status(500).json({ mensaje: 'Error al eliminar la solicitud' });
+              });
+            }
+            conexion.commit((error) => {
+              if (error) {
+                return conexion.rollback(() => {
+                  console.error('ERROR MYSQL:', error);
+                  res.status(500).json({ mensaje: 'Error al confirmar eliminacion' });
+                });
+              }
+              res.json({ mensaje: 'Solicitud eliminada correctamente' });
+            });
+          });
+          return;
+        }
+        conexion.query(deletes[i], [id], (error) => {
+          if (error) {
+            return conexion.rollback(() => {
+              console.error('ERROR MYSQL:', error);
+              res.status(500).json({ mensaje: 'Error al eliminar registros relacionados' });
+            });
+          }
+          i++;
+          ejecutarDelete();
+        });
+      }
+      ejecutarDelete();
+    });
   });
 });
 

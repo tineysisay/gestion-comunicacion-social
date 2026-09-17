@@ -22,7 +22,7 @@
             <span class="card-prioridad">{{ solicitud.prioridad }}</span>
           </div>
           <h4 class="card-title">{{ solicitud.nombre_actividad }}</h4>
-          <p class="card-solicitante">{{ solicitud.nombre_solicitante }}</p>
+          <p class="card-responsable">{{ solicitud.nombre_responsable || 'Sin asignar' }}</p>
           <div class="card-footer">
             <span class="card-fecha">{{ solicitud.fecha_actividad | formatoFecha:'fecha' }}</span>
             <span class="card-hora">{{ solicitud.hora_inicio | formatoFecha:'hora' }} - {{ solicitud.hora_fin | formatoFecha:'hora' }}</span>
