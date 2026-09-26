@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
+const { soloLectura } = require('../middleware/roles');
 
 router.use(verificarToken);
 
@@ -68,7 +69,7 @@ router.get('/solicitantes/:id', (req, res) => {
 });
 
 // POST - Crear solicitante
-router.post('/solicitantes', (req, res) => {
+router.post('/solicitantes', soloLectura, (req, res) => {
   const {
     primerNombre,
     segundoNombre,
@@ -119,7 +120,7 @@ router.post('/solicitantes', (req, res) => {
 });
 
 // PUT - Actualizar solicitante
-router.put('/solicitantes/:id', (req, res) => {
+router.put('/solicitantes/:id', soloLectura, (req, res) => {
   const { id } = req.params;
   const {
     primerNombre,
@@ -169,7 +170,7 @@ router.put('/solicitantes/:id', (req, res) => {
 });
 
 // DELETE - Eliminar solicitante
-router.delete('/solicitantes/:id', (req, res) => {
+router.delete('/solicitantes/:id', soloLectura, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM solicitante WHERE id_solicitante = ?';
   conexion.query(sql, [id], (error) => {

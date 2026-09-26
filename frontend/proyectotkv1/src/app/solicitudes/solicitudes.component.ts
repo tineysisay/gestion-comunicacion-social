@@ -7,6 +7,7 @@ import { SolicitanteService } from '../services/solicitante.service';
 import { RecursoService } from '../services/recurso.service';
 import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
+import { NotificacionService } from '../services/notificacion.service';
 import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
 
 @Component({
@@ -50,6 +51,7 @@ export class SolicitudesComponent implements OnInit {
   idUsuarioAsignar = 0;
   idRecursoAsignar = 0;
   personalAsignado: number[] = [];
+  textoBusqueda = '';
 
   constructor(
     private solicitudService: SolicitudService,
@@ -57,7 +59,8 @@ export class SolicitudesComponent implements OnInit {
     private solicitanteService: SolicitanteService,
     private recursoService: RecursoService,
     private api: ApiService,
-    public authService: AuthService
+    public authService: AuthService,
+    private notificacion: NotificacionService
   ) {}
 
   ngOnInit(): void {
@@ -109,6 +112,19 @@ export class SolicitudesComponent implements OnInit {
       next: (datos) => this.recursos = datos,
       error: (error) => console.error('Error:', error)
     });
+  }
+
+  get solicitudesFiltradas(): any[] {
+    if (!this.textoBusqueda.trim()) return this.solicitudes;
+    const termino = this.textoBusqueda.toLowerCase().trim();
+    return this.solicitudes.filter(s =>
+      s.nombre_actividad?.toLowerCase().includes(termino) ||
+      s.descripcion_actividad?.toLowerCase().includes(termino) ||
+      s.lugar_actividad?.toLowerCase().includes(termino) ||
+      s.nombre_solicitante?.toLowerCase().includes(termino) ||
+      s.nombre_responsable?.toLowerCase().includes(termino) ||
+      s.estado?.toLowerCase().includes(termino)
+    );
   }
 
   nuevo(): void {
@@ -172,35 +188,36 @@ export class SolicitudesComponent implements OnInit {
     if (this.editando) {
       this.solicitudService.actualizar(this.idEditar, data).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.mostrarFormulario = false;
           this.obtenerSolicitudes();
           this.solicitudService.notificarCambio();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al actualizar')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al actualizar')
       });
     } else {
       this.solicitudService.crear(data).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.mostrarFormulario = false;
           this.obtenerSolicitudes();
           this.solicitudService.notificarCambio();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al crear')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al crear')
       });
     }
   }
 
-  eliminar(id: number): void {
-    if (confirm('Esta seguro de eliminar esta solicitud?')) {
+  async eliminar(id: number): Promise<void> {
+    const confirmado = await this.notificacion.confirmar('Esta seguro de eliminar esta solicitud?');
+    if (confirmado) {
       this.solicitudService.eliminar(id).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.obtenerSolicitudes();
           this.solicitudService.notificarCambio();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al eliminar')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
       });
     }
   }
@@ -211,18 +228,18 @@ export class SolicitudesComponent implements OnInit {
       idUsuario: this.idUsuarioAsignar
     }).subscribe({
       next: (respuesta) => {
-        alert(respuesta.mensaje);
+        this.notificacion.exito(respuesta.mensaje);
         this.verDetalle(this.solicitudActual.id_solicitud);
         this.idUsuarioAsignar = 0;
       },
-      error: (error) => alert(error.error?.mensaje || 'Error al asignar')
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al asignar')
     });
   }
 
   eliminarAsignacionUsuario(idAsignacion: number): void {
     this.solicitudService.eliminarAsignacionUsuario(this.solicitudActual.id_solicitud, idAsignacion).subscribe({
       next: () => this.verDetalle(this.solicitudActual.id_solicitud),
-      error: (error) => alert(error.error?.mensaje || 'Error al eliminar')
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
     });
   }
 
@@ -233,18 +250,18 @@ export class SolicitudesComponent implements OnInit {
       cantidad: 1
     }).subscribe({
       next: (respuesta) => {
-        alert(respuesta.mensaje);
+        this.notificacion.exito(respuesta.mensaje);
         this.verDetalle(this.solicitudActual.id_solicitud);
         this.idRecursoAsignar = 0;
       },
-      error: (error) => alert(error.error?.mensaje || 'Error al asignar')
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al asignar')
     });
   }
 
   eliminarAsignacionRecurso(idAsignacion: number): void {
     this.solicitudService.eliminarAsignacionRecurso(this.solicitudActual.id_solicitud, idAsignacion).subscribe({
       next: () => this.verDetalle(this.solicitudActual.id_solicitud),
-      error: (error) => alert(error.error?.mensaje || 'Error al eliminar')
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
     });
   }
 
@@ -255,12 +272,12 @@ export class SolicitudesComponent implements OnInit {
       idEstadoNuevo: idEstado
     }).subscribe({
       next: (respuesta) => {
-        alert(respuesta.mensaje);
+        this.notificacion.exito(respuesta.mensaje);
         this.obtenerSolicitudes();
         this.verDetalle(solicitud.id_solicitud);
         this.solicitudService.notificarCambio();
       },
-      error: (error) => alert(error.error?.mensaje || 'Error al cambiar estado')
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al cambiar estado')
     });
   }
 

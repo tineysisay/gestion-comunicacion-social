@@ -288,7 +288,7 @@ router.post('/solicitudes', soloLectura, (req, res) => {
 
 // PUT - Actualizar solicitud
 router.put('/solicitudes/:id', soloLectura, (req, res) => {
-  const { id } = req.params;
+  const id = parseInt(req.params.id);
   const {
     idSolicitante,
     idEstadoActividad,
@@ -368,7 +368,7 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
             }
 
             const sqlInsert = 'INSERT INTO asignacion_usuario (id_solicitud, id_usuario, fecha_asignacion) VALUES ?';
-            const valores = personalAsignado.map(idUsuario => [id, idUsuario, new Date()]);
+            const valores = personalAsignado.map(idUsuario => [id, parseInt(idUsuario), new Date()]);
             conexion.query(sqlInsert, [valores], (error) => {
               if (error) {
                 return conexion.rollback(() => {

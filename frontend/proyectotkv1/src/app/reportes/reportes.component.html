@@ -22,48 +22,79 @@
       <div class="tarjeta-label">En Proceso</div>
     </div>
     <div class="tarjeta tarjeta-naranja">
-      <div class="tarjeta-numero">{{ estadisticas.notificacionesNoLeidas || 0 }}</div>
-      <div class="tarjeta-label">Notificaciones</div>
+      <div class="tarjeta-numero">{{ estadisticas.porEstado?.[3]?.total || 0 }}</div>
+      <div class="tarjeta-label">Finalizados</div>
     </div>
   </div>
 
-  <!-- Graficos principales -->
-  <div class="grid-graficos">
-    <div class="grafico-card">
-      <h3>Solicitudes por Estado</h3>
-      <div class="grafico-container">
-        <canvas #chartEstados></canvas>
-      </div>
+  <!-- Carga de trabajo por usuario -->
+  <div class="grafico-card">
+    <h3>Carga de Trabajo por Usuario</h3>
+    <div class="grafico-container">
+      <canvas #chartCarga></canvas>
     </div>
+  </div>
 
-    <div class="grafico-card">
-      <h3>Solicitudes por Prioridad</h3>
-      <div class="grafico-container">
-        <canvas #chartPrioridades></canvas>
+  <!-- Actividades por trabajador -->
+  <div class="actividades-section" *ngIf="actividadesPorUsuario.length > 0">
+    <h3>Actividades por Trabajador</h3>
+    <div class="trabajador-grupo" *ngFor="let grupo of gruposActividades">
+      <div class="trabajador-header" (click)="grupo.abierto = !grupo.abierto">
+        <div class="trabajador-info">
+          <span class="trabajador-nombre">{{ grupo.nombre_usuario }}</span>
+          <span class="trabajador-cargo">{{ grupo.nombre_cargo }}</span>
+        </div>
+        <div class="trabajador-contador">
+          <span class="badge">{{ grupo.actividades.length }}</span>
+          <span class="flecha" [class.abierto]="grupo.abierto">&#9660;</span>
+        </div>
+      </div>
+      <div class="trabajador-actividades" *ngIf="grupo.abierto">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Actividad</th>
+              <th>Fecha</th>
+              <th>Lugar</th>
+              <th>Estado</th>
+              <th>Prioridad</th>
+              <th>Solicitante</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let act of grupo.actividades; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ act.nombre_actividad }}</td>
+              <td>{{ act.fecha_actividad }}</td>
+              <td>{{ act.lugar_actividad }}</td>
+              <td>{{ act.nombre_estado }}</td>
+              <td>{{ act.nombre_prioridad }}</td>
+              <td>{{ act.solicitante }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <div class="grid-graficos">
-    <div class="grafico-card">
-      <h3>Solicitudes por Institucion</h3>
-      <div class="grafico-container">
-        <canvas #chartInstituciones></canvas>
-      </div>
-    </div>
-
-    <div class="grafico-card">
-      <h3>Carga de Trabajo por Usuario</h3>
-      <div class="grafico-container">
-        <canvas #chartCarga></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reporte por fecha -->
+  <!-- Filtros de fecha -->
   <div class="reporte-fechas">
-    <h3>Reporte por Rango de Fechas</h3>
-    <div class="filtro-fechas">
+    <div class="filtro-header">
+      <h3>Reporte por Rango de Fechas</h3>
+      <button class="btn-pdf" (click)="exportarPDF()">
+        &#10132; Exportar PDF
+      </button>
+    </div>
+
+    <div class="filtro-botones">
+      <button class="btn-toggle" [class.activo]="filtroActivo === 'hoy'" (click)="filtrarHoy()">Hoy</button>
+      <button class="btn-toggle" [class.activo]="filtroActivo === 'semana'" (click)="filtrarSemana()">Esta Semana</button>
+      <button class="btn-toggle" [class.activo]="filtroActivo === 'mes'" (click)="filtrarMes()">Este Mes</button>
+      <button class="btn-toggle" [class.activo]="filtroActivo === 'rango'" (click)="filtroActivo = 'rango'">Rango Personalizado</button>
+    </div>
+
+    <div class="filtro-fechas" *ngIf="filtroActivo === 'rango'">
       <div class="campo">
         <label>Fecha inicio</label>
         <input type="date" [(ngModel)]="fechaInicio">
@@ -75,14 +106,17 @@
       <button class="btn-buscar" (click)="buscarPorFecha()">Buscar</button>
     </div>
 
+    <div class="filtro-info" *ngIf="filtroActivo !== 'rango'">
+      <span class="filtro-activa">Filtro activo: <strong>{{ textoFiltro }}</strong></span>
+    </div>
+
     <div class="tabla-container" *ngIf="solicitudesPorFecha.length > 0">
       <table>
         <thead>
           <tr>
-            <th>ID</th>
+            <th>#</th>
             <th>Actividad</th>
             <th>Fecha</th>
-            <th>Horario</th>
             <th>Lugar</th>
             <th>Estado</th>
             <th>Prioridad</th>
@@ -90,11 +124,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let s of solicitudesPorFecha">
-            <td>{{ s.id_solicitud }}</td>
+          <tr *ngFor="let s of solicitudesPorFecha; let i = index">
+            <td>{{ i + 1 }}</td>
             <td>{{ s.nombre_actividad }}</td>
             <td>{{ s.fecha_actividad }}</td>
-            <td>{{ s.hora_inicio }} - {{ s.hora_fin }}</td>
             <td>{{ s.lugar_actividad }}</td>
             <td>{{ s.nombre_estado }}</td>
             <td>{{ s.nombre_prioridad }}</td>
@@ -102,6 +135,10 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="sin-resultados" *ngIf="filtroActivo && filtroActivo !== 'rango' && solicitudesPorFecha.length === 0 && cargarCompletado">
+      <p>No se encontraron solicitudes para el periodo seleccionado.</p>
     </div>
   </div>
 

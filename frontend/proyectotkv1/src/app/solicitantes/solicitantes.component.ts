@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SolicitanteService } from '../services/solicitante.service';
 import { CatalogoService } from '../services/catalogo.service';
+import { NotificacionService } from '../services/notificacion.service';
 
 @Component({
   selector: 'app-solicitantes',
@@ -27,10 +28,12 @@ export class SolicitantesComponent implements OnInit {
   correoElectronico = '';
   descripcionSolicitante = '';
   idInstitucion = 0;
+  textoBusqueda = '';
 
   constructor(
     private solicitanteService: SolicitanteService,
-    private catalogoService: CatalogoService
+    private catalogoService: CatalogoService,
+    private notificacion: NotificacionService
   ) {}
 
   ngOnInit(): void {
@@ -50,6 +53,18 @@ export class SolicitantesComponent implements OnInit {
       next: (datos) => this.instituciones = datos,
       error: (error) => console.error('Error:', error)
     });
+  }
+
+  get solicitantesFiltradas(): any[] {
+    if (!this.textoBusqueda.trim()) return this.solicitantes;
+    const termino = this.textoBusqueda.toLowerCase().trim();
+    return this.solicitantes.filter(s =>
+      s.primer_nombre?.toLowerCase().includes(termino) ||
+      s.segundo_nombre?.toLowerCase().includes(termino) ||
+      s.primer_apellido?.toLowerCase().includes(termino) ||
+      s.segundo_apellido?.toLowerCase().includes(termino) ||
+      s.nombre_institucion?.toLowerCase().includes(termino)
+    );
   }
 
   nuevo(): void {
@@ -93,32 +108,33 @@ export class SolicitantesComponent implements OnInit {
     if (this.editando) {
       this.solicitanteService.actualizar(this.idEditar, data).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.mostrarFormulario = false;
           this.obtenerSolicitantes();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al actualizar')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al actualizar')
       });
     } else {
       this.solicitanteService.crear(data).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.mostrarFormulario = false;
           this.obtenerSolicitantes();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al crear')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al crear')
       });
     }
   }
 
-  eliminar(id: number): void {
-    if (confirm('Esta seguro de eliminar este solicitante?')) {
+  async eliminar(id: number): Promise<void> {
+    const confirmado = await this.notificacion.confirmar('Esta seguro de eliminar este solicitante?');
+    if (confirmado) {
       this.solicitanteService.eliminar(id).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.obtenerSolicitantes();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al eliminar')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
       });
     }
   }

@@ -38,6 +38,30 @@ export class AuthService {
     return usuario ? JSON.parse(usuario) : null;
   }
 
+  esAdmin(): boolean {
+    const usuario = this.getUsuario();
+    return usuario && usuario.id_rol === 1;
+  }
+
+  esLector(): boolean {
+    const usuario = this.getUsuario();
+    return usuario && usuario.id_rol === 2;
+  }
+
+  esJefe(): boolean {
+    const usuario = this.getUsuario();
+    return usuario && usuario.id_rol === 3;
+  }
+
+  puedeEditar(): boolean {
+    return this.esAdmin();
+  }
+
+  getNombreRol(): string {
+    const usuario = this.getUsuario();
+    return usuario ? usuario.nombre_rol : '';
+  }
+
   estaAutenticado(): boolean {
     const token = this.getToken();
     if (!token) return false;

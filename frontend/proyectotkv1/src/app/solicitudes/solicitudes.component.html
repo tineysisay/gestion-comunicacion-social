@@ -216,25 +216,34 @@
     </div>
   </div>
 
+  <div class="buscador-container">
+    <input
+      type="text"
+      class="buscador-input"
+      placeholder="Buscar solicitudes o solicitantes..."
+      [(ngModel)]="textoBusqueda"
+    >
+  </div>
+
   <div class="tabla-container">
-    <table>
+    <table *ngIf="solicitudesFiltradas.length > 0">
       <thead>
         <tr>
           <th>Actividad</th>
           <th>Solicitante</th>
           <th>Fecha</th>
           <th>Estado</th>
-          <th>Prioridad</th>
+          <th>Responsable</th>
           <th>Opciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let s of solicitudes">
+        <tr *ngFor="let s of solicitudesFiltradas">
           <td>{{ s.nombre_actividad }}</td>
           <td>{{ s.nombre_solicitante }}</td>
           <td>{{ s.fecha_actividad | formatoFecha:'fecha' }}</td>
           <td>{{ s.estado }}</td>
-          <td>{{ s.prioridad }}</td>
+          <td>{{ s.nombre_responsable || 'Sin asignar' }}</td>
           <td>
             <button class="btn-ver" (click)="verDetalle(s.id_solicitud)">Ver</button>
             <button *ngIf="authService.esAdmin()" class="btn-editar" (click)="editar(s.id_solicitud)">Editar</button>
@@ -243,6 +252,9 @@
         </tr>
       </tbody>
     </table>
+    <div *ngIf="solicitudesFiltradas.length === 0" class="sin-resultados">
+      <p>No se encontraron solicitudes</p>
+    </div>
   </div>
 
 </div>

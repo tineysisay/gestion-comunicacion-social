@@ -194,4 +194,36 @@ router.get('/reportes/carga-por-usuario', (req, res) => {
   });
 });
 
+// GET - Actividades detalladas por usuario
+router.get('/reportes/actividades-por-usuario', (req, res) => {
+  const sql = `
+    SELECT 
+      du.id_usuario,
+      CONCAT(du.primer_nombre, ' ', du.primer_apellido) AS nombre_usuario,
+      ca.nombre_cargo,
+      sa.id_solicitud,
+      sa.nombre_actividad,
+      sa.fecha_actividad,
+      sa.lugar_actividad,
+      ea.nombre_estado,
+      pa.nombre_prioridad,
+      CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS solicitante
+    FROM datos_usuario du
+    INNER JOIN cargo_usuario ca ON du.id_cargo = ca.id_cargo
+    INNER JOIN asignacion_usuario au ON du.id_usuario = au.id_usuario
+    INNER JOIN solicitud_actividad sa ON au.id_solicitud = sa.id_solicitud
+    INNER JOIN estado_actividad ea ON sa.id_estado_actividad = ea.id_estado_actividad
+    INNER JOIN prioridad_actividad pa ON sa.id_prioridad = pa.id_prioridad
+    INNER JOIN solicitante s ON sa.id_solicitante = s.id_solicitante
+    ORDER BY du.primer_nombre, sa.fecha_actividad DESC
+  `;
+  conexion.query(sql, (error, resultados) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al obtener actividades por usuario' });
+    }
+    res.json(resultados);
+  });
+});
+
 module.exports = router;

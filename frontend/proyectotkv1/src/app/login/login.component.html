@@ -1,36 +1,55 @@
 <div class="login-container">
-  <div class="login-box">
-    <h1>Sistema de Gestión Operativa</h1>
-    <h2>Inicio de sesión</h2>
+  <div class="login-card">
+    <div class="login-header">
+      <img src="assets/LOGOT.png" alt="Logo Municipalidad" class="login-logo">
+      <div class="login-titles">
+        <h1>Municipalidad de Santiago Atitlan</h1>
+        <h2>Direccion de Comunicacion Social</h2>
+      </div>
+    </div>
+
+    <div class="login-divider"></div>
+
+    <h3>Sistema de Gestion Operativa</h3>
 
     <form (ngSubmit)="iniciarSesion()">
+      <div class="campo">
+        <label for="usuario">Usuario</label>
+        <input
+          type="text"
+          id="usuario"
+          name="usuario"
+          [(ngModel)]="usuario"
+          placeholder="Ingrese su usuario"
+          required
+          autocomplete="username"
+        >
+      </div>
 
-      <label for="usuario">Usuario</label>
-      <input
-        type="text"
-        id="usuario"
-        name="usuario"
-        [(ngModel)]="usuario"
-        placeholder="Ingrese su usuario"
-        required
-      >
+      <div class="campo">
+        <label for="contrasena">Contrasena</label>
+        <input
+          type="password"
+          id="contrasena"
+          name="contrasena"
+          [(ngModel)]="contrasena"
+          placeholder="Ingrese su contrasena"
+          required
+          autocomplete="current-password"
+        >
+      </div>
 
-      <label for="contrasena">Contraseña</label>
-      <input
-        type="password"
-        id="contrasena"
-        name="contrasena"
-        [(ngModel)]="contrasena"
-        placeholder="Ingrese su contraseña"
-        required
-      >
-
-      <button type="submit">Ingresar</button>
+      <button type="submit" class="btn-login">
+        Iniciar Sesion
+      </button>
 
       <div class="error-message" *ngIf="errorLogin">
         {{ errorLogin }}
       </div>
-
     </form>
+
+    <div class="login-footer">
+      <p>Sistema de gestion para laDireccion de Comunicacion Social</p>
+    </div>
   </div>
 </div>

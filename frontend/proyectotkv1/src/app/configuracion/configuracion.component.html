@@ -9,7 +9,7 @@
 
   <div class="pestanhas-container">
     <button
-      *ngFor="let p of pestanas"
+      *ngFor="let p of pestanasFiltradas"
       class="pestana"
       [class.activa]="pestanaActiva === p.id"
       (click)="cambiarPestana(p.id)">
@@ -21,7 +21,7 @@
   <div *ngIf="pestanaActiva === 'perfil'" class="perfil-container">
     <div class="perfil-header">
       <h2>Mi Perfil</h2>
-      <button class="btn-editar-perfil" *ngIf="!editandoPerfil" (click)="editarPerfil()">Editar</button>
+      <button class="btn-editar-perfil" *ngIf="!editandoPerfil && !authService.esJefe()" (click)="editarPerfil()">Editar</button>
     </div>
 
     <div class="perfil-info" *ngIf="!editandoPerfil">
@@ -90,10 +90,11 @@
   <div *ngIf="pestanaActiva === 'recursos'" class="recursos-container">
     <div class="tabla-header">
       <h2>Recursos</h2>
-      <button class="btn-nuevo" (click)="nuevoRecurso()">+ Nuevo recurso</button>
+      <button *ngIf="authService.esAdmin()" class="btn-nuevo" (click)="nuevoRecurso()">+ Nuevo recurso</button>
     </div>
 
     <div class="formulario-container" *ngIf="mostrarFormularioRecurso">
+      <div class="formulario-card">
       <div class="formulario-header">
         <h2>{{ editandoRecurso ? 'Editar recurso' : 'Nuevo recurso' }}</h2>
         <button class="btn-cerrar" (click)="mostrarFormularioRecurso = false">x</button>
@@ -133,32 +134,31 @@
           <button type="submit" class="btn-guardar">Guardar</button>
         </div>
       </form>
+      </div>
     </div>
 
     <div class="tabla-container">
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nombre</th>
             <th>Tipo</th>
             <th>Estado</th>
-            <th>Opciones</th>
+            <th *ngIf="authService.esAdmin()">Opciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let r of datos">
-            <td>{{ r.id_recurso }}</td>
             <td>{{ r.nombre_recurso }}</td>
             <td>{{ r.nombre_tipo_recurso }}</td>
             <td>{{ r.estado_recurso }}</td>
-            <td>
+            <td *ngIf="authService.esAdmin()">
               <button class="btn-editar" (click)="editarRecurso(r)">Editar</button>
               <button class="btn-eliminar" (click)="eliminarRecurso(r.id_recurso)">Eliminar</button>
             </td>
           </tr>
           <tr *ngIf="datos.length === 0">
-            <td colspan="5" class="sin-datos">No hay recursos registrados</td>
+            <td [attr.colspan]="authService.esAdmin() ? 4 : 3" class="sin-datos">No hay recursos registrados</td>
           </tr>
         </tbody>
       </table>
@@ -168,6 +168,7 @@
   <!-- CATALOGOS -->
   <div *ngIf="pestanaActiva !== 'perfil' && pestanaActiva !== 'recursos'">
     <div class="formulario-container" *ngIf="mostrarFormulario">
+      <div class="formulario-card">
       <div class="formulario-header">
         <h2>{{ editando ? 'Editar registro' : 'Nuevo registro' }}</h2>
         <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
@@ -186,32 +187,31 @@
           <button type="submit" class="btn-guardar">Guardar</button>
         </div>
       </form>
+      </div>
     </div>
 
     <div class="tabla-container">
       <div class="tabla-header">
         <h2>{{ nombrePestanaActual }}</h2>
-        <button class="btn-nuevo" (click)="nuevo()">+ Nuevo</button>
+        <button *ngIf="authService.esAdmin()" class="btn-nuevo" (click)="nuevo()">+ Nuevo</button>
       </div>
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nombre</th>
-            <th>Opciones</th>
+            <th *ngIf="authService.esAdmin()">Opciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let item of datos">
-            <td>{{ item[getIdCampo()] }}</td>
             <td>{{ item[getNombreColumna()] }}</td>
-            <td>
+            <td *ngIf="authService.esAdmin()">
               <button class="btn-editar" (click)="editar(item)">Editar</button>
               <button class="btn-eliminar" (click)="eliminar(item[getIdCampo()])">Eliminar</button>
             </td>
           </tr>
           <tr *ngIf="datos.length === 0">
-            <td colspan="3" class="sin-datos">No hay registros</td>
+            <td [attr.colspan]="authService.esAdmin() ? 2 : 1" class="sin-datos">No hay registros</td>
           </tr>
         </tbody>
       </table>

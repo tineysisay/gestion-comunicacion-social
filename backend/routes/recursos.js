@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
+const { soloLectura } = require('../middleware/roles');
 
 router.use(verificarToken);
 
@@ -55,7 +56,7 @@ router.get('/recursos/:id', (req, res) => {
 });
 
 // POST - Crear recurso
-router.post('/recursos', (req, res) => {
+router.post('/recursos', soloLectura, (req, res) => {
   const { nombreRecurso, descripcionRecurso, estadoRecurso, idTipoRecurso } = req.body;
   const sql = 'INSERT INTO recurso (nombre_recurso, descripcion_recurso, estado_recurso, id_tipo_recurso) VALUES (?, ?, ?, ?)';
   conexion.query(sql, [nombreRecurso, descripcionRecurso || null, estadoRecurso, idTipoRecurso], (error, resultado) => {
@@ -68,7 +69,7 @@ router.post('/recursos', (req, res) => {
 });
 
 // PUT - Actualizar recurso
-router.put('/recursos/:id', (req, res) => {
+router.put('/recursos/:id', soloLectura, (req, res) => {
   const { id } = req.params;
   const { nombreRecurso, descripcionRecurso, estadoRecurso, idTipoRecurso } = req.body;
   const sql = 'UPDATE recurso SET nombre_recurso = ?, descripcion_recurso = ?, estado_recurso = ?, id_tipo_recurso = ? WHERE id_recurso = ?';
@@ -82,7 +83,7 @@ router.put('/recursos/:id', (req, res) => {
 });
 
 // DELETE - Eliminar recurso
-router.delete('/recursos/:id', (req, res) => {
+router.delete('/recursos/:id', soloLectura, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM recurso WHERE id_recurso = ?';
   conexion.query(sql, [id], (error) => {

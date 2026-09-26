@@ -9,6 +9,7 @@
   </div>
 
   <div class="formulario-container" *ngIf="mostrarFormulario">
+    <div class="formulario-card">
     <div class="formulario-header">
       <h2>{{ editando ? 'Editar solicitante' : 'Nuevo solicitante' }}</h2>
       <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
@@ -61,13 +62,22 @@
         <button type="submit" class="btn-guardar">Guardar</button>
       </div>
     </form>
+    </div>
+  </div>
+
+  <div class="buscador-container">
+    <input
+      type="text"
+      class="buscador-input"
+      placeholder="Buscar por nombre o institucion..."
+      [(ngModel)]="textoBusqueda"
+    >
   </div>
 
   <div class="tabla-container">
-    <table>
+    <table *ngIf="solicitantesFiltradas.length > 0">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Nombre</th>
           <th>Telefono</th>
           <th>Correo</th>
@@ -76,8 +86,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let s of solicitantes">
-          <td>{{ s.id_solicitante }}</td>
+        <tr *ngFor="let s of solicitantesFiltradas">
           <td>{{ s.primer_nombre }} {{ s.primer_apellido }}</td>
           <td>{{ s.telefono }}</td>
           <td>{{ s.correo_electronico }}</td>
@@ -89,6 +98,9 @@
         </tr>
       </tbody>
     </table>
+    <div *ngIf="solicitantesFiltradas.length === 0" class="sin-resultados">
+      <p>No se encontraron solicitantes</p>
+    </div>
   </div>
 
 </div>

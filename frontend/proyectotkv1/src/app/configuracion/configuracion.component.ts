@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { CatalogoService } from '../services/catalogo.service';
 import { RecursoService } from '../services/recurso.service';
 import { AuthService } from '../services/auth.service';
+import { NotificacionService } from '../services/notificacion.service';
 
 @Component({
   selector: 'app-configuracion',
@@ -54,11 +55,19 @@ export class ConfiguracionComponent implements OnInit {
   constructor(
     private catalogoService: CatalogoService,
     private recursoService: RecursoService,
-    private authService: AuthService
+    public authService: AuthService,
+    private notificacion: NotificacionService
   ) {}
 
   ngOnInit(): void {
     this.cargarDatos();
+  }
+
+  get pestanasFiltradas(): any[] {
+    if (this.authService.esLector()) {
+      return this.pestanas.filter(p => p.id === 'perfil');
+    }
+    return this.pestanas;
   }
 
   cambiarPestana(pestanha: string): void {
@@ -95,10 +104,10 @@ export class ConfiguracionComponent implements OnInit {
   guardarPerfil(): void {
     this.authService.actualizarPerfil(this.perfil).subscribe({
       next: (respuesta) => {
-        alert(respuesta.mensaje);
+        this.notificacion.exito(respuesta.mensaje);
         this.editandoPerfil = false;
       },
-      error: (error) => alert(error.error?.mensaje || 'Error al guardar')
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al guardar')
     });
   }
 
@@ -198,22 +207,23 @@ export class ConfiguracionComponent implements OnInit {
 
     save$.subscribe({
       next: (respuesta: any) => {
-        alert(respuesta.mensaje);
+        this.notificacion.exito(respuesta.mensaje);
         this.mostrarFormulario = false;
         this.cargarDatos();
       },
-      error: (error: any) => alert(error.error?.mensaje || 'Error al guardar')
+      error: (error: any) => this.notificacion.error(error.error?.mensaje || 'Error al guardar')
     });
   }
 
-  eliminar(id: number): void {
-    if (confirm('Esta seguro de eliminar este registro?')) {
+  async eliminar(id: number): Promise<void> {
+    const confirmado = await this.notificacion.confirmar('Esta seguro de eliminar este registro?');
+    if (confirmado) {
       this.deleteMethod()(id).subscribe({
         next: (respuesta: any) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.cargarDatos();
         },
-        error: (error: any) => alert(error.error?.mensaje || 'Error al eliminar')
+        error: (error: any) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
       });
     }
   }
@@ -306,32 +316,33 @@ export class ConfiguracionComponent implements OnInit {
     if (this.editandoRecurso) {
       this.recursoService.actualizar(this.idEditarRecurso, data).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.mostrarFormularioRecurso = false;
           this.cargarRecursos();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al actualizar')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al actualizar')
       });
     } else {
       this.recursoService.crear(data).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.mostrarFormularioRecurso = false;
           this.cargarRecursos();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al crear')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al crear')
       });
     }
   }
 
-  eliminarRecurso(id: number): void {
-    if (confirm('Esta seguro de eliminar este recurso?')) {
+  async eliminarRecurso(id: number): Promise<void> {
+    const confirmado = await this.notificacion.confirmar('Esta seguro de eliminar este recurso?');
+    if (confirmado) {
       this.recursoService.eliminar(id).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.cargarRecursos();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al eliminar')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
       });
     }
   }

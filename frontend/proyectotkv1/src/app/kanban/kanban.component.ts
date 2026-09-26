@@ -7,6 +7,7 @@ import { CatalogoService } from '../services/catalogo.service';
 import { SolicitanteService } from '../services/solicitante.service';
 import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
+import { NotificacionService } from '../services/notificacion.service';
 import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
 import { Subscription } from 'rxjs';
 
@@ -56,7 +57,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
     private catalogoService: CatalogoService,
     private solicitanteService: SolicitanteService,
     private api: ApiService,
-    public authService: AuthService
+    public authService: AuthService,
+    private notificacion: NotificacionService
   ) {}
 
   ngOnInit(): void {
@@ -209,7 +211,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     this.solicitudService.actualizar(this.idEditar, data).subscribe({
       next: (respuesta) => {
-        alert(respuesta.mensaje);
+        this.notificacion.exito(respuesta.mensaje);
         this.showModal = false;
         this.modoEdicion = false;
         this.solicitudSeleccionada = null;
@@ -217,7 +219,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
         this.cargarSolicitudes();
         this.solicitudService.notificarCambio();
       },
-      error: (error) => alert(error.error?.mensaje || 'Error al actualizar')
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al actualizar')
     });
   }
 }

@@ -9,6 +9,7 @@
   </div>
 
   <div class="formulario-container" *ngIf="mostrarFormulario">
+    <div class="formulario-card">
     <div class="formulario-header">
       <h2>{{ editando ? 'Editar recurso' : 'Nuevo recurso' }}</h2>
       <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
@@ -48,13 +49,13 @@
         <button type="submit" class="btn-guardar">Guardar</button>
       </div>
     </form>
+    </div>
   </div>
 
   <div class="tabla-container">
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Nombre</th>
           <th>Tipo</th>
           <th>Estado</th>
@@ -64,7 +65,6 @@
       </thead>
       <tbody>
         <tr *ngFor="let r of recursos">
-          <td>{{ r.id_recurso }}</td>
           <td>{{ r.nombre_recurso }}</td>
           <td>{{ r.nombre_tipo_recurso }}</td>
           <td>{{ r.estado_recurso }}</td>

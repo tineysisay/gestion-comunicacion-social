@@ -47,11 +47,15 @@ router.get('/notificaciones/no-leidas', (req, res) => {
 // PUT - Marcar notificacion como leida
 router.put('/notificaciones/:id/leer', (req, res) => {
   const { id } = req.params;
-  const sql = 'UPDATE notificacion_usuario SET leida = TRUE WHERE id_notificacion = ?';
-  conexion.query(sql, [id], (error) => {
+  const idUsuario = req.usuario.id_usuario;
+  const sql = 'UPDATE notificacion_usuario SET leida = TRUE WHERE id_notificacion = ? AND id_usuario = ?';
+  conexion.query(sql, [id, idUsuario], (error, resultados) => {
     if (error) {
       console.error('ERROR MYSQL:', error);
       return res.status(500).json({ mensaje: 'Error al marcar notificacion' });
+    }
+    if (resultados.affectedRows === 0) {
+      return res.status(404).json({ mensaje: 'Notificacion no encontrada' });
     }
     res.json({ mensaje: 'Notificacion marcada como leida' });
   });
@@ -73,11 +77,15 @@ router.put('/notificaciones/leer-todas', (req, res) => {
 // DELETE - Eliminar notificacion
 router.delete('/notificaciones/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM notificacion_usuario WHERE id_notificacion = ?';
-  conexion.query(sql, [id], (error) => {
+  const idUsuario = req.usuario.id_usuario;
+  const sql = 'DELETE FROM notificacion_usuario WHERE id_notificacion = ? AND id_usuario = ?';
+  conexion.query(sql, [id, idUsuario], (error, resultados) => {
     if (error) {
       console.error('ERROR MYSQL:', error);
       return res.status(500).json({ mensaje: 'Error al eliminar notificacion' });
+    }
+    if (resultados.affectedRows === 0) {
+      return res.status(404).json({ mensaje: 'Notificacion no encontrada' });
     }
     res.json({ mensaje: 'Notificacion eliminada correctamente' });
   });

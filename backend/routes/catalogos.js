@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
+const { soloAdmin } = require('../middleware/roles');
 
 router.use(verificarToken);
 
@@ -20,7 +21,7 @@ router.get('/tipos-empleado', (req, res) => {
   });
 });
 
-router.post('/tipos-empleado', (req, res) => {
+router.post('/tipos-empleado', soloAdmin, (req, res) => {
   const { nombreTipoEmpleado, descripcionTipoEmpleado } = req.body;
   const sql = 'INSERT INTO tipo_empleado (nombre_tipo_empleado, descripcion_tipo_empleado) VALUES (?, ?)';
   conexion.query(sql, [nombreTipoEmpleado, descripcionTipoEmpleado], (error, resultado) => {
@@ -32,7 +33,7 @@ router.post('/tipos-empleado', (req, res) => {
   });
 });
 
-router.put('/tipos-empleado/:id', (req, res) => {
+router.put('/tipos-empleado/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombreTipoEmpleado, descripcionTipoEmpleado } = req.body;
   const sql = 'UPDATE tipo_empleado SET nombre_tipo_empleado = ?, descripcion_tipo_empleado = ? WHERE id_tipo_empleado = ?';
@@ -45,7 +46,7 @@ router.put('/tipos-empleado/:id', (req, res) => {
   });
 });
 
-router.delete('/tipos-empleado/:id', (req, res) => {
+router.delete('/tipos-empleado/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM tipo_empleado WHERE id_tipo_empleado = ?';
   conexion.query(sql, [id], (error) => {
@@ -77,7 +78,7 @@ router.get('/cargos', (req, res) => {
   });
 });
 
-router.post('/cargos', (req, res) => {
+router.post('/cargos', soloAdmin, (req, res) => {
   const { nombreCargo, descripcionCargo, idTipoEmpleado } = req.body;
   const sql = 'INSERT INTO cargo_usuario (nombre_cargo, descripcion_cargo, id_tipo_empleado) VALUES (?, ?, ?)';
   conexion.query(sql, [nombreCargo, descripcionCargo, idTipoEmpleado], (error, resultado) => {
@@ -89,7 +90,7 @@ router.post('/cargos', (req, res) => {
   });
 });
 
-router.put('/cargos/:id', (req, res) => {
+router.put('/cargos/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombreCargo, descripcionCargo, idTipoEmpleado } = req.body;
   const sql = 'UPDATE cargo_usuario SET nombre_cargo = ?, descripcion_cargo = ?, id_tipo_empleado = ? WHERE id_cargo = ?';
@@ -102,7 +103,7 @@ router.put('/cargos/:id', (req, res) => {
   });
 });
 
-router.delete('/cargos/:id', (req, res) => {
+router.delete('/cargos/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM cargo_usuario WHERE id_cargo = ?';
   conexion.query(sql, [id], (error) => {
@@ -129,7 +130,7 @@ router.get('/roles', (req, res) => {
   });
 });
 
-router.post('/roles', (req, res) => {
+router.post('/roles', soloAdmin, (req, res) => {
   const { nombreRol, descripcionRol } = req.body;
   const sql = 'INSERT INTO rol_usuario (nombre_rol, descripcion_rol) VALUES (?, ?)';
   conexion.query(sql, [nombreRol, descripcionRol], (error, resultado) => {
@@ -141,7 +142,7 @@ router.post('/roles', (req, res) => {
   });
 });
 
-router.put('/roles/:id', (req, res) => {
+router.put('/roles/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombreRol, descripcionRol } = req.body;
   const sql = 'UPDATE rol_usuario SET nombre_rol = ?, descripcion_rol = ? WHERE id_rol = ?';
@@ -154,7 +155,7 @@ router.put('/roles/:id', (req, res) => {
   });
 });
 
-router.delete('/roles/:id', (req, res) => {
+router.delete('/roles/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM rol_usuario WHERE id_rol = ?';
   conexion.query(sql, [id], (error) => {
@@ -181,7 +182,7 @@ router.get('/estados-usuario', (req, res) => {
   });
 });
 
-router.post('/estados-usuario', (req, res) => {
+router.post('/estados-usuario', soloAdmin, (req, res) => {
   const { nombreEstado, descripcionEstado } = req.body;
   const sql = 'INSERT INTO estado_usuario (nombre_estado, descripcion_estado) VALUES (?, ?)';
   conexion.query(sql, [nombreEstado, descripcionEstado], (error, resultado) => {
@@ -193,7 +194,7 @@ router.post('/estados-usuario', (req, res) => {
   });
 });
 
-router.put('/estados-usuario/:id', (req, res) => {
+router.put('/estados-usuario/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombreEstado, descripcionEstado } = req.body;
   const sql = 'UPDATE estado_usuario SET nombre_estado = ?, descripcion_estado = ? WHERE id_estado_usuario = ?';
@@ -206,7 +207,7 @@ router.put('/estados-usuario/:id', (req, res) => {
   });
 });
 
-router.delete('/estados-usuario/:id', (req, res) => {
+router.delete('/estados-usuario/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM estado_usuario WHERE id_estado_usuario = ?';
   conexion.query(sql, [id], (error) => {
@@ -233,7 +234,7 @@ router.get('/tipos-recurso', (req, res) => {
   });
 });
 
-router.post('/tipos-recurso', (req, res) => {
+router.post('/tipos-recurso', soloAdmin, (req, res) => {
   const { nombreTipoRecurso, descripcionTipoRecurso } = req.body;
   const sql = 'INSERT INTO tipo_recurso (nombre_tipo_recurso, descripcion_tipo_recurso) VALUES (?, ?)';
   conexion.query(sql, [nombreTipoRecurso, descripcionTipoRecurso], (error, resultado) => {
@@ -245,7 +246,7 @@ router.post('/tipos-recurso', (req, res) => {
   });
 });
 
-router.put('/tipos-recurso/:id', (req, res) => {
+router.put('/tipos-recurso/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombreTipoRecurso, descripcionTipoRecurso } = req.body;
   const sql = 'UPDATE tipo_recurso SET nombre_tipo_recurso = ?, descripcion_tipo_recurso = ? WHERE id_tipo_recurso = ?';
@@ -258,7 +259,7 @@ router.put('/tipos-recurso/:id', (req, res) => {
   });
 });
 
-router.delete('/tipos-recurso/:id', (req, res) => {
+router.delete('/tipos-recurso/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM tipo_recurso WHERE id_tipo_recurso = ?';
   conexion.query(sql, [id], (error) => {
@@ -285,7 +286,7 @@ router.get('/estados-actividad', (req, res) => {
   });
 });
 
-router.post('/estados-actividad', (req, res) => {
+router.post('/estados-actividad', soloAdmin, (req, res) => {
   const { nombreEstado, descripcionEstado, ordenKanban } = req.body;
   const sql = 'INSERT INTO estado_actividad (nombre_estado, descripcion_estado, orden_kanban) VALUES (?, ?, ?)';
   conexion.query(sql, [nombreEstado, descripcionEstado, ordenKanban], (error, resultado) => {
@@ -297,7 +298,7 @@ router.post('/estados-actividad', (req, res) => {
   });
 });
 
-router.put('/estados-actividad/:id', (req, res) => {
+router.put('/estados-actividad/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombreEstado, descripcionEstado, ordenKanban } = req.body;
   const sql = 'UPDATE estado_actividad SET nombre_estado = ?, descripcion_estado = ?, orden_kanban = ? WHERE id_estado_actividad = ?';
@@ -310,7 +311,7 @@ router.put('/estados-actividad/:id', (req, res) => {
   });
 });
 
-router.delete('/estados-actividad/:id', (req, res) => {
+router.delete('/estados-actividad/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM estado_actividad WHERE id_estado_actividad = ?';
   conexion.query(sql, [id], (error) => {
@@ -337,7 +338,7 @@ router.get('/prioridades', (req, res) => {
   });
 });
 
-router.post('/prioridades', (req, res) => {
+router.post('/prioridades', soloAdmin, (req, res) => {
   const { nombrePrioridad, descripcionPrioridad, nivelPrioridad } = req.body;
   const sql = 'INSERT INTO prioridad_actividad (nombre_prioridad, descripcion_prioridad, nivel_prioridad) VALUES (?, ?, ?)';
   conexion.query(sql, [nombrePrioridad, descripcionPrioridad, nivelPrioridad], (error, resultado) => {
@@ -349,7 +350,7 @@ router.post('/prioridades', (req, res) => {
   });
 });
 
-router.put('/prioridades/:id', (req, res) => {
+router.put('/prioridades/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombrePrioridad, descripcionPrioridad, nivelPrioridad } = req.body;
   const sql = 'UPDATE prioridad_actividad SET nombre_prioridad = ?, descripcion_prioridad = ?, nivel_prioridad = ? WHERE id_prioridad = ?';
@@ -362,7 +363,7 @@ router.put('/prioridades/:id', (req, res) => {
   });
 });
 
-router.delete('/prioridades/:id', (req, res) => {
+router.delete('/prioridades/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM prioridad_actividad WHERE id_prioridad = ?';
   conexion.query(sql, [id], (error) => {
@@ -389,7 +390,7 @@ router.get('/tipos-notificacion', (req, res) => {
   });
 });
 
-router.post('/tipos-notificacion', (req, res) => {
+router.post('/tipos-notificacion', soloAdmin, (req, res) => {
   const { nombreTipoNotificacion, descripcionTipoNotificacion } = req.body;
   const sql = 'INSERT INTO tipo_notificacion (nombre_tipo_notificacion, descripcion_tipo_notificacion) VALUES (?, ?)';
   conexion.query(sql, [nombreTipoNotificacion, descripcionTipoNotificacion], (error, resultado) => {
@@ -401,7 +402,7 @@ router.post('/tipos-notificacion', (req, res) => {
   });
 });
 
-router.put('/tipos-notificacion/:id', (req, res) => {
+router.put('/tipos-notificacion/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombreTipoNotificacion, descripcionTipoNotificacion } = req.body;
   const sql = 'UPDATE tipo_notificacion SET nombre_tipo_notificacion = ?, descripcion_tipo_notificacion = ? WHERE id_tipo_notificacion = ?';
@@ -414,7 +415,7 @@ router.put('/tipos-notificacion/:id', (req, res) => {
   });
 });
 
-router.delete('/tipos-notificacion/:id', (req, res) => {
+router.delete('/tipos-notificacion/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM tipo_notificacion WHERE id_tipo_notificacion = ?';
   conexion.query(sql, [id], (error) => {
@@ -441,7 +442,7 @@ router.get('/instituciones', (req, res) => {
   });
 });
 
-router.post('/instituciones', (req, res) => {
+router.post('/instituciones', soloAdmin, (req, res) => {
   const { nombreInstitucion, representante, telRepresentante, telInstitucion, correoElectronico, direccion, descripcionInstitucion } = req.body;
   const sql = 'INSERT INTO institucion (nombre_institucion, representante, tel_representante, tel_institucion, correo_electronico, direccion, descripcion_institucion) VALUES (?, ?, ?, ?, ?, ?, ?)';
   conexion.query(sql, [nombreInstitucion, representante, telRepresentante, telInstitucion, correoElectronico, direccion, descripcionInstitucion], (error, resultado) => {
@@ -453,7 +454,7 @@ router.post('/instituciones', (req, res) => {
   });
 });
 
-router.put('/instituciones/:id', (req, res) => {
+router.put('/instituciones/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const { nombreInstitucion, representante, telRepresentante, telInstitucion, correoElectronico, direccion, descripcionInstitucion } = req.body;
   const sql = 'UPDATE institucion SET nombre_institucion = ?, representante = ?, tel_representante = ?, tel_institucion = ?, correo_electronico = ?, direccion = ?, descripcion_institucion = ? WHERE id_institucion = ?';
@@ -466,7 +467,7 @@ router.put('/instituciones/:id', (req, res) => {
   });
 });
 
-router.delete('/instituciones/:id', (req, res) => {
+router.delete('/instituciones/:id', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM institucion WHERE id_institucion = ?';
   conexion.query(sql, [id], (error) => {

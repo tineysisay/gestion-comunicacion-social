@@ -32,4 +32,8 @@ export class ReporteService {
   cargaPorUsuario(): Observable<any[]> {
     return this.api.get<any[]>('reportes/carga-por-usuario');
   }
+
+  actividadesPorUsuario(): Observable<any[]> {
+    return this.api.get<any[]>('reportes/actividades-por-usuario');
+  }
 }

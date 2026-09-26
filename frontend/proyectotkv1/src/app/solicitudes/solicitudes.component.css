@@ -3,6 +3,42 @@
   padding: 0;
 }
 
+/* === BUSCADOR === */
+.buscador-container {
+  margin-bottom: var(--space-lg);
+}
+
+.buscador-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.buscador-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.buscador-input:focus {
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12);
+}
+
+/* === SIN RESULTADOS === */
+.sin-resultados {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+}
+
 /* === TABLA === */
 .tabla-container {
   overflow-x: auto;

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RecursoService } from '../services/recurso.service';
 import { CatalogoService } from '../services/catalogo.service';
+import { NotificacionService } from '../services/notificacion.service';
 
 @Component({
   selector: 'app-recursos',
@@ -26,7 +27,8 @@ export class RecursosComponent implements OnInit {
 
   constructor(
     private recursoService: RecursoService,
-    private catalogoService: CatalogoService
+    private catalogoService: CatalogoService,
+    private notificacion: NotificacionService
   ) {}
 
   ngOnInit(): void {
@@ -81,32 +83,33 @@ export class RecursosComponent implements OnInit {
     if (this.editando) {
       this.recursoService.actualizar(this.idEditar, data).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.mostrarFormulario = false;
           this.obtenerRecursos();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al actualizar')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al actualizar')
       });
     } else {
       this.recursoService.crear(data).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.mostrarFormulario = false;
           this.obtenerRecursos();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al crear')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al crear')
       });
     }
   }
 
-  eliminar(id: number): void {
-    if (confirm('Esta seguro de eliminar este recurso?')) {
+  async eliminar(id: number): Promise<void> {
+    const confirmado = await this.notificacion.confirmar('Esta seguro de eliminar este recurso?');
+    if (confirmado) {
       this.recursoService.eliminar(id).subscribe({
         next: (respuesta) => {
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
           this.obtenerRecursos();
         },
-        error: (error) => alert(error.error?.mensaje || 'Error al eliminar')
+        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
       });
     }
   }

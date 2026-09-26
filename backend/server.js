@@ -2,8 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const conexion = require('./db');
 const verificarToken = require('./middleware/auth');
+const { soloAdmin } = require('./middleware/roles');
 const catalogosRoutes = require('./routes/catalogos');
 const solicitantesRoutes = require('./routes/solicitantes');
 const recursosRoutes = require('./routes/recursos');
@@ -18,7 +20,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
 
   const { usuario, contrasena } = req.body;
 
@@ -28,16 +30,18 @@ app.post('/api/login', (req, res) => {
       cu.id_usuario,
       cu.id_rol,
       cu.nombre_usuario,
+      cu.contrasena,
       cu.id_estado_usuario,
       du.primer_nombre,
-      du.primer_apellido
+      du.primer_apellido,
+      ru.nombre_rol
     FROM cuenta_usuario cu
     INNER JOIN datos_usuario du ON cu.id_usuario = du.id_usuario
-    WHERE cu.nombre_usuario = ? 
-      AND cu.contrasena = ?
+    INNER JOIN rol_usuario ru ON cu.id_rol = ru.id_rol
+    WHERE cu.nombre_usuario = ?
   `;
 
-  conexion.query(sql, [usuario, contrasena], (error, resultados) => {
+  conexion.query(sql, [usuario], async (error, resultados) => {
 
     if (error) {
       console.error('ERROR MYSQL:', error);
@@ -57,11 +61,34 @@ app.post('/api/login', (req, res) => {
 
     const usuarioData = resultados[0];
 
+    const contrasenaValida = await bcrypt.compare(contrasena, usuarioData.contrasena);
+
+    if (!contrasenaValida) {
+      return res.status(401).json({
+        mensaje: 'Usuario o contraseña incorrectos'
+      });
+    }
+
+    const estadoResult = await new Promise((resolve, reject) => {
+      conexion.query(
+        'SELECT nombre_estado FROM estado_usuario WHERE id_estado_usuario = ?',
+        [usuarioData.id_estado_usuario],
+        (err, results) => err ? reject(err) : resolve(results[0])
+      );
+    });
+
+    if (estadoResult.nombre_estado !== 'ACTIVO') {
+      return res.status(403).json({
+        mensaje: 'Su cuenta no está activa. Contacte al administrador.'
+      });
+    }
+
     const token = jwt.sign(
       {
         id_cuenta: usuarioData.id_cuenta,
         id_usuario: usuarioData.id_usuario,
         id_rol: usuarioData.id_rol,
+        nombre_rol: usuarioData.nombre_rol,
         nombre_usuario: usuarioData.nombre_usuario
       },
       process.env.JWT_SECRET,
@@ -75,6 +102,7 @@ app.post('/api/login', (req, res) => {
         id_cuenta: usuarioData.id_cuenta,
         nombre_usuario: usuarioData.nombre_usuario,
         id_rol: usuarioData.id_rol,
+        nombre_rol: usuarioData.nombre_rol,
         primer_nombre: usuarioData.primer_nombre,
         primer_apellido: usuarioData.primer_apellido
       }
@@ -104,7 +132,7 @@ app.get('/api/usuarios/perfil', verificarToken, (req, res) => {
       ca.nombre_cargo
     FROM cuenta_usuario cu
     INNER JOIN datos_usuario du ON cu.id_usuario = du.id_usuario
-    INNER JOIN rol r ON cu.id_rol = r.id_rol
+    INNER JOIN rol_usuario r ON cu.id_rol = r.id_rol
     INNER JOIN estado_usuario eu ON cu.id_estado_usuario = eu.id_estado_usuario
     INNER JOIN cargo_usuario ca ON du.id_cargo = ca.id_cargo
     WHERE cu.id_cuenta = ?
@@ -195,7 +223,7 @@ app.use('/api', historialRoutes);
 app.use('/api', notificacionesRoutes);
 app.use('/api', reportesRoutes);
 
-app.post('/api/usuarios', verificarToken, (req, res) => {
+app.post('/api/usuarios', verificarToken, soloAdmin, async (req, res) => {
 
   const {
     primerNombre,
@@ -211,6 +239,8 @@ app.post('/api/usuarios', verificarToken, (req, res) => {
     idRol,
     idEstadoUsuario
   } = req.body;
+
+  const contrasenaHash = await bcrypt.hash(contrasena, 10);
 
   const sqlPersona = `
     INSERT INTO datos_usuario (
@@ -280,7 +310,7 @@ console.log('ID PERSONA INSERTADA:', idUsuario);
             idUsuario,
             idRol,
             nombreUsuario,
-            contrasena,
+            contrasenaHash,
             idEstadoUsuario
           ],
           (error) => {
@@ -325,14 +355,21 @@ app.get('/api/usuarios', verificarToken, (req, res) => {
   const sql = `
     SELECT 
       c.id_cuenta,
+      c.id_usuario,
       c.nombre_usuario,
       r.nombre_rol,
-      e.nombre_estado
+      e.nombre_estado,
+      ca.nombre_cargo
     FROM cuenta_usuario c
     INNER JOIN rol_usuario r 
       ON c.id_rol = r.id_rol
     INNER JOIN estado_usuario e 
       ON c.id_estado_usuario = e.id_estado_usuario
+    INNER JOIN datos_usuario d
+      ON c.id_usuario = d.id_usuario
+    INNER JOIN cargo_usuario ca
+      ON d.id_cargo = ca.id_cargo
+    WHERE e.nombre_estado = 'ACTIVO'
   `;
 
   conexion.query(sql, (error, resultados) => {
@@ -402,7 +439,7 @@ app.get('/api/usuarios/:id', verificarToken, (req, res) => {
 
 });
 
-app.put('/api/usuarios/:id', verificarToken, (req, res) => {
+app.put('/api/usuarios/:id', verificarToken, soloAdmin, async (req, res) => {
 
   const { id } = req.params;
 
@@ -420,6 +457,8 @@ app.put('/api/usuarios/:id', verificarToken, (req, res) => {
     idRol,
     idEstadoUsuario
   } = req.body;
+
+  const contrasenaHash = contrasena.startsWith('$2b$') ? contrasena : await bcrypt.hash(contrasena, 10);
 
   const sqlBuscar = `
     SELECT id_usuario
@@ -496,7 +535,7 @@ app.put('/api/usuarios/:id', verificarToken, (req, res) => {
           sqlCuenta,
           [
             nombreUsuario,
-            contrasena,
+            contrasenaHash,
             idRol,
             idEstadoUsuario,
             id
@@ -533,7 +572,7 @@ app.get('/', (req, res) => {
 
 });
 
-app.delete('/api/usuarios/:id', verificarToken, (req, res) => {
+app.delete('/api/usuarios/:id', verificarToken, soloAdmin, (req, res) => {
 
   const idCuenta = req.params.id;
 

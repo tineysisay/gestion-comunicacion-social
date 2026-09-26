@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
+import { NotificacionService } from '../services/notificacion.service';
 
 @Component({
   selector: 'app-usuarios',
@@ -13,6 +14,7 @@ import { ApiService } from '../services/api.service';
 export class UsuariosComponent implements OnInit {
 
   mostrarFormulario = false;
+  mostrarContrasena = false;
   usuarios: any[] = [];
 
   tiposEmpleado: any[] = [];
@@ -39,7 +41,7 @@ export class UsuariosComponent implements OnInit {
   idRol = 0;
   idEstadoUsuario = 0;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private notificacion: NotificacionService) {}
 
   ngOnInit(): void {
     this.obtenerUsuarios();
@@ -113,6 +115,7 @@ export class UsuariosComponent implements OnInit {
         this.idCuentaEditar = usuario.id_cuenta;
         this.editando = true;
         this.mostrarFormulario = true;
+        this.mostrarContrasena = false;
 
         this.primerNombre = usuario.primer_nombre;
         this.segundoNombre = usuario.segundo_nombre;
@@ -136,7 +139,7 @@ export class UsuariosComponent implements OnInit {
 
         console.error('Error al obtener usuario:', error);
 
-        alert(
+        this.notificacion.error(
           error.error?.mensaje ||
           'No se pudo cargar el usuario'
         );
@@ -174,7 +177,7 @@ export class UsuariosComponent implements OnInit {
 
         next: (respuesta: any) => {
 
-          alert(respuesta.mensaje);
+          this.notificacion.exito(respuesta.mensaje);
 
           this.mostrarFormulario = false;
 
@@ -188,7 +191,7 @@ export class UsuariosComponent implements OnInit {
 
           console.error('Error al actualizar usuario:', error);
 
-          alert(
+          this.notificacion.error(
             error.error?.mensaje ||
             'No se pudo actualizar el usuario'
           );
@@ -207,7 +210,7 @@ export class UsuariosComponent implements OnInit {
 
       next: (respuesta: any) => {
 
-        alert(respuesta.mensaje);
+        this.notificacion.exito(respuesta.mensaje);
 
         this.mostrarFormulario = false;
 
@@ -221,7 +224,7 @@ export class UsuariosComponent implements OnInit {
 
         console.error('Error al guardar usuario:', error);
 
-        alert(
+        this.notificacion.error(
           error.error?.mensaje ||
           'No se pudo registrar el usuario'
         );
@@ -252,7 +255,12 @@ export class UsuariosComponent implements OnInit {
 
     this.editando = false;
     this.idCuentaEditar = 0;
+    this.mostrarContrasena = false;
 
+  }
+
+  toggleContrasena(): void {
+    this.mostrarContrasena = !this.mostrarContrasena;
   }
 
 }

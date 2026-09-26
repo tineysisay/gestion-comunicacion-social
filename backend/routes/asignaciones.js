@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
+const { soloLectura } = require('../middleware/roles');
 
 router.use(verificarToken);
 
@@ -38,7 +39,7 @@ router.get('/solicitudes/:id/asignaciones-usuario', (req, res) => {
 });
 
 // POST - Asignar personal a una solicitud
-router.post('/solicitudes/:id/asignaciones-usuario', (req, res) => {
+router.post('/solicitudes/:id/asignaciones-usuario', soloLectura, (req, res) => {
   const { id } = req.params;
   const { idUsuario, observacion } = req.body;
 
@@ -69,7 +70,7 @@ router.post('/solicitudes/:id/asignaciones-usuario', (req, res) => {
 });
 
 // DELETE - Eliminar asignacion de personal
-router.delete('/solicitudes/:id/asignaciones-usuario/:idAsignacion', (req, res) => {
+router.delete('/solicitudes/:id/asignaciones-usuario/:idAsignacion', soloLectura, (req, res) => {
   const { idAsignacion } = req.params;
   const sql = 'DELETE FROM asignacion_usuario WHERE id_asignacion_usuario = ?';
   conexion.query(sql, [idAsignacion], (error) => {
@@ -113,7 +114,7 @@ router.get('/solicitudes/:id/asignaciones-recurso', (req, res) => {
 });
 
 // POST - Asignar recurso a una solicitud
-router.post('/solicitudes/:id/asignaciones-recurso', (req, res) => {
+router.post('/solicitudes/:id/asignaciones-recurso', soloLectura, (req, res) => {
   const { id } = req.params;
   const { idRecurso, cantidad, observacion } = req.body;
 
@@ -144,7 +145,7 @@ router.post('/solicitudes/:id/asignaciones-recurso', (req, res) => {
 });
 
 // DELETE - Eliminar asignacion de recurso
-router.delete('/solicitudes/:id/asignaciones-recurso/:idAsignacion', (req, res) => {
+router.delete('/solicitudes/:id/asignaciones-recurso/:idAsignacion', soloLectura, (req, res) => {
   const { idAsignacion } = req.params;
   const sql = 'DELETE FROM asignacion_recurso WHERE id_asignacion_recurso = ?';
   conexion.query(sql, [idAsignacion], (error) => {
@@ -174,7 +175,7 @@ router.get('/solicitudes/:id/detalles', (req, res) => {
 });
 
 // POST - Agregar detalle a una solicitud
-router.post('/solicitudes/:id/detalles', (req, res) => {
+router.post('/solicitudes/:id/detalles', soloLectura, (req, res) => {
   const { id } = req.params;
   const { descripcionDetalle, cantidad } = req.body;
   const sql = 'INSERT INTO detalle_solicitud (id_solicitud, descripcion_detalle, cantidad) VALUES (?, ?, ?)';
@@ -191,7 +192,7 @@ router.post('/solicitudes/:id/detalles', (req, res) => {
 });
 
 // PUT - Actualizar detalle
-router.put('/solicitudes/:id/detalles/:idDetalle', (req, res) => {
+router.put('/solicitudes/:id/detalles/:idDetalle', soloLectura, (req, res) => {
   const { idDetalle } = req.params;
   const { descripcionDetalle, cantidad } = req.body;
   const sql = 'UPDATE detalle_solicitud SET descripcion_detalle = ?, cantidad = ? WHERE id_detalle_solicitud = ?';
@@ -205,7 +206,7 @@ router.put('/solicitudes/:id/detalles/:idDetalle', (req, res) => {
 });
 
 // DELETE - Eliminar detalle
-router.delete('/solicitudes/:id/detalles/:idDetalle', (req, res) => {
+router.delete('/solicitudes/:id/detalles/:idDetalle', soloLectura, (req, res) => {
   const { idDetalle } = req.params;
   const sql = 'DELETE FROM detalle_solicitud WHERE id_detalle_solicitud = ?';
   conexion.query(sql, [idDetalle], (error) => {

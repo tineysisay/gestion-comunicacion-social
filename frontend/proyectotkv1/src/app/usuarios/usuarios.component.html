@@ -6,13 +6,13 @@
       <p>Administración del personal y cuentas de acceso al sistema.</p>
     </div>
 
-    <button class="btn-nuevo" (click)="mostrarFormulario = true">
+    <button class="btn-nuevo" (click)="mostrarFormulario = true; mostrarContrasena = false">
       + Nuevo usuario
     </button>
   </div>
 
   <div class="formulario-container" *ngIf="mostrarFormulario">
-
+    <div class="formulario-card">
     <div class="formulario-header">
       <h2>{{ editando ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
 
@@ -158,11 +158,21 @@
         <div class="campo">
           <label>Contraseña</label>
 
-          <input
-            type="password"
-            [(ngModel)]="contrasena"
-            name="contrasena"
-            placeholder="Ingrese contraseña">
+          <div class="campo-contrasena">
+            <input
+              [type]="mostrarContrasena ? 'text' : 'password'"
+              [(ngModel)]="contrasena"
+              name="contrasena"
+              placeholder="Ingrese contraseña">
+
+            <button
+              type="button"
+              class="btn-ojo"
+              (click)="toggleContrasena()"
+              [title]="mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              {{ mostrarContrasena ? '🙈' : '👁' }}
+            </button>
+          </div>
         </div>
 
         <div class="campo">
@@ -225,7 +235,7 @@
       </div>
 
     </form>
-
+    </div>
   </div>
 
   <div class="tabla-container">
@@ -236,9 +246,9 @@
 
       <thead>
         <tr>
-          <th>ID</th>
           <th>Usuario</th>
           <th>Rol</th>
+          <th>Cargo</th>
           <th>Estado</th>
           <th>Opciones</th>
         </tr>
@@ -248,9 +258,9 @@
 
         <tr *ngFor="let usuario of usuarios">
 
-          <td>{{ usuario.id_cuenta }}</td>
           <td>{{ usuario.nombre_usuario }}</td>
           <td>{{ usuario.nombre_rol }}</td>
+          <td>{{ usuario.nombre_cargo }}</td>
           <td>{{ usuario.nombre_estado }}</td>
 
           <td>
