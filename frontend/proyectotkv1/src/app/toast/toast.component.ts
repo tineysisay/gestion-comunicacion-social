@@ -50,13 +50,13 @@ import { NotificacionService, Toast } from '../services/notificacion.service';
       max-width: 400px;
       pointer-events: auto;
     }
-    .toast-exito { background: #28a745; }
-    .toast-error { background: #D90429; }
-    .toast-info { background: #4361EE; }
+    .toast-exito { background: #22C55E; }
+    .toast-error { background: #DC2626; }
+    .toast-info { background: #2A5298; }
     .toast-icono { font-size: 18px; flex-shrink: 0; }
     .toast-mensaje { flex: 1; }
     @keyframes toast-entrar {
-      from { opacity: 0; transform: translateX(100px); }
+      from { opacity: 0; transform: translateX(20px); }
       to { opacity: 1; transform: translateX(0); }
     }
   `]

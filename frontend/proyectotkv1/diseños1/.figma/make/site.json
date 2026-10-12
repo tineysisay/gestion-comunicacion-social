@@ -1,0 +1,10 @@
+{
+  "description": "Provides a platform to detail and organize ideas clearly, helping users refine concepts and enhance project planning efficiently.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

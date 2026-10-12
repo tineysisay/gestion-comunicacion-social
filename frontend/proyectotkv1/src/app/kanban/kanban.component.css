@@ -10,6 +10,9 @@
 .kanban-header {
   margin-bottom: 12px;
   flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .kanban-header h2 {
@@ -17,28 +20,44 @@
   font-size: 1.25rem;
 }
 
+.header-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fecha-actual {
+  font-size: 0.875rem;
+  color: #475569;
+  white-space: nowrap;
+}
+
 .kanban-board {
   display: flex;
   gap: 8px;
   flex: 1;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .kanban-column {
   flex: 1;
-  background: #f5f5fa;
-  border-radius: 8px;
+  background: #F8FAFC;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  border: 1px solid #e0e0e8;
-  min-width: 0;
+  border: 1px solid #E2E8F0;
+  min-width: 220px;
 }
 
 .column-header {
+  position: relative;
+  z-index: 1;
   padding: 8px 10px;
   background: white;
-  border-radius: 8px 8px 0 0;
-  border-bottom: 2px solid #075ca8;
+  border-radius: 12px 12px 0 0;
+  border-bottom: 2px solid rgba(15, 23, 42, 0.35);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.18);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,18 +66,19 @@
 
 .column-header h3 {
   margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #333;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .badge {
-  background: #075ca8;
+  background: rgba(255, 255, 255, 0.25);
   color: white;
   padding: 2px 8px;
   border-radius: 10px;
@@ -79,16 +99,41 @@
 /* === TARJETAS === */
 .kanban-card {
   background: white;
-  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  border-left: 3px solid #E2E8F0;
+  border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(27, 58, 107, 0.05);
   overflow: hidden;
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .kanban-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(27, 58, 107, 0.15);
+}
+
+/* === ARRASTRE ENTRE COLUMNAS === */
+.column-body {
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.column-body.drag-over {
+  background: rgba(42, 82, 152, 0.08);
+  box-shadow: inset 0 0 0 2px #2A5298;
+  border-radius: 8px;
+}
+
+.kanban-card[draggable="true"] {
+  cursor: grab;
+}
+
+.kanban-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.kanban-card.arrastrando {
+  opacity: 0.45;
 }
 
 .card-header {
@@ -99,27 +144,27 @@
 }
 
 .card-id {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.85);
+  font-size: 0.8125rem;
+  color: #334155;
   font-weight: 600;
 }
 
 .card-prioridad {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 3px;
   font-weight: 600;
   text-transform: uppercase;
-  background: rgba(255,255,255,0.25);
-  color: white;
+  background: rgba(255, 255, 255, 0.85);
+  color: #0F172A;
 }
 
 .card-title {
   margin: 0;
   padding: 8px 10px 4px;
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: #1A202C;
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -131,8 +176,18 @@
 .card-responsable {
   margin: 0;
   padding: 0 10px 8px;
+  font-size: 0.875rem;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-lugar {
+  margin: 0;
+  padding: 0 10px 8px;
   font-size: 0.8125rem;
-  color: #666;
+  color: #64748B;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -142,9 +197,9 @@
   display: flex;
   justify-content: space-between;
   padding: 6px 10px;
-  font-size: 0.6875rem;
-  color: #777;
-  border-top: 1px solid #eee;
+  font-size: 0.75rem;
+  color: #64748B;
+  border-top: 1px solid #F1F5F9;
 }
 
 /* === MODAL DETALLE === */
@@ -154,7 +209,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(43, 45, 66, 0.5);
+  background: rgba(27, 58, 107, 0.5);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -168,8 +223,8 @@
   border-radius: 10px;
   box-shadow: 0 8px 30px rgba(0,0,0,0.3);
   width: 100%;
-  max-width: 560px;
-  max-height: 85vh;
+  max-width: 720px;
+  max-height: 90vh;
   overflow-y: auto;
 }
 
@@ -178,13 +233,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #F1F5F9;
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1rem;
-  color: #075ca8;
+  font-size: 1.25rem;
+  color: #1B3A6B;
 }
 
 .header-buttons {
@@ -194,18 +249,18 @@
 }
 
 .btn-editar {
-  padding: 6px 14px;
-  background: #075ca8;
+  padding: 7px 16px;
+  background: #1B3A6B;
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .btn-editar:hover {
-  background: #064a8a;
+  background: #122850;
 }
 
 .btn-close {
@@ -217,7 +272,7 @@
   background: none;
   border: none;
   font-size: 1.25rem;
-  color: #999;
+  color: #94A3B8;
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.15s;
@@ -226,42 +281,42 @@
 }
 
 .btn-close:hover {
-  background: #f0f0f5;
-  color: #333;
+  background: #F1F5F9;
+  color: #1A202C;
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 24px;
 }
 
 .detail-row {
   display: flex;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .detail-row label {
   font-weight: 600;
-  color: #666;
-  width: 100px;
+  color: #475569;
+  width: 120px;
   flex-shrink: 0;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
 }
 
 .detail-row span {
-  color: #333;
-  font-size: 0.8125rem;
+  color: #1A202C;
+  font-size: 0.9375rem;
 }
 
 .detail-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #eee;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #F1F5F9;
 }
 
 .detail-section h4 {
   margin: 0 0 10px;
-  color: #333;
-  font-size: 0.875rem;
+  color: #1A202C;
+  font-size: 1rem;
 }
 
 .detail-section ul {
@@ -270,9 +325,9 @@
 }
 
 .detail-section li {
-  margin-bottom: 4px;
-  color: #555;
-  font-size: 0.8125rem;
+  margin-bottom: 5px;
+  color: #475569;
+  font-size: 0.9375rem;
 }
 
 /* === FORMULARIO EDICION === */
@@ -297,20 +352,20 @@
 
 .campo label {
   font-weight: 600;
-  color: #666;
-  font-size: 0.8125rem;
-  margin-bottom: 4px;
+  color: #475569;
+  font-size: 0.9375rem;
+  margin-bottom: 5px;
 }
 
 .campo input,
 .campo select,
 .campo textarea {
-  padding: 8px 10px;
+  padding: 9px 11px;
   font-family: inherit;
-  font-size: 0.875rem;
-  color: #333;
+  font-size: 0.9375rem;
+  color: #1A202C;
   background: white;
-  border: 1.5px solid #ddd;
+  border: 1px solid #E2E8F0;
   border-radius: 6px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -319,59 +374,29 @@
 .campo input:focus,
 .campo select:focus,
 .campo textarea:focus {
-  border-color: #075ca8;
-  box-shadow: 0 0 0 3px rgba(7, 92, 168, 0.1);
+  border-color: #1B3A6B;
+  box-shadow: 0 0 0 3px rgba(27, 58, 107, 0.12);
 }
 
-/* === ACCORDION === */
-.accordion {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  margin-bottom: 12px;
+/* === PESTAÑAS DEL FORMULARIO === */
+.modal-body .tabs-container {
+  margin-bottom: 16px;
 }
 
-.accordion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  background: #f8f8fc;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.15s;
+.modal-body .tab-btn {
+  font-size: 0.9375rem;
 }
 
-.accordion-header:hover {
-  background: #f0f0f5;
+.modal-body .tab-btn.active {
+  color: #1B3A6B;
+  border-bottom-color: #1B3A6B;
 }
 
-.accordion-header span:first-child {
-  font-weight: 600;
-  color: #333;
-  font-size: 0.875rem;
-}
-
-.flecha {
-  font-size: 0.75rem;
-  color: #999;
-}
-
-.accordion.abierto .accordion-header {
-  background: #075ca8;
-  color: white;
-}
-
-.accordion.abierto .accordion-header span:first-child {
-  color: white;
-}
-
-.accordion.abierto .flecha {
-  color: white;
-}
-
-.accordion-contenido {
-  padding: 14px;
-  border-top: 1px solid #eee;
+/* === ERRORES DE VALIDACIÓN === */
+.campo input.ng-invalid.ng-touched,
+.campo select.ng-invalid.ng-touched,
+.campo textarea.ng-invalid.ng-touched {
+  border-color: #DC2626;
 }
 
 /* === RESPONSABLES === */
@@ -385,28 +410,28 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
-  background: #f8f8fc;
+  padding: 9px 11px;
+  background: #F8FAFC;
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.15s;
-  font-size: 0.875rem;
-  color: #333;
+  font-size: 0.9375rem;
+  color: #1A202C;
 }
 
 .responsable-item:hover {
-  background: #f0f0f5;
+  background: #F1F5F9;
 }
 
 .responsable-item input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #075ca8;
+  accent-color: #1B3A6B;
   cursor: pointer;
 }
 
 .sin-responsables {
-  color: #999;
+  color: #94A3B8;
   font-size: 0.875rem;
   font-style: italic;
   margin: 0;
@@ -419,42 +444,42 @@
   gap: 10px;
   margin-top: 16px;
   padding-top: 14px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #F1F5F9;
 }
 
 .btn-guardar {
-  padding: 8px 18px;
-  background: #075ca8;
+  padding: 9px 20px;
+  background: #1B3A6B;
   color: white;
   border: none;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .btn-guardar:hover {
-  background: #064a8a;
+  background: #122850;
 }
 
 .btn-cancelar {
-  padding: 8px 18px;
+  padding: 9px 20px;
   background: white;
-  color: #666;
-  border: 1px solid #ddd;
+  color: #475569;
+  border: 1px solid #E2E8F0;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .btn-cancelar:hover {
-  background: #f5f5fa;
-  border-color: #ccc;
+  background: #F8FAFC;
+  border-color: #CBD5E0;
 }
 
 /* === RESPONSIVE === */

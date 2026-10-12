@@ -58,7 +58,7 @@
 - Calendario: mes/semana/dia views, navigation working, modal detail
 - Solicitudes: CRUD with accordions (Datos, Solicitante, Responsable, Estado/Prioridad)
 - Reportes: Chart.js dashboard (admin only)
-- Configuracion: Perfil + Recursos tabs + 8 catalog tabs
+- Configuracion: Perfil + 8 catalog tabs (Recursos moved to its own module)
 - 5 new activities and 5 new solicitantes added to DB
 
 ## Routes (app.routes.ts)
@@ -69,5 +69,6 @@
   - `/inicio/solicitantes` — SolicitantesComponent (admin)
   - `/inicio/solicitudes` — SolicitudesComponent
   - `/inicio/calendario` — CalendarioComponent
+  - `/inicio/recursos` — RecursosComponent (list for all roles, CRUD only admin)
   - `/inicio/configuracion` — ConfiguracionComponent
   - `/inicio/reportes` — ReportesComponent (admin only)

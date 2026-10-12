@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { CatalogoService } from '../services/catalogo.service';
 import { SolicitanteService } from '../services/solicitante.service';
@@ -32,15 +33,16 @@ export class SolicitudesComponent implements OnInit {
   editando = false;
   idEditar = 0;
 
-  // Accordion sections
-  seccionDatos = true;
-  seccionSolicitante = false;
-  seccionResponsable = false;
-  seccionEstado = false;
+  // Pestañas del formulario
+  pestana = 'datos';
+
+  @ViewChild('formSolicitud') formSolicitud!: NgForm;
 
   nombreActividad = '';
   descripcionActividad = '';
+  fechaCreacion = '';
   fechaActividad = '';
+  fechaFinActividad = '';
   horaInicio = '';
   horaFin = '';
   lugarActividad = '';
@@ -51,6 +53,7 @@ export class SolicitudesComponent implements OnInit {
   idUsuarioAsignar = 0;
   idRecursoAsignar = 0;
   personalAsignado: number[] = [];
+  responsablesAsignados: any[] = [];
   textoBusqueda = '';
 
   constructor(
@@ -60,7 +63,8 @@ export class SolicitudesComponent implements OnInit {
     private recursoService: RecursoService,
     private api: ApiService,
     public authService: AuthService,
-    private notificacion: NotificacionService
+    private notificacion: NotificacionService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -70,6 +74,13 @@ export class SolicitudesComponent implements OnInit {
     this.obtenerPrioridades();
     this.obtenerUsuarios();
     this.obtenerRecursos();
+
+    // Apertura automatica del formulario: /inicio/solicitudes?nueva=true
+    this.route.queryParams.subscribe((params) => {
+      if (params['nueva'] === 'true' && this.authService.esAdmin()) {
+        this.nuevo();
+      }
+    });
   }
 
   obtenerSolicitudes(): void {
@@ -131,10 +142,14 @@ export class SolicitudesComponent implements OnInit {
     this.editando = false;
     this.idEditar = 0;
     this.limpiarFormulario();
+    this.pestana = 'datos';
     this.mostrarFormulario = true;
   }
 
   editar(id: number): void {
+    this.personalAsignado = [];
+    this.responsablesAsignados = [];
+    this.pestana = 'datos';
     this.solicitudService.obtenerPorId(id).subscribe({
       next: (solicitud) => {
         this.idEditar = solicitud.id_solicitud;
@@ -142,7 +157,11 @@ export class SolicitudesComponent implements OnInit {
         this.mostrarFormulario = true;
         this.nombreActividad = solicitud.nombre_actividad;
         this.descripcionActividad = solicitud.descripcion_actividad || '';
-        this.fechaActividad = solicitud.fecha_actividad;
+        this.fechaCreacion = solicitud.fecha_creacion ? solicitud.fecha_creacion.substring(0, 10) : this.hoy();
+        this.fechaActividad = solicitud.fecha_actividad ? solicitud.fecha_actividad.substring(0, 10) : '';
+        this.fechaFinActividad = solicitud.fecha_fin_actividad
+          ? solicitud.fecha_fin_actividad.substring(0, 10)
+          : (solicitud.fecha_actividad ? solicitud.fecha_actividad.substring(0, 10) : '');
         this.horaInicio = solicitud.hora_inicio;
         this.horaFin = solicitud.hora_fin;
         this.lugarActividad = solicitud.lugar_actividad;
@@ -152,6 +171,7 @@ export class SolicitudesComponent implements OnInit {
 
         this.solicitudService.obtenerAsignacionesUsuario(id).subscribe({
           next: (asignaciones) => {
+            this.responsablesAsignados = asignaciones;
             this.personalAsignado = asignaciones.map((a: any) => a.id_usuario);
           },
           error: (err) => console.error('Error al cargar asignaciones', err)
@@ -172,10 +192,29 @@ export class SolicitudesComponent implements OnInit {
   }
 
   guardar(): void {
+    if (this.formSolicitud?.invalid) {
+      this.formSolicitud.form.markAllAsTouched();
+      this.irAPestanaInvalida();
+      this.notificacion.error('Complete los campos obligatorios');
+      return;
+    }
+
+    if (!this.fechaActividad || !this.fechaFinActividad) {
+      this.notificacion.error('Seleccione la fecha de actividad y la fecha fin');
+      return;
+    }
+
+    if (this.fechaFinActividad && this.fechaFinActividad < this.fechaActividad) {
+      this.notificacion.error('La fecha fin no puede ser anterior a la fecha de actividad');
+      return;
+    }
+
     const data = {
       nombreActividad: this.nombreActividad,
       descripcionActividad: this.descripcionActividad,
+      fechaCreacion: this.fechaCreacion,
       fechaActividad: this.fechaActividad,
+      fechaFinActividad: this.fechaFinActividad || this.fechaActividad,
       horaInicio: this.horaInicio,
       horaFin: this.horaFin,
       lugarActividad: this.lugarActividad,
@@ -205,6 +244,20 @@ export class SolicitudesComponent implements OnInit {
         },
         error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al crear')
       });
+    }
+  }
+
+  private irAPestanaInvalida(): void {
+    const orden: { pestana: string; campos: string[] }[] = [
+      { pestana: 'datos', campos: ['nombreActividad', 'fechaCreacion', 'fechaActividad', 'fechaFinActividad', 'horaInicio', 'horaFin', 'lugarActividad'] },
+      { pestana: 'solicitante', campos: ['idSolicitante'] },
+      { pestana: 'estado', campos: ['idEstadoActividad', 'idPrioridad'] }
+    ];
+    for (const seccion of orden) {
+      if (seccion.campos.some((c) => this.formSolicitud?.controls[c]?.invalid)) {
+        this.pestana = seccion.pestana;
+        return;
+      }
     }
   }
 
@@ -284,7 +337,9 @@ export class SolicitudesComponent implements OnInit {
   limpiarFormulario(): void {
     this.nombreActividad = '';
     this.descripcionActividad = '';
+    this.fechaCreacion = this.hoy();
     this.fechaActividad = '';
+    this.fechaFinActividad = '';
     this.horaInicio = '';
     this.horaFin = '';
     this.lugarActividad = '';
@@ -292,6 +347,32 @@ export class SolicitudesComponent implements OnInit {
     this.idEstadoActividad = 0;
     this.idPrioridad = 0;
     this.personalAsignado = [];
+    this.responsablesAsignados = [];
+  }
+
+  // Responsables ya asignados que no aparecen en la lista de usuarios activos
+  get responsablesExtra(): any[] {
+    return this.responsablesAsignados.filter(
+      (a) => !this.usuarios.some((u) => u.id_usuario === a.id_usuario)
+    );
+  }
+
+  hoy(): string {
+    const fecha = new Date();
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+  }
+
+  rangoFechas(inicio: string, fin: string): string {
+    if (!inicio) return '';
+    const inicioFmt = inicio.substring(0, 10);
+    const finFmt = fin ? fin.substring(0, 10) : inicioFmt;
+    if (finFmt === inicioFmt) {
+      return inicioFmt.split('-').reverse().join('/');
+    }
+    return `${inicioFmt.split('-').reverse().join('/')} - ${finFmt.split('-').reverse().join('/')}`;
   }
 
   toggleResponsable(idUsuario: number): void {

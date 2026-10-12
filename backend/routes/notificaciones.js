@@ -11,6 +11,7 @@ router.get('/notificaciones', (req, res) => {
   const sql = `
     SELECT 
       n.id_notificacion,
+      n.id_solicitud,
       n.mensaje,
       n.fecha_notificacion,
       n.leida,

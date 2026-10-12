@@ -3,6 +3,14 @@ const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
 const { soloLectura } = require('../middleware/roles');
+const {
+  notificarUsuario,
+  notificarAsignados,
+  notificarVarios,
+  obtenerDatosSolicitud,
+  formatearFecha,
+  formatearHora
+} = require('../helpers/notificar');
 
 router.use(verificarToken);
 
@@ -18,6 +26,7 @@ router.get('/solicitudes', (req, res) => {
       sa.hora_fin,
       sa.lugar_actividad,
       sa.fecha_creacion,
+      COALESCE(sa.fecha_fin_actividad, sa.fecha_actividad) AS fecha_fin_actividad,
       ea.nombre_estado AS estado,
       pa.nombre_prioridad AS prioridad,
       pa.nivel_prioridad,
@@ -162,7 +171,9 @@ router.post('/solicitudes', soloLectura, (req, res) => {
     idSolicitante,
     idEstadoActividad,
     idPrioridad,
+    fechaCreacion,
     fechaActividad,
+    fechaFinActividad,
     horaInicio,
     horaFin,
     nombreActividad,
@@ -175,6 +186,10 @@ router.post('/solicitudes', soloLectura, (req, res) => {
 
   if (!idSolicitante || !idEstadoActividad || !idPrioridad || !nombreActividad || !fechaActividad || !horaInicio || !horaFin || !lugarActividad) {
     return res.status(400).json({ mensaje: 'Faltan campos obligatorios' });
+  }
+
+  if (fechaFinActividad && fechaFinActividad < fechaActividad) {
+    return res.status(400).json({ mensaje: 'La fecha fin no puede ser anterior a la fecha inicio' });
   }
 
   conexion.beginTransaction((error) => {
@@ -190,12 +205,13 @@ router.post('/solicitudes', soloLectura, (req, res) => {
         id_prioridad,
         fecha_creacion,
         fecha_actividad,
+        fecha_fin_actividad,
         hora_inicio,
         hora_fin,
         nombre_actividad,
         descripcion_actividad,
         lugar_actividad
-      ) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, COALESCE(?, NOW()), ?, ?, ?, ?, ?, ?, ?)
     `;
 
     conexion.query(
@@ -204,7 +220,9 @@ router.post('/solicitudes', soloLectura, (req, res) => {
         idSolicitante,
         idEstadoActividad,
         idPrioridad,
+        fechaCreacion || null,
         fechaActividad,
+        fechaFinActividad || fechaActividad,
         horaInicio,
         horaFin,
         nombreActividad,
@@ -230,8 +248,19 @@ router.post('/solicitudes', soloLectura, (req, res) => {
         }
 
         if (personalAsignado && personalAsignado.length > 0) {
+          const valoresPersonal = personalAsignado.map((p) => {
+            const idUsuario = (p !== null && typeof p === 'object') ? p.idUsuario : p;
+            const observacion = (p !== null && typeof p === 'object') ? (p.observacion || null) : null;
+            return [idSolicitud, idUsuario, new Date(), observacion];
+          });
+
+          if (valoresPersonal.some((v) => !v[1])) {
+            return conexion.rollback(() => {
+              res.status(400).json({ mensaje: 'Responsable invalido' });
+            });
+          }
+
           const sqlPersonal = 'INSERT INTO asignacion_usuario (id_solicitud, id_usuario, fecha_asignacion, observacion) VALUES ?';
-          const valoresPersonal = personalAsignado.map(p => [idSolicitud, p.idUsuario, new Date(), p.observacion || null]);
           insertsPendientes.push({ sql: sqlPersonal, values: [valoresPersonal], msg: 'Error al asignar personal' });
         }
 
@@ -264,6 +293,22 @@ router.post('/solicitudes', soloLectura, (req, res) => {
                   res.status(500).json({ mensaje: 'Error al guardar la solicitud' });
                 });
               }
+
+              // Notificar al personal asignado (fire and forget)
+              if (personalAsignado && personalAsignado.length > 0) {
+                const ids = personalAsignado.map((p) => (p !== null && typeof p === 'object') ? p.idUsuario : p);
+                obtenerDatosSolicitud(idSolicitud, (datos) => {
+                  const nombre = datos ? datos.nombre_actividad : nombreActividad;
+                  const fecha = datos ? formatearFecha(datos.fecha_actividad) : formatearFecha(fechaActividad);
+                  const hora = datos && datos.hora_inicio && datos.hora_fin
+                    ? ` de ${formatearHora(datos.hora_inicio)} a ${formatearHora(datos.hora_fin)}`
+                    : '';
+                  const lugar = datos && datos.lugar_actividad ? ` en ${datos.lugar_actividad}` : '';
+                  const mensaje = `Se le ha asignado la actividad "${nombre}" el ${fecha}${hora}${lugar}.`;
+                  notificarVarios(ids, 1, idSolicitud, mensaje);
+                });
+              }
+
               res.status(201).json({ mensaje: 'Solicitud creada correctamente', id: idSolicitud });
             });
             return;
@@ -293,7 +338,9 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
     idSolicitante,
     idEstadoActividad,
     idPrioridad,
+    fechaCreacion,
     fechaActividad,
+    fechaFinActividad,
     horaInicio,
     horaFin,
     nombreActividad,
@@ -301,6 +348,105 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
     lugarActividad,
     personalAsignado
   } = req.body;
+
+  if (fechaActividad && fechaFinActividad && fechaFinActividad < fechaActividad) {
+    return res.status(400).json({ mensaje: 'La fecha fin no puede ser anterior a la fecha inicio' });
+  }
+
+  // Leer valores actuales antes de editar (para detectar cambios y notificar)
+  const sqlAntes = `
+    SELECT fecha_actividad, fecha_fin_actividad, hora_inicio, hora_fin, lugar_actividad
+    FROM solicitud_actividad WHERE id_solicitud = ?
+  `;
+  const sqlAsignadosAntes = 'SELECT id_usuario FROM asignacion_usuario WHERE id_solicitud = ?';
+
+  conexion.query(sqlAntes, [id], (errorAntes, resAntes) => {
+    const antes = (errorAntes || !resAntes || resAntes.length === 0) ? null : resAntes[0];
+
+    conexion.query(sqlAsignadosAntes, [id], (errorAsig, resAsig) => {
+      const asignadosAntes = (errorAsig || !resAsig) ? [] : resAsig.map((r) => r.id_usuario);
+
+      ejecutarActualizacion(antes, asignadosAntes);
+    });
+  });
+
+  function ejecutarActualizacion(antes, asignadosAntes) {
+
+  // Normaliza valores para comparar (mysql2 puede devolver Date u objeto)
+  function normFecha(v) {
+    if (v === null || v === undefined) return '';
+    if (v instanceof Date) {
+      const m = String(v.getMonth() + 1).padStart(2, '0');
+      const d = String(v.getDate()).padStart(2, '0');
+      return `${v.getFullYear()}-${m}-${d}`;
+    }
+    return String(v).split(' ')[0].slice(0, 10);
+  }
+
+  function normHora(v) {
+    if (v === null || v === undefined) return '';
+    return String(v).slice(0, 5);
+  }
+
+  // Notificar cambios de fecha/horario/lugar y personal nuevo (fire and forget)
+  function notificarCambios() {
+    const idActor = req.usuario.id_usuario;
+
+    // a) Detectar cambios en fechas, horario o lugar
+    if (antes) {
+      const campos = [
+        { key: 'fecha_actividad', etiqueta: 'fecha de actividad', norm: normFecha },
+        { key: 'fecha_fin_actividad', etiqueta: 'fecha fin', norm: normFecha },
+        { key: 'hora_inicio', etiqueta: 'hora inicio', norm: normHora },
+        { key: 'hora_fin', etiqueta: 'hora fin', norm: normHora },
+        { key: 'lugar_actividad', etiqueta: 'lugar', norm: (v) => (v || '').toString().trim() }
+      ];
+      const nuevosValores = {
+        fecha_actividad: fechaActividad,
+        fecha_fin_actividad: fechaFinActividad || fechaActividad,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin,
+        lugar_actividad: lugarActividad
+      };
+
+      const cambiados = campos.filter((c) => c.norm(antes[c.key]) !== c.norm(nuevosValores[c.key]));
+
+      if (cambiados.length > 0) {
+        obtenerDatosSolicitud(id, (datos) => {
+          const nombre = datos ? datos.nombre_actividad : nombreActividad;
+          const detalles = cambiados.map((c) => {
+            if (c.norm(nuevosValores[c.key]) === '') return `${c.etiqueta}: sin dato`;
+            if (c.key === 'fecha_actividad' || c.key === 'fecha_fin_actividad') {
+              return `${c.etiqueta}: ${formatearFecha(nuevosValores[c.key])}`;
+            }
+            if (c.key === 'hora_inicio' || c.key === 'hora_fin') {
+              return `${c.etiqueta}: ${formatearHora(nuevosValores[c.key])}`;
+            }
+            return `${c.etiqueta}: ${nuevosValores[c.key]}`;
+          });
+          const mensaje = `Se actualizaron datos de la actividad "${nombre}" (${detalles.join(', ')}).`;
+          notificarAsignados(id, 5, mensaje, idActor);
+        });
+      }
+    }
+
+    // b) Notificar personal recien agregado
+    if (personalAsignado && Array.isArray(personalAsignado)) {
+      const nuevosIds = personalAsignado
+        .map((p) => (p !== null && typeof p === 'object') ? p.idUsuario : p)
+        .map((v) => parseInt(v, 10))
+        .filter((v) => v && !asignadosAntes.includes(v));
+
+      if (nuevosIds.length > 0) {
+        obtenerDatosSolicitud(id, (datos) => {
+          const nombre = datos ? datos.nombre_actividad : nombreActividad;
+          const fecha = datos ? formatearFecha(datos.fecha_actividad) : '';
+          const mensaje = `Se le ha asignado la actividad "${nombre}" el ${fecha}.`;
+          notificarVarios(nuevosIds, 1, id, mensaje);
+        });
+      }
+    }
+  }
 
   conexion.beginTransaction((error) => {
     if (error) {
@@ -313,7 +459,9 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
         id_solicitante = ?,
         id_estado_actividad = ?,
         id_prioridad = ?,
+        fecha_creacion = COALESCE(?, fecha_creacion),
         fecha_actividad = ?,
+        fecha_fin_actividad = ?,
         hora_inicio = ?,
         hora_fin = ?,
         nombre_actividad = ?,
@@ -328,7 +476,9 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
         idSolicitante,
         idEstadoActividad,
         idPrioridad,
+        fechaCreacion || null,
         fechaActividad,
+        fechaFinActividad || fechaActividad,
         horaInicio,
         horaFin,
         nombreActividad,
@@ -362,6 +512,7 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
                     res.status(500).json({ mensaje: 'Error al confirmar cambios' });
                   });
                 }
+                notificarCambios();
                 res.json({ mensaje: 'Solicitud actualizada correctamente' });
               });
               return;
@@ -383,6 +534,7 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
                     res.status(500).json({ mensaje: 'Error al confirmar cambios' });
                   });
                 }
+                notificarCambios();
                 res.json({ mensaje: 'Solicitud actualizada correctamente' });
               });
             });
@@ -395,12 +547,14 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
                 res.status(500).json({ mensaje: 'Error al confirmar cambios' });
               });
             }
+            notificarCambios();
             res.json({ mensaje: 'Solicitud actualizada correctamente' });
           });
         }
       }
     );
   });
+  } // fin ejecutarActualizacion
 });
 
 // DELETE - Eliminar solicitud (limpia registros relacionados)

@@ -29,6 +29,7 @@ export class SolicitantesComponent implements OnInit {
   descripcionSolicitante = '';
   idInstitucion = 0;
   textoBusqueda = '';
+  filtroInstitucion = '';
 
   constructor(
     private solicitanteService: SolicitanteService,
@@ -53,6 +54,19 @@ export class SolicitantesComponent implements OnInit {
       next: (datos) => this.instituciones = datos,
       error: (error) => console.error('Error:', error)
     });
+  }
+
+  get institucionesFiltradas(): any[] {
+    const termino = this.filtroInstitucion.toLowerCase().trim();
+    if (!termino) return this.instituciones;
+    const filtradas = this.instituciones.filter(i =>
+      i.nombre_institucion?.toLowerCase().includes(termino)
+    );
+    const seleccionada = this.instituciones.find(i => i.id_institucion === this.idInstitucion);
+    if (seleccionada && !filtradas.includes(seleccionada)) {
+      filtradas.unshift(seleccionada);
+    }
+    return filtradas;
   }
 
   get solicitantesFiltradas(): any[] {
@@ -148,5 +162,50 @@ export class SolicitantesComponent implements OnInit {
     this.correoElectronico = '';
     this.descripcionSolicitante = '';
     this.idInstitucion = 0;
+  }
+
+  mostrarNuevaInstitucion = false;
+  nombreNuevaInstitucion = '';
+  representanteInst = '';
+  telRepresentanteInst = '';
+  telInstitucionInst = '';
+  correoInst = '';
+  direccionInst = '';
+  descripcionInst = '';
+
+  guardarInstitucion(): void {
+    const nombre = this.nombreNuevaInstitucion.trim();
+    if (!nombre) {
+      this.notificacion.error('Ingrese el nombre de la institución');
+      return;
+    }
+    this.catalogoService.crearInstitucion({
+      nombreInstitucion: nombre,
+      representante: this.representanteInst.trim() || null,
+      telRepresentante: this.telRepresentanteInst.trim() || null,
+      telInstitucion: this.telInstitucionInst.trim() || null,
+      correoElectronico: this.correoInst.trim() || null,
+      direccion: this.direccionInst.trim() || null,
+      descripcionInstitucion: this.descripcionInst.trim() || null
+    }).subscribe({
+      next: (respuesta) => {
+        this.notificacion.exito(respuesta.mensaje);
+        this.cerrarNuevaInstitucion();
+        this.obtenerInstituciones();
+        this.idInstitucion = respuesta.id;
+      },
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al crear la institución')
+    });
+  }
+
+  cerrarNuevaInstitucion(): void {
+    this.mostrarNuevaInstitucion = false;
+    this.nombreNuevaInstitucion = '';
+    this.representanteInst = '';
+    this.telRepresentanteInst = '';
+    this.telInstitucionInst = '';
+    this.correoInst = '';
+    this.direccionInst = '';
+    this.descripcionInst = '';
   }
 }

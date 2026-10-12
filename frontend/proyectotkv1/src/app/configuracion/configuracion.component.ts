@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CatalogoService } from '../services/catalogo.service';
-import { RecursoService } from '../services/recurso.service';
 import { AuthService } from '../services/auth.service';
 import { NotificacionService } from '../services/notificacion.service';
 
@@ -20,7 +19,6 @@ export class ConfiguracionComponent implements OnInit {
 
   pestanas = [
     { id: 'perfil', nombre: 'Perfil' },
-    { id: 'recursos', nombre: 'Recursos' },
     { id: 'estados-actividad', nombre: 'Estados de Actividad' },
     { id: 'prioridades', nombre: 'Prioridades' },
     { id: 'tipos-recurso', nombre: 'Tipos de Recurso' },
@@ -42,19 +40,8 @@ export class ConfiguracionComponent implements OnInit {
   perfil: any = {};
   editandoPerfil = false;
 
-  // Recursos
-  mostrarFormularioRecurso = false;
-  editandoRecurso = false;
-  idEditarRecurso = 0;
-  tiposRecurso: any[] = [];
-  nombreRecurso = '';
-  descripcionRecurso = '';
-  estadoRecurso = 'Disponible';
-  idTipoRecurso = 0;
-
   constructor(
     private catalogoService: CatalogoService,
-    private recursoService: RecursoService,
     public authService: AuthService,
     private notificacion: NotificacionService
   ) {}
@@ -73,11 +60,7 @@ export class ConfiguracionComponent implements OnInit {
   cambiarPestana(pestanha: string): void {
     this.pestanaActiva = pestanha;
     this.mostrarFormulario = false;
-    this.mostrarFormularioRecurso = false;
-    if (pestanha === 'recursos') {
-      this.cargarRecursos();
-      this.cargarTiposRecurso();
-    } else if (pestanha === 'perfil') {
+    if (pestanha === 'perfil') {
       this.cargarPerfil();
     } else {
       this.cargarDatos();
@@ -183,6 +166,20 @@ export class ConfiguracionComponent implements OnInit {
     return ids[this.pestanaActiva] || 'id';
   }
 
+  getDescripcionColumna(): string {
+    const columnas: Record<string, string> = {
+      'estados-actividad': 'descripcion_estado',
+      'prioridades': 'descripcion_prioridad',
+      'tipos-recurso': 'descripcion_tipo_recurso',
+      'instituciones': 'descripcion_institucion',
+      'cargos': 'descripcion_cargo',
+      'roles': 'descripcion_rol',
+      'tipos-empleado': 'descripcion_tipo_empleado',
+      'estados-usuario': 'descripcion_estado'
+    };
+    return columnas[this.pestanaActiva] || 'descripcion';
+  }
+
   nuevo(): void {
     this.editando = false;
     this.idEditar = 0;
@@ -195,12 +192,12 @@ export class ConfiguracionComponent implements OnInit {
     this.editando = true;
     this.idEditar = item[this.getIdCampo()];
     this.nombreCampo = item[this.getNombreColumna()];
-    this.descripcionCampo = item[`descripcion_${this.pestanaActiva.replace(/-/g, '_')}`] || '';
+    this.descripcionCampo = item[this.getDescripcionColumna()] || '';
     this.mostrarFormulario = true;
   }
 
   guardar(): void {
-    const data = { nombre: this.nombreCampo, descripcion: this.descripcionCampo };
+    const data = this.construirPayload();
     const save$ = this.editando
       ? this.saveMethod()(this.idEditar, data)
       : this.createMethod()(data);
@@ -213,6 +210,24 @@ export class ConfiguracionComponent implements OnInit {
       },
       error: (error: any) => this.notificacion.error(error.error?.mensaje || 'Error al guardar')
     });
+  }
+
+  // El backend espera nombres de campo especificos por catalogo
+  // (ej. nombreTipoRecurso, nombreEstado), no "nombre"/"descripcion"
+  construirPayload(): any {
+    const nombre = this.nombreCampo;
+    const descripcion = this.descripcionCampo;
+    const payloads: Record<string, any> = {
+      'estados-actividad': { nombre, descripcion, nombreEstado: nombre, descripcionEstado: descripcion },
+      'prioridades': { nombre, descripcion, nombrePrioridad: nombre, descripcionPrioridad: descripcion },
+      'tipos-recurso': { nombre, descripcion, nombreTipoRecurso: nombre, descripcionTipoRecurso: descripcion },
+      'instituciones': { nombre, descripcion, nombreInstitucion: nombre, descripcionInstitucion: descripcion },
+      'cargos': { nombre, descripcion, nombreCargo: nombre, descripcionCargo: descripcion },
+      'roles': { nombre, descripcion, nombreRol: nombre, descripcionRol: descripcion },
+      'tipos-empleado': { nombre, descripcion, nombreTipoEmpleado: nombre, descripcionTipoEmpleado: descripcion },
+      'estados-usuario': { nombre, descripcion, nombreEstado: nombre, descripcionEstado: descripcion }
+    };
+    return payloads[this.pestanaActiva] || { nombre, descripcion };
   }
 
   async eliminar(id: number): Promise<void> {
@@ -268,82 +283,5 @@ export class ConfiguracionComponent implements OnInit {
       'estados-usuario': (id) => this.catalogoService.eliminarEstadoUsuario(id)
     };
     return methods[this.pestanaActiva];
-  }
-
-  // ===== RECURSOS =====
-  cargarRecursos(): void {
-    this.recursoService.obtenerTodos().subscribe({
-      next: (datos) => this.datos = datos,
-      error: (error) => console.error('Error:', error)
-    });
-  }
-
-  cargarTiposRecurso(): void {
-    this.catalogoService.obtenerTiposRecurso().subscribe({
-      next: (datos) => this.tiposRecurso = datos,
-      error: (error) => console.error('Error:', error)
-    });
-  }
-
-  nuevoRecurso(): void {
-    this.editandoRecurso = false;
-    this.idEditarRecurso = 0;
-    this.nombreRecurso = '';
-    this.descripcionRecurso = '';
-    this.estadoRecurso = 'Disponible';
-    this.idTipoRecurso = 0;
-    this.mostrarFormularioRecurso = true;
-  }
-
-  editarRecurso(item: any): void {
-    this.editandoRecurso = true;
-    this.idEditarRecurso = item.id_recurso;
-    this.nombreRecurso = item.nombre_recurso;
-    this.descripcionRecurso = item.descripcion_recurso || '';
-    this.estadoRecurso = item.estado_recurso;
-    this.idTipoRecurso = item.id_tipo_recurso;
-    this.mostrarFormularioRecurso = true;
-  }
-
-  guardarRecurso(): void {
-    const data = {
-      nombreRecurso: this.nombreRecurso,
-      descripcionRecurso: this.descripcionRecurso,
-      estadoRecurso: this.estadoRecurso,
-      idTipoRecurso: this.idTipoRecurso
-    };
-
-    if (this.editandoRecurso) {
-      this.recursoService.actualizar(this.idEditarRecurso, data).subscribe({
-        next: (respuesta) => {
-          this.notificacion.exito(respuesta.mensaje);
-          this.mostrarFormularioRecurso = false;
-          this.cargarRecursos();
-        },
-        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al actualizar')
-      });
-    } else {
-      this.recursoService.crear(data).subscribe({
-        next: (respuesta) => {
-          this.notificacion.exito(respuesta.mensaje);
-          this.mostrarFormularioRecurso = false;
-          this.cargarRecursos();
-        },
-        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al crear')
-      });
-    }
-  }
-
-  async eliminarRecurso(id: number): Promise<void> {
-    const confirmado = await this.notificacion.confirmar('Esta seguro de eliminar este recurso?');
-    if (confirmado) {
-      this.recursoService.eliminar(id).subscribe({
-        next: (respuesta) => {
-          this.notificacion.exito(respuesta.mensaje);
-          this.cargarRecursos();
-        },
-        error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
-      });
-    }
   }
 }

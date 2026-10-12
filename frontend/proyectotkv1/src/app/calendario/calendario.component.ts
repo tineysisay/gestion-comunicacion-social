@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SolicitudService } from '../services/solicitud.service';
 import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
+import { coloresDeEstado, normalizarEstado, ORDEN_ESTADOS } from '../shared/colores-estado';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -22,6 +23,7 @@ export class CalendarioComponent implements OnInit, OnDestroy {
   vista: 'mes' | 'semana' | 'dia' = 'mes';
   solicitudes: any[] = [];
   solicitudesFiltradas: any[] = [];
+  estadosPresentes: string[] = [];
 
   diasSemana = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
   nombreMes = '';
@@ -54,10 +56,23 @@ export class CalendarioComponent implements OnInit, OnDestroy {
     this.solicitudService.obtenerTodas().subscribe({
       next: (datos) => {
         this.solicitudes = datos;
+        this.calcularEstadosPresentes();
         this.generarCalendario();
         this.filtrarPorFecha();
       },
       error: (error) => console.error('Error:', error)
+    });
+  }
+
+  calcularEstadosPresentes(): void {
+    const unicos = new Set<string>();
+    this.solicitudes.forEach(s => {
+      if (s.estado) unicos.add(s.estado);
+    });
+    this.estadosPresentes = Array.from(unicos).sort((a, b) => {
+      const ordenA = ORDEN_ESTADOS.indexOf(normalizarEstado(a));
+      const ordenB = ORDEN_ESTADOS.indexOf(normalizarEstado(b));
+      return (ordenA === -1 ? 99 : ordenA) - (ordenB === -1 ? 99 : ordenB);
     });
   }
 
@@ -109,18 +124,42 @@ export class CalendarioComponent implements OnInit, OnDestroy {
   filtrarPorFecha(): void {
     if (this.vista === 'dia' && this.diaSeleccionado) {
       const fechaStr = this.formatearFecha(this.diaSeleccionado);
-      this.solicitudesFiltradas = this.solicitudes.filter(s => s.fecha_actividad === fechaStr);
-    } else if (this.vista === 'semana') {
-      const inicio = this.diasSemanaActual[0];
-      const fin = this.diasSemanaActual[6];
       this.solicitudesFiltradas = this.solicitudes.filter(s => {
-        const fecha = new Date(s.fecha_actividad);
-        return fecha >= inicio && fecha <= fin;
+        const rango = this.rangoDe(s);
+        return !!rango && fechaStr >= rango.inicio && fechaStr <= rango.fin;
+      });
+    } else if (this.vista === 'semana') {
+      const inicioStr = this.formatearFecha(this.diasSemanaActual[0]);
+      const finStr = this.formatearFecha(this.diasSemanaActual[6]);
+      this.solicitudesFiltradas = this.solicitudes.filter(s => {
+        const rango = this.rangoDe(s);
+        return !!rango && rango.inicio <= finStr && rango.fin >= inicioStr;
       });
     } else {
-      const mesStr = `${this.anio}-${String(this.mes + 1).padStart(2, '0')}`;
-      this.solicitudesFiltradas = this.solicitudes.filter(s => s.fecha_actividad.startsWith(mesStr));
+      const mesNum = String(this.mes + 1).padStart(2, '0');
+      const primerDiaStr = `${this.anio}-${mesNum}-01`;
+      const ultimoDia = new Date(this.anio, this.mes + 1, 0).getDate();
+      const ultimoDiaStr = `${this.anio}-${mesNum}-${String(ultimoDia).padStart(2, '0')}`;
+      this.solicitudesFiltradas = this.solicitudes.filter(s => {
+        const rango = this.rangoDe(s);
+        return !!rango && rango.inicio <= ultimoDiaStr && rango.fin >= primerDiaStr;
+      });
     }
+  }
+
+  rangoDe(solicitud: any): { inicio: string; fin: string } | null {
+    if (!solicitud || !solicitud.fecha_actividad) return null;
+    const inicio = solicitud.fecha_actividad.substring(0, 10);
+    const fin = (solicitud.fecha_fin_actividad || solicitud.fecha_actividad).substring(0, 10);
+    return { inicio, fin: fin >= inicio ? fin : inicio };
+  }
+
+  rangoFechasTexto(solicitud: any): string {
+    const rango = this.rangoDe(solicitud);
+    if (!rango) return '';
+    const invertir = (fecha: string) => fecha.split('-').reverse().join('/');
+    if (rango.inicio === rango.fin) return invertir(rango.inicio);
+    return `${invertir(rango.inicio)} - ${invertir(rango.fin)}`;
   }
 
   formatearFecha(fecha: Date): string {
@@ -134,9 +173,8 @@ export class CalendarioComponent implements OnInit, OnDestroy {
     if (!fecha) return [];
     const fechaStr = this.formatearFecha(fecha);
     return this.solicitudes.filter(s => {
-      if (!s.fecha_actividad) return false;
-      const fechaSol = s.fecha_actividad.substring(0, 10);
-      return fechaSol === fechaStr;
+      const rango = this.rangoDe(s);
+      return !!rango && fechaStr >= rango.inicio && fechaStr <= rango.fin;
     });
   }
 
@@ -225,11 +263,19 @@ export class CalendarioComponent implements OnInit, OnDestroy {
 
   getColorPrioridad(prioridad: string): string {
     const colores: Record<string, string> = {
-      'Urgente': '#e74c3c',
-      'Alta': '#e67e22',
-      'Media': '#f1c40f',
-      'Baja': '#27ae60'
+      'Urgente': '#DC2626',
+      'Alta': '#F59E0B',
+      'Media': '#3B82F6',
+      'Baja': '#64748B'
     };
-    return colores[prioridad] || '#3498db';
+    return colores[prioridad] || '#2A5298';
+  }
+
+  getColorEstado(estado?: string | null): string {
+    return coloresDeEstado(estado).color;
+  }
+
+  getColorEstadoClaro(estado?: string | null): string {
+    return coloresDeEstado(estado).claro;
   }
 }

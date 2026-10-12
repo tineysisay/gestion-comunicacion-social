@@ -23,6 +23,13 @@
     </div>
   </div>
 
+  <div class="leyenda" *ngIf="estadosPresentes.length">
+    <span class="leyenda-item" *ngFor="let estado of estadosPresentes">
+      <span class="leyenda-punto" [style.background]="getColorEstado(estado)"></span>
+      {{ estado }}
+    </span>
+  </div>
+
   <!-- VISTA MES -->
   <div class="calendario-grid" *ngIf="vista === 'mes'">
     <div class="calendario-header" *ngFor="let dia of diasSemana">
@@ -38,7 +45,8 @@
       <div class="eventos-dia" *ngIf="dia">
         <div class="evento"
              *ngFor="let s of obtenerSolicitudesDelDia(dia).slice(0, 3)"
-             [style.background]="getColorPrioridad(s.prioridad)"
+             [style.background]="getColorEstadoClaro(s.estado)"
+             [style.border-left-color]="getColorEstado(s.estado)"
              (click)="verDetalle(s); $event.stopPropagation()">
           {{ s.nombre_actividad }}
         </div>
@@ -62,7 +70,8 @@
       <div class="semana-eventos">
         <div class="evento"
              *ngFor="let s of obtenerSolicitudesDelDia(dia)"
-             [style.background]="getColorPrioridad(s.prioridad)"
+             [style.background]="getColorEstadoClaro(s.estado)"
+             [style.border-left-color]="getColorEstado(s.estado)"
              (click)="verDetalle(s); $event.stopPropagation()">
           <span class="evento-hora">{{ s.hora_inicio | formatoFecha:'hora' }}</span>
           {{ s.nombre_actividad }}
@@ -79,12 +88,15 @@
     <div class="dia-eventos">
       <div class="evento-dia"
            *ngFor="let s of obtenerSolicitudesDelDia(diaSeleccionado)"
+           [style.border-left-color]="getColorEstado(s.estado)"
            (click)="verDetalle(s)">
         <div class="evento-hora">{{ s.hora_inicio | formatoFecha:'hora' }} - {{ s.hora_fin | formatoFecha:'hora' }}</div>
         <div class="evento-info">
           <strong>{{ s.nombre_actividad }}</strong>
           <span class="evento-solicitante">{{ s.nombre_solicitante }}</span>
-          <span class="evento-estado">{{ s.estado }}</span>
+          <span class="evento-estado"
+                [style.background]="getColorEstadoClaro(s.estado)"
+                [style.color]="getColorEstado(s.estado)">{{ s.estado }}</span>
         </div>
         <div class="evento-prioridad" [style.background]="getColorPrioridad(s.prioridad)">
           {{ s.prioridad }}
@@ -118,7 +130,7 @@
         </div>
         <div class="detalle-row">
           <label>Fecha:</label>
-          <span>{{ solicitudSeleccionada.fecha_actividad | formatoFecha:'fecha' }}</span>
+          <span>{{ rangoFechasTexto(solicitudSeleccionada) }}</span>
         </div>
         <div class="detalle-row">
           <label>Horario:</label>

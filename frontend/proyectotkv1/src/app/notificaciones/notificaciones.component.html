@@ -1,0 +1,104 @@
+<div class="container">
+
+  <div class="encabezado">
+    <div>
+      <h1>Notificaciones</h1>
+      <p>Avisos de asignaciones, cambios de estado y fechas de tus actividades</p>
+    </div>
+    <button
+      class="btn-marcar-todas"
+      *ngIf="noLeidas > 0"
+      (click)="marcarTodas()">
+      Marcar todas como leidas ({{ noLeidas }})
+    </button>
+  </div>
+
+  <div class="filtros">
+    <button
+      class="btn-filtro"
+      [class.activa]="filtro === 'todas'"
+      (click)="cambiarFiltro('todas')">
+      Todas ({{ notificaciones.length }})
+    </button>
+    <button
+      class="btn-filtro"
+      [class.activa]="filtro === 'no-leidas'"
+      (click)="cambiarFiltro('no-leidas')">
+      No leidas ({{ noLeidas }})
+    </button>
+  </div>
+
+  <div class="lista-notificaciones" *ngIf="!cargando">
+
+    <div class="vacio" *ngIf="filtradas.length === 0">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
+      </svg>
+      <p *ngIf="filtro === 'todas'">No tienes notificaciones</p>
+      <p *ngIf="filtro === 'no-leidas'">No tienes notificaciones sin leer</p>
+    </div>
+
+    <div
+      class="notificacion"
+      *ngFor="let n of filtradas"
+      [class.no-leida]="!convertidaALeida(n)"
+      (click)="abrir(n)">
+
+      <div class="notif-icono" [ngClass]="iconoTipo(n.nombre_tipo_notificacion)">
+        <svg *ngIf="iconoTipo(n.nombre_tipo_notificacion) === 'asignada'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+        </svg>
+        <svg *ngIf="iconoTipo(n.nombre_tipo_notificacion) === 'autorizada'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+        </svg>
+        <svg *ngIf="iconoTipo(n.nombre_tipo_notificacion) === 'cancelada'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+        </svg>
+        <svg *ngIf="iconoTipo(n.nombre_tipo_notificacion) === 'fecha'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+        </svg>
+        <svg *ngIf="iconoTipo(n.nombre_tipo_notificacion) === 'estado'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+        </svg>
+      </div>
+
+      <div class="notif-contenido">
+        <div class="notif-tipo">
+          <span class="tipo-nombre">{{ n.nombre_tipo_notificacion }}</span>
+          <span class="punto-nuevo" *ngIf="!convertidaALeida(n)"></span>
+        </div>
+        <p class="notif-mensaje">{{ n.mensaje }}</p>
+        <span class="notif-fecha" [title]="fechaHora(n.fecha_notificacion)">
+          {{ fechaRelativa(n.fecha_notificacion) }}
+        </span>
+      </div>
+
+      <div class="notif-acciones">
+        <button
+          class="btn-accion btn-leer"
+          *ngIf="!convertidaALeida(n)"
+          title="Marcar como leida"
+          (click)="marcarLeida(n, $event)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+          </svg>
+        </button>
+        <button
+          class="btn-accion btn-eliminar"
+          title="Eliminar notificacion"
+          (click)="eliminar(n, $event)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="cargando" *ngIf="cargando">
+    <p>Cargando notificaciones...</p>
+  </div>
+
+</div>

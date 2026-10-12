@@ -15,29 +15,43 @@
         <button class="btn-cerrar" (click)="mostrarFormulario = false">x</button>
       </div>
 
-      <form (ngSubmit)="guardar()">
-      <!-- Accordion: Datos de la actividad -->
-      <div class="accordion" [class.abierto]="seccionDatos">
-        <div class="accordion-header" (click)="seccionDatos = !seccionDatos">
-          <span>Datos de la Actividad</span>
-          <span class="flecha">{{ seccionDatos ? '&#9660;' : '&#9654;' }}</span>
-        </div>
-        <div class="accordion-contenido" *ngIf="seccionDatos">
+      <form #formSolicitud="ngForm" novalidate (ngSubmit)="guardar()">
+      <div class="formulario-body">
+
+      <!-- Pestañas del formulario -->
+      <div class="tabs-container">
+        <button type="button" class="tab-btn" [class.active]="pestana === 'datos'" (click)="pestana = 'datos'">Datos de la Actividad</button>
+        <button type="button" class="tab-btn" [class.active]="pestana === 'solicitante'" (click)="pestana = 'solicitante'">Solicitante</button>
+        <button type="button" class="tab-btn" *ngIf="authService.esAdmin()" [class.active]="pestana === 'responsable'" (click)="pestana = 'responsable'">Responsable(s)</button>
+        <button type="button" class="tab-btn" [class.active]="pestana === 'estado'" (click)="pestana = 'estado'">Estado y Prioridad</button>
+      </div>
+
+      <!-- Pestaña: Datos de la actividad -->
+      <div class="pestana-contenido" [hidden]="pestana !== 'datos'">
           <div class="form-grid">
             <div class="campo campo-completo">
               <label>Nombre de la actividad</label>
               <input type="text" [(ngModel)]="nombreActividad" name="nombreActividad" required>
+            </div>
+            <div class="campo campo-completo">
+              <label>Fecha de creacion</label>
+              <input type="date" [(ngModel)]="fechaCreacion" name="fechaCreacion" required>
             </div>
             <div class="campo">
               <label>Fecha de actividad</label>
               <input type="date" [(ngModel)]="fechaActividad" name="fechaActividad" required>
             </div>
             <div class="campo">
+              <label>Fecha fin de actividad</label>
+              <input type="date" [(ngModel)]="fechaFinActividad" name="fechaFinActividad"
+                     [min]="fechaActividad" required>
+            </div>
+            <div class="campo">
               <label>Hora inicio</label>
               <input type="time" [(ngModel)]="horaInicio" name="horaInicio" required>
             </div>
             <div class="campo">
-              <label>Hora fin</label>
+              <label>Hora fin (Aproximada)</label>
               <input type="time" [(ngModel)]="horaFin" name="horaFin" required>
             </div>
             <div class="campo campo-completo">
@@ -49,16 +63,10 @@
               <textarea [(ngModel)]="descripcionActividad" name="descripcionActividad" rows="3"></textarea>
             </div>
           </div>
-        </div>
       </div>
 
-      <!-- Accordion: Solicitante -->
-      <div class="accordion" [class.abierto]="seccionSolicitante">
-        <div class="accordion-header" (click)="seccionSolicitante = !seccionSolicitante">
-          <span>Solicitante</span>
-          <span class="flecha">{{ seccionSolicitante ? '&#9660;' : '&#9654;' }}</span>
-        </div>
-        <div class="accordion-contenido" *ngIf="seccionSolicitante">
+      <!-- Pestaña: Solicitante -->
+      <div class="pestana-contenido" [hidden]="pestana !== 'solicitante'">
           <div class="form-grid">
             <div class="campo campo-completo">
               <label>Seleccionar solicitante</label>
@@ -70,16 +78,10 @@
               </select>
             </div>
           </div>
-        </div>
       </div>
 
-      <!-- Accordion: Responsable -->
-      <div class="accordion" [class.abierto]="seccionResponsable" *ngIf="authService.esAdmin()">
-        <div class="accordion-header" (click)="seccionResponsable = !seccionResponsable">
-          <span>Responsable(s)</span>
-          <span class="flecha">{{ seccionResponsable ? '&#9660;' : '&#9654;' }}</span>
-        </div>
-        <div class="accordion-contenido" *ngIf="seccionResponsable">
+      <!-- Pestaña: Responsable -->
+      <div class="pestana-contenido" [hidden]="pestana !== 'responsable'">
           <div class="responsables-lista">
             <label class="responsable-item" *ngFor="let u of usuarios">
               <input type="checkbox"
@@ -87,18 +89,18 @@
                      (change)="toggleResponsable(u.id_usuario)">
               <span>{{ u.nombre_usuario }} - {{ u.nombre_rol }}</span>
             </label>
-            <p class="sin-responsables" *ngIf="usuarios.length === 0">No hay usuarios disponibles</p>
+            <label class="responsable-item responsable-extra" *ngFor="let a of responsablesExtra">
+              <input type="checkbox"
+                     [checked]="estaAsignado(a.id_usuario)"
+                     (change)="toggleResponsable(a.id_usuario)">
+              <span>{{ a.primer_nombre }} {{ a.primer_apellido }} - {{ a.nombre_cargo }} (sin acceso)</span>
+            </label>
+            <p class="sin-responsables" *ngIf="usuarios.length === 0 && responsablesExtra.length === 0">No hay usuarios disponibles</p>
           </div>
-        </div>
       </div>
 
-      <!-- Accordion: Estado y Prioridad -->
-      <div class="accordion" [class.abierto]="seccionEstado">
-        <div class="accordion-header" (click)="seccionEstado = !seccionEstado">
-          <span>Estado y Prioridad</span>
-          <span class="flecha">{{ seccionEstado ? '&#9660;' : '&#9654;' }}</span>
-        </div>
-        <div class="accordion-contenido" *ngIf="seccionEstado">
+      <!-- Pestaña: Estado y Prioridad -->
+      <div class="pestana-contenido" [hidden]="pestana !== 'estado'">
           <div class="form-grid">
             <div class="campo">
               <label>Estado</label>
@@ -119,7 +121,8 @@
               </select>
             </div>
           </div>
-        </div>
+      </div>
+
       </div>
 
       <div class="formulario-botones">
@@ -138,80 +141,101 @@
         <button class="btn-cerrar" (click)="mostrarDetalle = false">x</button>
       </div>
 
-    <div class="detalle-info">
-      <div class="detalle-columna">
-        <p><strong>Solicitante:</strong> {{ solicitudActual.s_nombre }} {{ solicitudActual.s_apellido }}</p>
-        <p><strong>Lugar:</strong> {{ solicitudActual.lugar_actividad }}</p>
-        <p><strong>Fecha:</strong> {{ solicitudActual.fecha_actividad | formatoFecha:'fecha' }}</p>
-        <p><strong>Horario:</strong> {{ solicitudActual.hora_inicio | formatoFecha:'hora' }} - {{ solicitudActual.hora_fin | formatoFecha:'hora' }}</p>
+    <div class="detalle-body">
+      <div class="detalle-info">
+        <div class="detalle-dato">
+          <span class="dato-label">Solicitante</span>
+          <span class="dato-valor">{{ solicitudActual.s_nombre }} {{ solicitudActual.s_apellido }}</span>
+        </div>
+        <div class="detalle-dato">
+          <span class="dato-label">Lugar</span>
+          <span class="dato-valor">{{ solicitudActual.lugar_actividad }}</span>
+        </div>
+        <div class="detalle-dato">
+          <span class="dato-label">Fecha</span>
+          <span class="dato-valor">{{ rangoFechas(solicitudActual.fecha_actividad, solicitudActual.fecha_fin_actividad) }}</span>
+        </div>
+        <div class="detalle-dato">
+          <span class="dato-label">Horario</span>
+          <span class="dato-valor">{{ solicitudActual.hora_inicio | formatoFecha:'hora' }} - {{ solicitudActual.hora_fin | formatoFecha:'hora' }}</span>
+        </div>
+        <div class="detalle-dato">
+          <span class="dato-label">Estado</span>
+          <span class="dato-valor">{{ solicitudActual.nombre_estado }}</span>
+        </div>
+        <div class="detalle-dato">
+          <span class="dato-label">Prioridad</span>
+          <span class="dato-valor">{{ solicitudActual.nombre_prioridad }}</span>
+        </div>
+        <div class="detalle-dato">
+          <span class="dato-label">Creada</span>
+          <span class="dato-valor">{{ solicitudActual.fecha_creacion | formatoFecha:'fecha' }}</span>
+        </div>
       </div>
-      <div class="detalle-columna">
-        <p><strong>Estado:</strong> {{ solicitudActual.nombre_estado }}</p>
-        <p><strong>Prioridad:</strong> {{ solicitudActual.nombre_prioridad }}</p>
-        <p><strong>Creada:</strong> {{ solicitudActual.fecha_creacion | formatoFecha:'fecha' }}</p>
-      </div>
-    </div>
 
-    <div *ngIf="authService.esAdmin()" class="detalle-acciones">
-      <h3>Cambiar estado</h3>
-      <div class="btn-estados">
-        <button *ngFor="let e of estadosActividad"
-          class="btn-estado"
-          [class.activo]="e.id_estado_actividad == solicitudActual.id_estado_actividad"
-          (click)="cambiarEstado(e.id_estado_actividad)">
-          {{ e.nombre_estado }}
-        </button>
+      <div *ngIf="authService.esAdmin()" class="detalle-seccion">
+        <h3>Cambiar estado</h3>
+        <div class="btn-estados">
+          <button *ngFor="let e of estadosActividad"
+            class="btn-estado"
+            [class.activo]="e.id_estado_actividad == solicitudActual.id_estado_actividad"
+            (click)="cambiarEstado(e.id_estado_actividad)">
+            {{ e.nombre_estado }}
+          </button>
+        </div>
       </div>
-    </div>
 
-    <div class="detalle-asignaciones">
-      <h3>Personal asignado</h3>
-      <div *ngIf="authService.esAdmin()" class="asignar-row">
-        <select [(ngModel)]="idUsuarioAsignar">
-          <option [ngValue]="0">Seleccionar usuario</option>
-          <option *ngFor="let u of usuarios" [ngValue]="u.id_usuario">
-            {{ u.nombre_usuario }} - {{ u.nombre_rol }}
-          </option>
-        </select>
-        <button class="btn-asignar" (click)="asignarPersonal()">Asignar</button>
+      <div class="detalle-seccion">
+        <h3>Personal asignado</h3>
+        <div *ngIf="authService.esAdmin()" class="asignar-row">
+          <select [(ngModel)]="idUsuarioAsignar">
+            <option [ngValue]="0">Seleccionar usuario</option>
+            <option *ngFor="let u of usuarios" [ngValue]="u.id_usuario">
+              {{ u.nombre_usuario }} - {{ u.nombre_rol }}
+            </option>
+          </select>
+          <button class="btn-asignar" (click)="asignarPersonal()">Asignar</button>
+        </div>
+        <p class="sin-registros" *ngIf="!solicitudActual.personal?.length">No hay personal asignado</p>
+        <table class="tabla-detalles" *ngIf="solicitudActual.personal?.length > 0">
+          <thead>
+            <tr><th>Nombre</th><th>Cargo</th><th class="col-accion" *ngIf="authService.esAdmin()">Accion</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of solicitudActual.personal">
+              <td>{{ p.primer_nombre }} {{ p.primer_apellido }}</td>
+              <td>{{ p.nombre_cargo }}</td>
+              <td class="col-accion" *ngIf="authService.esAdmin()"><button class="btn-eliminar" (click)="eliminarAsignacionUsuario(p.id_asignacion_usuario)">Quitar</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <table *ngIf="solicitudActual.personal?.length > 0">
-        <thead>
-          <tr><th>Nombre</th><th>Cargo</th><th *ngIf="authService.esAdmin()">Accion</th></tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of solicitudActual.personal">
-            <td>{{ p.primer_nombre }} {{ p.primer_apellido }}</td>
-            <td>{{ p.nombre_cargo }}</td>
-            <td *ngIf="authService.esAdmin()"><button class="btn-eliminar" (click)="eliminarAsignacionUsuario(p.id_asignacion_usuario)">Quitar</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
 
-    <div class="detalle-asignaciones">
-      <h3>Recursos asignados</h3>
-      <div *ngIf="authService.esAdmin()" class="asignar-row">
-        <select [(ngModel)]="idRecursoAsignar">
-          <option [ngValue]="0">Seleccionar recurso</option>
-          <option *ngFor="let r of recursos" [ngValue]="r.id_recurso">
-            {{ r.nombre_recurso }} ({{ r.nombre_tipo_recurso }})
-          </option>
-        </select>
-        <button class="btn-asignar" (click)="asignarRecurso()">Asignar</button>
+      <div class="detalle-seccion">
+        <h3>Recursos asignados</h3>
+        <div *ngIf="authService.esAdmin()" class="asignar-row">
+          <select [(ngModel)]="idRecursoAsignar">
+            <option [ngValue]="0">Seleccionar recurso</option>
+            <option *ngFor="let r of recursos" [ngValue]="r.id_recurso">
+              {{ r.nombre_recurso }} ({{ r.nombre_tipo_recurso }})
+            </option>
+          </select>
+          <button class="btn-asignar" (click)="asignarRecurso()">Asignar</button>
+        </div>
+        <p class="sin-registros" *ngIf="!solicitudActual.recursos?.length">No hay recursos asignados</p>
+        <table class="tabla-detalles" *ngIf="solicitudActual.recursos?.length > 0">
+          <thead>
+            <tr><th>Nombre</th><th>Tipo</th><th class="col-accion" *ngIf="authService.esAdmin()">Accion</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of solicitudActual.recursos">
+              <td>{{ r.nombre_recurso }}</td>
+              <td>{{ r.nombre_tipo_recurso }}</td>
+              <td class="col-accion" *ngIf="authService.esAdmin()"><button class="btn-eliminar" (click)="eliminarAsignacionRecurso(r.id_asignacion_recurso)">Quitar</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <table *ngIf="solicitudActual.recursos?.length > 0">
-        <thead>
-          <tr><th>Nombre</th><th>Tipo</th><th *ngIf="authService.esAdmin()">Accion</th></tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let r of solicitudActual.recursos">
-            <td>{{ r.nombre_recurso }}</td>
-            <td>{{ r.nombre_tipo_recurso }}</td>
-            <td *ngIf="authService.esAdmin()"><button class="btn-eliminar" (click)="eliminarAsignacionRecurso(r.id_asignacion_recurso)">Quitar</button></td>
-          </tr>
-        </tbody>
-      </table>
     </div>
     </div>
   </div>
@@ -241,13 +265,28 @@
         <tr *ngFor="let s of solicitudesFiltradas">
           <td>{{ s.nombre_actividad }}</td>
           <td>{{ s.nombre_solicitante }}</td>
-          <td>{{ s.fecha_actividad | formatoFecha:'fecha' }}</td>
+          <td>{{ rangoFechas(s.fecha_actividad, s.fecha_fin_actividad) }}</td>
           <td>{{ s.estado }}</td>
           <td>{{ s.nombre_responsable || 'Sin asignar' }}</td>
           <td>
-            <button class="btn-ver" (click)="verDetalle(s.id_solicitud)">Ver</button>
-            <button *ngIf="authService.esAdmin()" class="btn-editar" (click)="editar(s.id_solicitud)">Editar</button>
-            <button *ngIf="authService.esAdmin()" class="btn-eliminar" (click)="eliminar(s.id_solicitud)">Eliminar</button>
+            <div class="acciones-tabla">
+              <button class="btn-ver btn-icono" title="Ver detalle" (click)="verDetalle(s.id_solicitud)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              <button *ngIf="authService.esAdmin()" class="btn-editar btn-icono" title="Editar solicitud" (click)="editar(s.id_solicitud)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+              </button>
+              <button *ngIf="authService.esAdmin()" class="btn-eliminar btn-icono" title="Eliminar solicitud" (click)="eliminar(s.id_solicitud)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

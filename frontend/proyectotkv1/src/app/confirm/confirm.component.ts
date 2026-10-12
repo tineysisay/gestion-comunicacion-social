@@ -26,12 +26,13 @@ import { NotificacionService } from '../services/notificacion.service';
     .confirm-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(43, 45, 66, 0.5);
+      background: rgba(27, 58, 107, 0.5);
       backdrop-filter: blur(2px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 10001;
+      animation: fadeInOverlay 0.15s ease;
     }
     .confirm-card {
       background: white;
@@ -40,7 +41,8 @@ import { NotificacionService } from '../services/notificacion.service';
       max-width: 400px;
       width: 90%;
       text-align: center;
-      box-shadow: 0 16px 48px rgba(43, 45, 66, 0.2);
+      box-shadow: 0 16px 48px rgba(27, 58, 107, 0.2);
+      animation: scaleInModal 0.2s ease;
     }
     .confirm-icono { margin-bottom: 15px; }
     .icono-advertencia {
@@ -50,13 +52,13 @@ import { NotificacionService } from '../services/notificacion.service';
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: #fff3cd;
-      color: #FFB703;
+      background: #FEF3C7;
+      color: #F59E0B;
       font-size: 26px;
     }
     .confirm-mensaje {
       font-size: 15px;
-      color: #333;
+      color: #475569;
       margin-bottom: 25px;
       line-height: 1.5;
     }
@@ -67,26 +69,28 @@ import { NotificacionService } from '../services/notificacion.service';
     }
     .btn-cancelar {
       padding: 10px 24px;
-      background: #ecf0f1;
-      color: #555;
-      border: 1px solid #bdc3c7;
-      border-radius: 6px;
+      background: #F8FAFC;
+      color: #475569;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 14px;
       font-weight: 500;
+      transition: background-color 0.12s ease;
     }
-    .btn-cancelar:hover { background: #d5dbdb; }
+    .btn-cancelar:hover { background: #F1F5F9; }
     .btn-aceptar {
       padding: 10px 24px;
-      background: #D90429;
+      background: #1B3A6B;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 14px;
       font-weight: 600;
+      transition: background-color 0.12s ease, box-shadow 0.12s ease;
     }
-    .btn-aceptar:hover { background: #b80323; }
+    .btn-aceptar:hover { background: #243F7A; box-shadow: 0 2px 8px rgba(27, 58, 107, 0.35); }
   `]
 })
 export class ConfirmComponent implements OnInit, OnDestroy {

@@ -29,7 +29,7 @@
 
 .pestana:hover {
   color: var(--color-text);
-  background: #f5f5fa;
+  background: #F8FAFC;
 }
 
 .pestana.activa {
@@ -66,7 +66,7 @@
 /* === BOTONES DE TABLA === */
 .btn-editar {
   padding: 6px 12px;
-  background: var(--color-secondary-bg, #eef1ff);
+  background: var(--color-secondary-bg, #EFF6FF);
   color: var(--color-secondary);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -107,7 +107,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(43, 45, 66, 0.5);
+  background: rgba(27, 58, 107, 0.5);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -158,7 +158,7 @@
 }
 
 .btn-cerrar:hover {
-  background: #f0f0f5;
+  background: #F1F5F9;
   color: var(--color-text);
 }
 
@@ -189,7 +189,7 @@
 
 .btn-guardar:hover {
   background: var(--color-accent-hover);
-  box-shadow: 0 4px 12px rgba(217, 4, 41, 0.25);
+  box-shadow: 0 4px 12px rgba(27, 58, 107, 0.35);
 }
 
 .btn-cancelar {
@@ -206,8 +206,8 @@
 }
 
 .btn-cancelar:hover {
-  background: #f5f5fa;
-  border-color: #ccc;
+  background: #F8FAFC;
+  border-color: #CBD5E0;
 }
 
 /* === PERFIL === */
@@ -244,7 +244,7 @@
 
 .btn-editar-perfil:hover {
   background: var(--color-accent-hover);
-  box-shadow: 0 4px 12px rgba(217, 4, 41, 0.25);
+  box-shadow: 0 4px 12px rgba(27, 58, 107, 0.35);
 }
 
 .perfil-info {
@@ -255,7 +255,7 @@
 
 .perfil-campo {
   padding: var(--space-md) var(--space-lg);
-  background: #f8f8fc;
+  background: #F8FAFC;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color-light);
 }

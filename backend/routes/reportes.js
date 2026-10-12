@@ -120,6 +120,7 @@ router.get('/reportes/solicitudes-por-fecha', (req, res) => {
       sa.id_solicitud,
       sa.nombre_actividad,
       sa.fecha_actividad,
+      COALESCE(sa.fecha_fin_actividad, sa.fecha_actividad) AS fecha_fin_actividad,
       sa.hora_inicio,
       sa.hora_fin,
       sa.lugar_actividad,
@@ -135,8 +136,8 @@ router.get('/reportes/solicitudes-por-fecha', (req, res) => {
   const params = [];
 
   if (fechaInicio && fechaFin) {
-    sql += ' WHERE sa.fecha_actividad BETWEEN ? AND ?';
-    params.push(fechaInicio, fechaFin);
+    sql += ' WHERE sa.fecha_actividad <= ? AND COALESCE(sa.fecha_fin_actividad, sa.fecha_actividad) >= ?';
+    params.push(fechaFin, fechaInicio);
   }
 
   sql += ' ORDER BY sa.fecha_actividad DESC';
@@ -204,6 +205,7 @@ router.get('/reportes/actividades-por-usuario', (req, res) => {
       sa.id_solicitud,
       sa.nombre_actividad,
       sa.fecha_actividad,
+      COALESCE(sa.fecha_fin_actividad, sa.fecha_actividad) AS fecha_fin_actividad,
       sa.lugar_actividad,
       ea.nombre_estado,
       pa.nombre_prioridad,

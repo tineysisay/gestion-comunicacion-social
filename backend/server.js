@@ -357,6 +357,10 @@ app.get('/api/usuarios', verificarToken, (req, res) => {
       c.id_cuenta,
       c.id_usuario,
       c.nombre_usuario,
+      d.primer_nombre,
+      d.segundo_nombre,
+      d.primer_apellido,
+      d.segundo_apellido,
       r.nombre_rol,
       e.nombre_estado,
       ca.nombre_cargo
@@ -369,7 +373,6 @@ app.get('/api/usuarios', verificarToken, (req, res) => {
       ON c.id_usuario = d.id_usuario
     INNER JOIN cargo_usuario ca
       ON d.id_cargo = ca.id_cargo
-    WHERE e.nombre_estado = 'ACTIVO'
   `;
 
   conexion.query(sql, (error, resultados) => {

@@ -5,7 +5,10 @@
       <h1>Gestion de Solicitantes</h1>
       <p>Administracion de personas e instituciones que solicitan servicios</p>
     </div>
-    <button class="btn-nuevo" (click)="nuevo()">+ Nuevo solicitante</button>
+    <div class="encabezado-acciones">
+      <button class="btn-nueva-inst" (click)="mostrarNuevaInstitucion = true">+ Nueva institución</button>
+      <button class="btn-nuevo" (click)="nuevo()">+ Nuevo solicitante</button>
+    </div>
   </div>
 
   <div class="formulario-container" *ngIf="mostrarFormulario">
@@ -16,6 +19,7 @@
     </div>
 
     <form (ngSubmit)="guardar()">
+      <div class="formulario-body">
       <h3>Datos personales</h3>
       <div class="form-grid">
         <div class="campo">
@@ -44,9 +48,16 @@
         </div>
         <div class="campo campo-completo">
           <label>Institucion</label>
-          <select [(ngModel)]="idInstitucion" name="idInstitucion">
+          <input
+            type="text"
+            class="buscar-institucion"
+            placeholder="Buscar institución..."
+            [(ngModel)]="filtroInstitucion"
+            name="filtroInstitucion"
+          >
+          <select [(ngModel)]="idInstitucion" name="idInstitucion" (change)="filtroInstitucion = ''">
             <option [value]="0">Sin institucion</option>
-            <option *ngFor="let inst of instituciones" [value]="inst.id_institucion">
+            <option *ngFor="let inst of institucionesFiltradas" [value]="inst.id_institucion">
               {{ inst.nombre_institucion }}
             </option>
           </select>
@@ -56,12 +67,67 @@
           <textarea [(ngModel)]="descripcionSolicitante" name="descripcionSolicitante" rows="3"></textarea>
         </div>
       </div>
+      </div>
 
       <div class="formulario-botones">
         <button type="button" class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
         <button type="submit" class="btn-guardar">Guardar</button>
       </div>
     </form>
+    </div>
+  </div>
+
+  <div class="formulario-container" *ngIf="mostrarNuevaInstitucion">
+    <div class="formulario-card inst-card">
+      <div class="formulario-header">
+        <h2>Nueva institución</h2>
+        <button class="btn-cerrar" (click)="cerrarNuevaInstitucion()">x</button>
+      </div>
+      <form (ngSubmit)="guardarInstitucion()">
+        <div class="formulario-body">
+          <div class="form-grid">
+            <div class="campo campo-completo">
+              <label>Nombre de la institución *</label>
+              <input
+                type="text"
+                [(ngModel)]="nombreNuevaInstitucion"
+                name="nombreNuevaInstitucion"
+                maxlength="150"
+                required
+                placeholder="Ej. Municipalidad de Santiago Atitlán"
+              >
+            </div>
+            <div class="campo">
+              <label>Representante</label>
+              <input type="text" [(ngModel)]="representanteInst" name="representanteInst" maxlength="150">
+            </div>
+            <div class="campo">
+              <label>Tel. representante</label>
+              <input type="text" [(ngModel)]="telRepresentanteInst" name="telRepresentanteInst" maxlength="20">
+            </div>
+            <div class="campo">
+              <label>Tel. institución</label>
+              <input type="text" [(ngModel)]="telInstitucionInst" name="telInstitucionInst" maxlength="20">
+            </div>
+            <div class="campo">
+              <label>Correo electrónico</label>
+              <input type="email" [(ngModel)]="correoInst" name="correoInst" maxlength="150">
+            </div>
+            <div class="campo campo-completo">
+              <label>Dirección</label>
+              <input type="text" [(ngModel)]="direccionInst" name="direccionInst" maxlength="250">
+            </div>
+            <div class="campo campo-completo">
+              <label>Descripción</label>
+              <textarea [(ngModel)]="descripcionInst" name="descripcionInst" rows="2" maxlength="300"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="formulario-botones">
+          <button type="button" class="btn-cancelar" (click)="cerrarNuevaInstitucion()">Cancelar</button>
+          <button type="submit" class="btn-guardar">Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -92,8 +158,18 @@
           <td>{{ s.correo_electronico }}</td>
           <td>{{ s.nombre_institucion || 'Sin institucion' }}</td>
           <td>
-            <button class="btn-editar" (click)="editar(s.id_solicitante)">Editar</button>
-            <button class="btn-eliminar" (click)="eliminar(s.id_solicitante)">Eliminar</button>
+            <div class="acciones-tabla">
+              <button class="btn-editar btn-icono" title="Editar solicitante" (click)="editar(s.id_solicitante)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+              </button>
+              <button class="btn-eliminar btn-icono" title="Eliminar solicitante" (click)="eliminar(s.id_solicitante)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

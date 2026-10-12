@@ -3,6 +3,7 @@ const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
 const { soloAdmin } = require('../middleware/roles');
+const { notificarAsignados, obtenerDatosSolicitud } = require('../helpers/notificar');
 
 router.use(verificarToken);
 
@@ -90,6 +91,23 @@ router.post('/solicitudes/:id/historial', soloAdmin, (req, res) => {
                 res.status(500).json({ mensaje: 'Error al confirmar cambio' });
               });
             }
+
+            // Notificar a los asignados el cambio de estado (fire and forget)
+            // Tipo: 2 = AUTORIZADO, 3 = CANCELADO, 4 = CAMBIO DE ESTADO
+            const estadoNum = parseInt(idEstadoNuevo, 10);
+            let tipoNotificacion = 4;
+            if (estadoNum === 2) tipoNotificacion = 2;
+            else if (estadoNum === 5) tipoNotificacion = 3;
+
+            obtenerDatosSolicitud(id, (datos) => {
+              const nombre = datos ? datos.nombre_actividad : '';
+              conexion.query('SELECT nombre_estado FROM estado_actividad WHERE id_estado_actividad = ?', [idEstadoNuevo], (errEstado, resEstado) => {
+                const estadoNombre = (!errEstado && resEstado.length > 0) ? resEstado[0].nombre_estado : 'nuevo estado';
+                const mensaje = `La actividad "${nombre}" cambio de estado a ${estadoNombre}.`;
+                notificarAsignados(id, tipoNotificacion, mensaje, idUsuario);
+              });
+            });
+
             res.status(201).json({
               mensaje: 'Estado actualizado correctamente',
               id: resultado.insertId

@@ -8,7 +8,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-lg);
 }
 
 .controles-izquierda {
@@ -32,7 +32,7 @@
 
 .btn-hoy:hover {
   background: var(--color-accent-hover);
-  box-shadow: 0 4px 12px rgba(217, 4, 41, 0.25);
+  box-shadow: 0 4px 12px rgba(27, 58, 107, 0.35);
 }
 
 .btn-flecha {
@@ -47,8 +47,8 @@
 }
 
 .btn-flecha:hover {
-  background: #f5f5fa;
-  border-color: #ccc;
+  background: #F8FAFC;
+  border-color: #CBD5E0;
 }
 
 .titulo-fecha {
@@ -77,14 +77,41 @@
 }
 
 .btn-vista:hover {
-  background: #f5f5fa;
-  border-color: #ccc;
+  background: #F8FAFC;
+  border-color: #CBD5E0;
 }
 
 .btn-vista.activa {
   background: var(--color-secondary);
   color: var(--color-text-inverse);
   border-color: var(--color-secondary);
+}
+
+/* === LEYENDA DE ESTADOS === */
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-xl);
+  align-items: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.leyenda-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.leyenda-punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* === VISTA MES === */
@@ -103,7 +130,7 @@
   color: var(--color-text-inverse);
   text-align: center;
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -117,11 +144,11 @@
 }
 
 .calendario-dia:hover {
-  background: #f8f8fc;
+  background: #F8FAFC;
 }
 
 .calendario-dia.vacio {
-  background: #fafafa;
+  background: #F8FAFC;
   cursor: default;
 }
 
@@ -130,7 +157,7 @@
 }
 
 .calendario-dia.seleccionado {
-  background: #d1e7ff;
+  background: #EFF6FF;
   border: 2px solid var(--color-secondary);
 }
 
@@ -147,7 +174,8 @@
 .evento {
   padding: 3px 6px;
   border-radius: var(--radius-sm);
-  color: white;
+  color: #1F2937;
+  border-left: 3px solid transparent;
   font-size: 0.6875rem;
   margin-bottom: 2px;
   cursor: pointer;
@@ -171,7 +199,7 @@
 
 .evento.estado-proceso {
   background: var(--badge-proceso);
-  color: #856404;
+  color: #B45309;
 }
 
 .evento.estado-finalizado {
@@ -214,13 +242,13 @@
 
 .semana-dia-header {
   padding: var(--space-md);
-  background: #f8f8fc;
+  background: #F8FAFC;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   text-align: center;
 }
 
 .semana-dia-nombre {
-  font-size: 0.75rem;
+  font-size: 0.9375rem;
   color: var(--color-text-muted);
   display: block;
   text-transform: uppercase;
@@ -277,6 +305,7 @@
   align-items: center;
   padding: var(--space-lg);
   border: 1px solid var(--border-color-light);
+  border-left: 4px solid var(--border-color);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-md);
   cursor: pointer;
@@ -284,7 +313,7 @@
 }
 
 .evento-dia:hover {
-  background: #f8f8fc;
+  background: #F8FAFC;
   border-color: var(--color-secondary);
 }
 
@@ -315,7 +344,7 @@
   font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 12px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .evento-prioridad {
@@ -340,7 +369,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(43, 45, 66, 0.5);
+  background: rgba(27, 58, 107, 0.5);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -364,13 +393,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #F1F5F9;
 }
 
 .detalle-header h2 {
   margin: 0;
   font-size: 1rem;
-  color: #075ca8;
+  color: #1B3A6B;
 }
 
 .btn-cerrar {
@@ -382,7 +411,7 @@
   background: none;
   border: none;
   font-size: 1.25rem;
-  color: #999;
+  color: #94A3B8;
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.15s;
@@ -391,8 +420,8 @@
 }
 
 .btn-cerrar:hover {
-  background: #f0f0f5;
-  color: #333;
+  background: #F1F5F9;
+  color: #1A202C;
 }
 
 .detalle-body {
@@ -406,14 +435,14 @@
 
 .detalle-row label {
   font-weight: 600;
-  color: #666;
+  color: #475569;
   width: 100px;
   flex-shrink: 0;
   font-size: 0.8125rem;
 }
 
 .detalle-row span {
-  color: #333;
+  color: #1A202C;
   font-size: 0.8125rem;
 }
 

@@ -9,6 +9,8 @@ import { CalendarioComponent } from './calendario/calendario.component';
 import { ConfiguracionComponent } from './configuracion/configuracion.component';
 import { KanbanComponent } from './kanban/kanban.component';
 import { ReportesComponent } from './reportes/reportes.component';
+import { NotificacionesComponent } from './notificaciones/notificaciones.component';
+import { RecursosComponent } from './recursos/recursos.component';
 import { authGuard } from './guards/auth.guard';
 import { soloAdminGuard, accesoTotalGuard } from './guards/roles.guard';
 
@@ -27,6 +29,11 @@ export const routes: Routes = [
     component: InicioComponent,
     canActivate: [authGuard],
     children: [
+      {
+        path: '',
+        redirectTo: 'kanban',
+        pathMatch: 'full'
+      },
       {
         path: 'kanban',
         component: KanbanComponent,
@@ -50,6 +57,16 @@ export const routes: Routes = [
       {
         path: 'calendario',
         component: CalendarioComponent,
+        canActivate: [accesoTotalGuard]
+      },
+      {
+        path: 'notificaciones',
+        component: NotificacionesComponent,
+        canActivate: [accesoTotalGuard]
+      },
+      {
+        path: 'recursos',
+        component: RecursosComponent,
         canActivate: [accesoTotalGuard]
       },
       {

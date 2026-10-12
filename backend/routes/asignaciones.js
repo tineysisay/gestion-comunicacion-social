@@ -3,6 +3,7 @@ const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
 const { soloLectura } = require('../middleware/roles');
+const { notificarUsuario, obtenerDatosSolicitud, formatearFecha, formatearHora } = require('../helpers/notificar');
 
 router.use(verificarToken);
 
@@ -61,6 +62,19 @@ router.post('/solicitudes/:id/asignaciones-usuario', soloLectura, (req, res) => 
         console.error('ERROR MYSQL:', error);
         return res.status(500).json({ mensaje: 'Error al asignar personal' });
       }
+
+      // Notificar al usuario asignado (fire and forget)
+      obtenerDatosSolicitud(id, (datos) => {
+        const nombre = datos ? datos.nombre_actividad : '';
+        const fecha = datos ? formatearFecha(datos.fecha_actividad) : '';
+        const hora = datos && datos.hora_inicio && datos.hora_fin
+          ? ` de ${formatearHora(datos.hora_inicio)} a ${formatearHora(datos.hora_fin)}`
+          : '';
+        const lugar = datos && datos.lugar_actividad ? ` en ${datos.lugar_actividad}` : '';
+        const mensaje = `Se le ha asignado la actividad "${nombre}" el ${fecha}${hora}${lugar}.`;
+        notificarUsuario(idUsuario, 1, id, mensaje);
+      });
+
       res.status(201).json({
         mensaje: 'Personal asignado correctamente',
         id: resultado.insertId

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RecursoService } from '../services/recurso.service';
 import { CatalogoService } from '../services/catalogo.service';
 import { NotificacionService } from '../services/notificacion.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-recursos',
@@ -25,10 +26,15 @@ export class RecursosComponent implements OnInit {
   estadoRecurso = 'Disponible';
   idTipoRecurso = 0;
 
+  mostrarFormTipo = false;
+  nombreTipoNuevo = '';
+  descripcionTipoNuevo = '';
+
   constructor(
     private recursoService: RecursoService,
     private catalogoService: CatalogoService,
-    private notificacion: NotificacionService
+    private notificacion: NotificacionService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -73,6 +79,15 @@ export class RecursosComponent implements OnInit {
   }
 
   guardar(): void {
+    if (!this.nombreRecurso.trim()) {
+      this.notificacion.error('Ingrese el nombre del recurso');
+      return;
+    }
+    if (!this.idTipoRecurso) {
+      this.notificacion.error('Seleccione el tipo de recurso');
+      return;
+    }
+
     const data = {
       nombreRecurso: this.nombreRecurso,
       descripcionRecurso: this.descripcionRecurso,
@@ -119,5 +134,39 @@ export class RecursosComponent implements OnInit {
     this.descripcionRecurso = '';
     this.estadoRecurso = 'Disponible';
     this.idTipoRecurso = 0;
+    this.cancelarFormTipo();
+  }
+
+  // ===== TIPO DE RECURSO RAPIDO =====
+  abrirFormTipo(): void {
+    this.nombreTipoNuevo = '';
+    this.descripcionTipoNuevo = '';
+    this.mostrarFormTipo = true;
+  }
+
+  cancelarFormTipo(): void {
+    this.mostrarFormTipo = false;
+    this.nombreTipoNuevo = '';
+    this.descripcionTipoNuevo = '';
+  }
+
+  guardarTipo(): void {
+    if (!this.nombreTipoNuevo.trim()) {
+      this.notificacion.error('Ingrese el nombre del tipo de recurso');
+      return;
+    }
+
+    this.catalogoService.crearTipoRecurso({
+      nombreTipoRecurso: this.nombreTipoNuevo.trim(),
+      descripcionTipoRecurso: this.descripcionTipoNuevo.trim() || null
+    }).subscribe({
+      next: (respuesta) => {
+        this.notificacion.exito(respuesta.mensaje);
+        this.idTipoRecurso = respuesta.id;
+        this.cancelarFormTipo();
+        this.obtenerTiposRecurso();
+      },
+      error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al crear el tipo de recurso')
+    });
   }
 }

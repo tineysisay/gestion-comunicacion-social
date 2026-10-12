@@ -115,7 +115,7 @@ export class ReportesComponent implements OnInit, AfterViewInit {
         datasets: [{
           label: 'Asignaciones',
           data: datos.map(d => d.total_asignaciones),
-          backgroundColor: '#075ca8'
+          backgroundColor: '#1B3A6B'
         }]
       },
       options: {
@@ -227,6 +227,16 @@ export class ReportesComponent implements OnInit, AfterViewInit {
     });
   }
 
+  rangoFechas(inicio: string, fin: string): string {
+    if (!inicio) return '';
+    const inicioFmt = inicio.substring(0, 10);
+    const finFmt = fin ? fin.substring(0, 10) : inicioFmt;
+    if (finFmt === inicioFmt) {
+      return inicioFmt.split('-').reverse().join('/');
+    }
+    return `${inicioFmt.split('-').reverse().join('/')} - ${finFmt.split('-').reverse().join('/')}`;
+  }
+
   exportarPDF(): void {
     if (this.solicitudesPorFecha.length === 0) {
       this.notificacion.info('No hay datos para exportar. Primero aplique un filtro.');
@@ -248,7 +258,7 @@ export class ReportesComponent implements OnInit, AfterViewInit {
     const filas = this.solicitudesPorFecha.map((s, i) => [
       String(i + 1),
       s.nombre_actividad || '',
-      s.fecha_actividad || '',
+      this.rangoFechas(s.fecha_actividad, s.fecha_fin_actividad),
       s.lugar_actividad || '',
       s.nombre_estado || '',
       s.nombre_prioridad || '',

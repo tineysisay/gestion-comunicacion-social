@@ -25,7 +25,7 @@ export class LoginComponent {
     this.authService.login(this.usuario, this.contrasena).subscribe({
       next: (respuesta) => {
         console.log('Login exitoso:', respuesta);
-        this.router.navigate(['/inicio']);
+        this.router.navigate(['/inicio/kanban']);
       },
       error: (error) => {
         console.log('Error de login:', error);
