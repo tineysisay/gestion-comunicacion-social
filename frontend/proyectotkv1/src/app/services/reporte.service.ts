@@ -17,6 +17,10 @@ export class ReporteService {
     return this.api.get<any[]>('reportes/solicitudes-por-estado');
   }
 
+  solicitudesPorEstadoDetalle(idEstado: number): Observable<any[]> {
+    return this.api.get<any[]>(`reportes/solicitudes-detalle-por-estado?idEstado=${idEstado}`);
+  }
+
   solicitudesPorPrioridad(): Observable<any[]> {
     return this.api.get<any[]>('reportes/solicitudes-por-prioridad');
   }

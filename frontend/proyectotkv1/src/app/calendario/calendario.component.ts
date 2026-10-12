@@ -1,7 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
+import { AuthService } from '../services/auth.service';
 import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
 import { coloresDeEstado, normalizarEstado, ORDEN_ESTADOS } from '../shared/colores-estado';
 import { Subscription } from 'rxjs';
@@ -35,7 +37,11 @@ export class CalendarioComponent implements OnInit, OnDestroy {
   mostrarDetalle = false;
   private subscription: Subscription = new Subscription();
 
-  constructor(private solicitudService: SolicitudService) {}
+  constructor(
+    private solicitudService: SolicitudService,
+    public authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.cargarSolicitudes();
@@ -244,6 +250,13 @@ export class CalendarioComponent implements OnInit, OnDestroy {
   cerrarDetalle(): void {
     this.mostrarDetalle = false;
     this.solicitudSeleccionada = null;
+  }
+
+  editarSolicitud(): void {
+    if (!this.authService.esAdmin() || !this.solicitudSeleccionada) return;
+    const id = this.solicitudSeleccionada.id_solicitud;
+    this.cerrarDetalle();
+    this.router.navigate(['/inicio/solicitudes'], { queryParams: { editar: id } });
   }
 
   irHoy(): void {

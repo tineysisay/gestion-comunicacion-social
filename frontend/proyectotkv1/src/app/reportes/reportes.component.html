@@ -1,29 +1,64 @@
 <div class="container">
 
   <div class="encabezado">
-    <div>
-      <h1>Reportes y Estadisticas</h1>
-      <p>Dashboard de analisis de solicitudes</p>
+    <div class="encabezado-info">
+      <span class="encabezado-icono">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+        </svg>
+      </span>
+      <div>
+        <h1>Reportes y Estadisticas</h1>
+        <p>Dashboard de analisis de solicitudes</p>
+      </div>
     </div>
   </div>
 
   <!-- Tarjetas resumen -->
   <div class="tarjetas">
     <div class="tarjeta">
-      <div class="tarjeta-numero">{{ estadisticas.totalSolicitudes || 0 }}</div>
-      <div class="tarjeta-label">Total Solicitudes</div>
+      <div class="tarjeta-icono tarjeta-icono-navy">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m-7 5h8a2 2 0 002-2V7a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <div class="tarjeta-texto">
+        <div class="tarjeta-numero">{{ estadisticas.totalSolicitudes || 0 }}</div>
+        <div class="tarjeta-label">Total Solicitudes</div>
+      </div>
     </div>
-    <div class="tarjeta tarjeta-azul">
-      <div class="tarjeta-numero">{{ estadisticas.porEstado?.[0]?.total || 0 }}</div>
-      <div class="tarjeta-label">Pendientes</div>
+    <div class="tarjeta">
+      <div class="tarjeta-icono tarjeta-icono-azul">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l2.5 2.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="tarjeta-texto">
+        <div class="tarjeta-numero">{{ estadisticas.porEstado?.[0]?.total || 0 }}</div>
+        <div class="tarjeta-label">Pendientes</div>
+      </div>
     </div>
-    <div class="tarjeta tarjeta-verde">
-      <div class="tarjeta-numero">{{ estadisticas.porEstado?.[1]?.total || 0 }}</div>
-      <div class="tarjeta-label">En Proceso</div>
+    <div class="tarjeta">
+      <div class="tarjeta-icono tarjeta-icono-naranja">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div class="tarjeta-texto">
+        <div class="tarjeta-numero">{{ estadisticas.porEstado?.[1]?.total || 0 }}</div>
+        <div class="tarjeta-label">En Proceso</div>
+      </div>
     </div>
-    <div class="tarjeta tarjeta-naranja">
-      <div class="tarjeta-numero">{{ estadisticas.porEstado?.[3]?.total || 0 }}</div>
-      <div class="tarjeta-label">Finalizados</div>
+    <div class="tarjeta">
+      <div class="tarjeta-icono tarjeta-icono-verde">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="tarjeta-texto">
+        <div class="tarjeta-numero">{{ estadisticas.porEstado?.[3]?.total || 0 }}</div>
+        <div class="tarjeta-label">Finalizados</div>
+      </div>
     </div>
   </div>
 
@@ -36,44 +71,67 @@
   </div>
 
   <!-- Actividades por trabajador -->
-  <div class="actividades-section" *ngIf="actividadesPorUsuario.length > 0">
-    <h3>Actividades por Trabajador</h3>
-    <div class="trabajador-grupo" *ngFor="let grupo of gruposActividades">
-      <div class="trabajador-header" (click)="grupo.abierto = !grupo.abierto">
-        <div class="trabajador-info">
-          <span class="trabajador-nombre">{{ grupo.nombre_usuario }}</span>
-          <span class="trabajador-cargo">{{ grupo.nombre_cargo }}</span>
-        </div>
-        <div class="trabajador-contador">
-          <span class="badge">{{ grupo.actividades.length }}</span>
-          <span class="flecha" [class.abierto]="grupo.abierto">&#9660;</span>
-        </div>
+  <div class="actividades-section" *ngIf="actividadesPorUsuario.length > 0" [class.abierto]="pestanaTrabajadores">
+    <div class="section-header" (click)="pestanaTrabajadores = !pestanaTrabajadores">
+      <h3>Actividades por Trabajador</h3>
+      <div class="section-header-info">
+        <span class="badge badge-contador">{{ gruposActividades.length }}</span>
+        <span class="flecha" [class.abierto]="pestanaTrabajadores">&#9660;</span>
       </div>
-      <div class="trabajador-actividades" *ngIf="grupo.abierto">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Actividad</th>
-              <th>Fecha</th>
-              <th>Lugar</th>
-              <th>Estado</th>
-              <th>Prioridad</th>
-              <th>Solicitante</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let act of grupo.actividades; let i = index">
-              <td>{{ i + 1 }}</td>
-              <td>{{ act.nombre_actividad }}</td>
-              <td>{{ rangoFechas(act.fecha_actividad, act.fecha_fin_actividad) }}</td>
-              <td>{{ act.lugar_actividad }}</td>
-              <td>{{ act.nombre_estado }}</td>
-              <td>{{ act.nombre_prioridad }}</td>
-              <td>{{ act.solicitante }}</td>
-            </tr>
-          </tbody>
-        </table>
+    </div>
+
+    <div class="section-contenido">
+      <div class="section-contenido-inner">
+        <div class="buscador-trabajador">
+          <input
+            type="text"
+            placeholder="Buscar trabajador..."
+            [(ngModel)]="busquedaTrabajador"
+          >
+        </div>
+
+        <div class="trabajador-grupo" *ngFor="let grupo of gruposFiltrados" [class.abierto]="grupo.abierto">
+          <div class="trabajador-header" (click)="alternarGrupo(grupo)">
+            <div class="trabajador-info">
+              <span class="trabajador-nombre">{{ grupo.nombre_usuario }}</span>
+              <span class="trabajador-cargo">{{ grupo.nombre_cargo }}</span>
+            </div>
+            <div class="trabajador-contador">
+              <span class="badge badge-contador">{{ grupo.actividades.length }}</span>
+              <span class="flecha" [class.abierto]="grupo.abierto">&#9660;</span>
+            </div>
+          </div>
+          <div class="trabajador-actividades">
+            <div class="trabajador-contenido">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Actividad</th>
+                  <th>Fecha</th>
+                  <th>Lugar</th>
+                  <th>Estado</th>
+                  <th>Prioridad</th>
+                  <th>Solicitante</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let act of grupo.actividades; let i = index">
+                  <td class="col-num">{{ i + 1 }}</td>
+                  <td class="col-actividad">{{ act.nombre_actividad }}</td>
+                  <td>{{ rangoFechas(act.fecha_actividad, act.fecha_fin_actividad) }}</td>
+                  <td>{{ act.lugar_actividad }}</td>
+                  <td><span class="badge" [ngClass]="claseBadge(act.nombre_estado)">{{ act.nombre_estado }}</span></td>
+                  <td><span class="badge" [ngClass]="claseBadgePrioridad(act.nombre_prioridad)">{{ act.nombre_prioridad }}</span></td>
+                  <td>{{ act.solicitante }}</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+
+        <p class="sin-resultados" *ngIf="gruposFiltrados.length === 0">No se encontraron trabajadores</p>
       </div>
     </div>
   </div>
@@ -92,6 +150,18 @@
       <button class="btn-toggle" [class.activo]="filtroActivo === 'semana'" (click)="filtrarSemana()">Esta Semana</button>
       <button class="btn-toggle" [class.activo]="filtroActivo === 'mes'" (click)="filtrarMes()">Este Mes</button>
       <button class="btn-toggle" [class.activo]="filtroActivo === 'rango'" (click)="filtroActivo = 'rango'">Rango Personalizado</button>
+      <button class="btn-toggle" [class.activo]="filtroActivo === 'estado'" (click)="activarFiltroEstado()">Por Estado</button>
+    </div>
+
+    <div class="filtro-fechas" *ngIf="filtroActivo === 'estado'">
+      <div class="campo">
+        <label>Estado</label>
+        <select [(ngModel)]="idEstadoReporte">
+          <option [ngValue]="0">Seleccione un estado</option>
+          <option *ngFor="let e of estadosActividad" [ngValue]="e.id_estado_actividad">{{ e.nombre_estado }}</option>
+        </select>
+      </div>
+      <button class="btn-buscar" (click)="buscarPorEstado()">Buscar</button>
     </div>
 
     <div class="filtro-fechas" *ngIf="filtroActivo === 'rango'">
@@ -125,12 +195,12 @@
         </thead>
         <tbody>
           <tr *ngFor="let s of solicitudesPorFecha; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>{{ s.nombre_actividad }}</td>
+            <td class="col-num">{{ i + 1 }}</td>
+            <td class="col-actividad">{{ s.nombre_actividad }}</td>
             <td>{{ rangoFechas(s.fecha_actividad, s.fecha_fin_actividad) }}</td>
             <td>{{ s.lugar_actividad }}</td>
-            <td>{{ s.nombre_estado }}</td>
-            <td>{{ s.nombre_prioridad }}</td>
+            <td><span class="badge" [ngClass]="claseBadge(s.nombre_estado)">{{ s.nombre_estado }}</span></td>
+            <td><span class="badge" [ngClass]="claseBadgePrioridad(s.nombre_prioridad)">{{ s.nombre_prioridad }}</span></td>
             <td>{{ s.solicitante }}</td>
           </tr>
         </tbody>
@@ -138,7 +208,7 @@
     </div>
 
     <div class="sin-resultados" *ngIf="filtroActivo && filtroActivo !== 'rango' && solicitudesPorFecha.length === 0 && cargarCompletado">
-      <p>No se encontraron solicitudes para el periodo seleccionado.</p>
+      <p>No se encontraron solicitudes para el filtro seleccionado.</p>
     </div>
   </div>
 

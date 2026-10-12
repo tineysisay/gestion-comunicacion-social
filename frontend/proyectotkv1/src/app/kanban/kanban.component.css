@@ -13,22 +13,39 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-xl) var(--space-2xl);
+  position: relative;
+  overflow: hidden;
 }
 
-.kanban-header h2 {
+.kanban-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-secondary) 55%, rgba(42, 82, 152, 0.15));
+}
+
+.kanban-header h1 {
   margin: 0;
-  font-size: 1.25rem;
 }
 
 .header-titulo {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-xs);
 }
 
 .fecha-actual {
-  font-size: 0.875rem;
-  color: #475569;
+  font-size: 0.925rem;
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
@@ -331,6 +348,12 @@
 }
 
 /* === FORMULARIO EDICION === */
+/* Altura fija: el modal no cambia de tamano al cambiar de pestana */
+.pestana-contenido {
+  height: 460px;
+  overflow-y: auto;
+}
+
 .formulario-body {
   padding: 0 20px 20px;
 }
@@ -406,24 +429,49 @@
   gap: 6px;
 }
 
-.responsable-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 11px;
-  background: #F8FAFC;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-  font-size: 0.9375rem;
-  color: #1A202C;
+.tabla-responsables {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.responsable-item:hover {
+.tabla-responsables th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #64748B;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.tabla-responsables td {
+  padding: 9px 10px;
+  font-size: 0.9375rem;
+  color: #1A202C;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.tabla-responsables tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tabla-responsables tbody tr:hover {
   background: #F1F5F9;
 }
 
-.responsable-item input[type="checkbox"] {
+.tabla-responsables tbody tr.seleccionado {
+  background: #EFF6FF;
+}
+
+.tabla-responsables .col-check {
+  width: 40px;
+  text-align: center;
+}
+
+.tabla-responsables input[type="checkbox"] {
   width: 16px;
   height: 16px;
   accent-color: #1B3A6B;

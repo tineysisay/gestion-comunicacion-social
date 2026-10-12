@@ -3,7 +3,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 45%, var(--color-navy-light) 100%);
   padding: var(--space-xl);
   position: relative;
   overflow: hidden;
@@ -42,6 +42,18 @@
   box-shadow: var(--shadow-xl);
   position: relative;
   z-index: 1;
+  overflow: hidden;
+}
+
+/* Franja de acento de paleta en la tarjeta */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-secondary) 55%, var(--color-navy-light));
 }
 
 .login-header {

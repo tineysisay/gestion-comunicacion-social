@@ -81,6 +81,49 @@ export class SolicitantesComponent implements OnInit {
     );
   }
 
+  paginaActual = 1;
+  porPagina = 10;
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.solicitantesFiltradas.length / this.porPagina));
+  }
+
+  get solicitantesPaginados(): any[] {
+    if (this.paginaActual > this.totalPaginas) {
+      this.paginaActual = this.totalPaginas;
+    }
+    const inicio = (this.paginaActual - 1) * this.porPagina;
+    return this.solicitantesFiltradas.slice(inicio, inicio + this.porPagina);
+  }
+
+  cambiarBusqueda(): void {
+    this.paginaActual = 1;
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaActual > 1) this.paginaActual--;
+  }
+
+  paginaSiguiente(): void {
+    if (this.paginaActual < this.totalPaginas) this.paginaActual++;
+  }
+
+  irAPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+    }
+  }
+
+  get paginasVisibles(): number[] {
+    const total = this.totalPaginas;
+    const actual = this.paginaActual;
+    const inicio = Math.max(1, Math.min(actual - 2, total - 4));
+    const fin = Math.min(total, inicio + 4);
+    const paginas: number[] = [];
+    for (let i = inicio; i <= fin; i++) paginas.push(i);
+    return paginas;
+  }
+
   nuevo(): void {
     this.editando = false;
     this.idEditar = 0;

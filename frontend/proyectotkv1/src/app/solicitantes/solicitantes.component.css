@@ -44,6 +44,54 @@
   overflow-x: auto;
 }
 
+/* === PAGINACION === */
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.btn-pagina {
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: #475569;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-pagina:hover:not(:disabled):not(.pagina-activa) {
+  border-color: #2A5298;
+  color: #2A5298;
+}
+
+.btn-pagina:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-pagina.pagina-activa {
+  background: #2A5298;
+  border-color: #2A5298;
+  color: #fff;
+}
+
+.paginacion-info {
+  width: 100%;
+  text-align: center;
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  color: #64748B;
+}
+
 /* === BOTONES DE TABLA === */
 .btn-editar {
   padding: 6px 12px;

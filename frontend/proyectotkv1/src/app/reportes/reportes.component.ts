@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReporteService } from '../services/reporte.service';
+import { CatalogoService } from '../services/catalogo.service';
 import { NotificacionService } from '../services/notificacion.service';
 import { Chart, registerables } from 'chart.js';
 import jsPDF from 'jspdf';
@@ -34,6 +35,12 @@ export class ReportesComponent implements OnInit, AfterViewInit {
   actividadesPorUsuario: any[] = [];
   gruposActividades: GrupoTrabajo[] = [];
 
+  estadosActividad: any[] = [];
+  idEstadoReporte = 0;
+
+  pestanaTrabajadores = false;
+  busquedaTrabajador = '';
+
   fechaInicio = '';
   fechaFin = '';
   filtroActivo = '';
@@ -42,7 +49,11 @@ export class ReportesComponent implements OnInit, AfterViewInit {
 
   chartCarga: Chart | null = null;
 
-  constructor(private reporteService: ReporteService, private notificacion: NotificacionService) {}
+  constructor(
+    private reporteService: ReporteService,
+    private catalogoService: CatalogoService,
+    private notificacion: NotificacionService
+  ) {}
 
   ngOnInit(): void {
     this.cargarEstadisticas();
@@ -102,6 +113,21 @@ export class ReportesComponent implements OnInit, AfterViewInit {
     return Array.from(mapa.values());
   }
 
+  alternarGrupo(grupo: GrupoTrabajo): void {
+    const estabaAbierto = grupo.abierto;
+    this.gruposActividades.forEach(g => g.abierto = false);
+    grupo.abierto = !estabaAbierto;
+  }
+
+  get gruposFiltrados(): GrupoTrabajo[] {
+    const termino = this.busquedaTrabajador.toLowerCase().trim();
+    if (!termino) return this.gruposActividades;
+    return this.gruposActividades.filter(g =>
+      g.nombre_usuario?.toLowerCase().includes(termino) ||
+      g.nombre_cargo?.toLowerCase().includes(termino)
+    );
+  }
+
   graficarCarga(datos: any[]): void {
     const ctx = this.chartCargaRef?.nativeElement;
     if (!ctx) return;
@@ -115,16 +141,38 @@ export class ReportesComponent implements OnInit, AfterViewInit {
         datasets: [{
           label: 'Asignaciones',
           data: datos.map(d => d.total_asignaciones),
-          backgroundColor: '#1B3A6B'
+          backgroundColor: 'rgba(42, 82, 152, 0.85)',
+          hoverBackgroundColor: '#1B3A6B',
+          borderRadius: 8,
+          borderSkipped: false,
+          maxBarThickness: 42
         }]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-          legend: { display: false }
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1B3A6B',
+            padding: 10,
+            cornerRadius: 8,
+            titleFont: { size: 13 },
+            bodyFont: { size: 12 }
+          }
         },
         scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          x: {
+            grid: { display: false },
+            ticks: { color: '#64748B', font: { size: 12 } },
+            border: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, color: '#64748B', precision: 0 },
+            grid: { color: '#F1F5F9' },
+            border: { display: false }
+          }
         }
       }
     });
@@ -235,6 +283,62 @@ export class ReportesComponent implements OnInit, AfterViewInit {
       return inicioFmt.split('-').reverse().join('/');
     }
     return `${inicioFmt.split('-').reverse().join('/')} - ${finFmt.split('-').reverse().join('/')}`;
+  }
+
+  claseBadge(estado: string): string {
+    const mapa: Record<string, string> = {
+      'REVISION': 'badge-revision',
+      'AUTORIZADO': 'badge-autorizado',
+      'EN PROCESO': 'badge-proceso',
+      'FINALIZADO': 'badge-finalizado',
+      'CANCELADO': 'badge-cancelado'
+    };
+    const normalizado = (estado || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+    return mapa[normalizado] || 'badge-revision';
+  }
+
+  claseBadgePrioridad(prioridad: string): string {
+    const normalizado = (prioridad || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+    const mapa: Record<string, string> = {
+      'BAJA': 'badge-baja',
+      'MEDIA': 'badge-media',
+      'ALTA': 'badge-alta',
+      'URGENTE': 'badge-urgente'
+    };
+    return mapa[normalizado] || 'badge-baja';
+  }
+
+  activarFiltroEstado(): void {
+    this.filtroActivo = 'estado';
+    this.textoFiltro = '';
+    this.cargarCompletado = false;
+    this.solicitudesPorFecha = [];
+    if (this.estadosActividad.length === 0) {
+      this.catalogoService.obtenerEstadosActividad().subscribe({
+        next: (datos) => this.estadosActividad = datos,
+        error: (error) => console.error('Error:', error)
+      });
+    }
+  }
+
+  buscarPorEstado(): void {
+    if (!this.idEstadoReporte) {
+      this.notificacion.info('Seleccione un estado');
+      return;
+    }
+
+    const estadoSel = this.estadosActividad.find(e => e.id_estado_actividad === this.idEstadoReporte);
+    this.filtroActivo = 'estado';
+    this.textoFiltro = `Estado: ${estadoSel?.nombre_estado || ''}`;
+    this.cargarCompletado = false;
+
+    this.reporteService.solicitudesPorEstadoDetalle(this.idEstadoReporte).subscribe({
+      next: (datos) => {
+        this.solicitudesPorFecha = datos;
+        this.cargarCompletado = true;
+      },
+      error: (error) => console.error('Error:', error)
+    });
   }
 
   exportarPDF(): void {

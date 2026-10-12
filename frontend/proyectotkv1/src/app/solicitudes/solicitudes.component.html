@@ -1,9 +1,16 @@
 <div class="container">
 
   <div class="encabezado">
-    <div>
-      <h1>Gestion de Solicitudes</h1>
-      <p>Administracion de solicitudes de servicios de Comunicacion Social</p>
+    <div class="encabezado-info">
+      <span class="encabezado-icono">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+        </svg>
+      </span>
+      <div>
+        <h1>Gestion de Solicitudes</h1>
+        <p>Administracion de solicitudes de servicios de Comunicacion Social</p>
+      </div>
     </div>
     <button *ngIf="authService.esAdmin()" class="btn-nuevo" (click)="nuevo()">+ Nueva solicitud</button>
   </div>
@@ -23,6 +30,7 @@
         <button type="button" class="tab-btn" [class.active]="pestana === 'datos'" (click)="pestana = 'datos'">Datos de la Actividad</button>
         <button type="button" class="tab-btn" [class.active]="pestana === 'solicitante'" (click)="pestana = 'solicitante'">Solicitante</button>
         <button type="button" class="tab-btn" *ngIf="authService.esAdmin()" [class.active]="pestana === 'responsable'" (click)="pestana = 'responsable'">Responsable(s)</button>
+        <button type="button" class="tab-btn" [class.active]="pestana === 'recursos'" (click)="pestana = 'recursos'">Recursos</button>
         <button type="button" class="tab-btn" [class.active]="pestana === 'estado'" (click)="pestana = 'estado'">Estado y Prioridad</button>
       </div>
 
@@ -83,19 +91,73 @@
       <!-- Pestaña: Responsable -->
       <div class="pestana-contenido" [hidden]="pestana !== 'responsable'">
           <div class="responsables-lista">
-            <label class="responsable-item" *ngFor="let u of usuarios">
-              <input type="checkbox"
-                     [checked]="estaAsignado(u.id_usuario)"
-                     (change)="toggleResponsable(u.id_usuario)">
-              <span>{{ u.nombre_usuario }} - {{ u.nombre_rol }}</span>
-            </label>
-            <label class="responsable-item responsable-extra" *ngFor="let a of responsablesExtra">
-              <input type="checkbox"
-                     [checked]="estaAsignado(a.id_usuario)"
-                     (change)="toggleResponsable(a.id_usuario)">
-              <span>{{ a.primer_nombre }} {{ a.primer_apellido }} - {{ a.nombre_cargo }} (sin acceso)</span>
-            </label>
+            <table class="tabla-responsables">
+              <thead>
+                <tr>
+                  <th class="col-check"></th>
+                  <th>Nombre</th>
+                  <th>Cargo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let u of usuarios"
+                    [class.seleccionado]="estaAsignado(u.id_usuario)"
+                    (click)="toggleResponsable(u.id_usuario)">
+                  <td class="col-check">
+                    <input type="checkbox"
+                           [checked]="estaAsignado(u.id_usuario)"
+                           (click)="$event.stopPropagation()"
+                           (change)="toggleResponsable(u.id_usuario)">
+                  </td>
+                  <td>{{ u.primer_nombre }} {{ u.primer_apellido }}</td>
+                  <td>{{ u.nombre_cargo }}</td>
+                </tr>
+                <tr *ngFor="let a of responsablesExtra"
+                    class="fila-extra"
+                    [class.seleccionado]="estaAsignado(a.id_usuario)"
+                    (click)="toggleResponsable(a.id_usuario)">
+                  <td class="col-check">
+                    <input type="checkbox"
+                           [checked]="estaAsignado(a.id_usuario)"
+                           (click)="$event.stopPropagation()"
+                           (change)="toggleResponsable(a.id_usuario)">
+                  </td>
+                  <td>{{ a.primer_nombre }} {{ a.primer_apellido }}</td>
+                  <td>{{ a.nombre_cargo }} <span class="sin-acceso">(sin acceso)</span></td>
+                </tr>
+              </tbody>
+            </table>
             <p class="sin-responsables" *ngIf="usuarios.length === 0 && responsablesExtra.length === 0">No hay usuarios disponibles</p>
+          </div>
+      </div>
+
+      <!-- Pestaña: Recursos -->
+      <div class="pestana-contenido" [hidden]="pestana !== 'recursos'">
+          <div class="responsables-lista">
+            <table class="tabla-responsables">
+              <thead>
+                <tr>
+                  <th class="col-check"></th>
+                  <th>Recurso</th>
+                  <th>Tipo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of recursos"
+                    [class.seleccionado]="estaRecursoAsignado(r.id_recurso)"
+                    (click)="toggleRecurso(r.id_recurso)">
+                  <td class="col-check">
+                    <input type="checkbox"
+                           [checked]="estaRecursoAsignado(r.id_recurso)"
+                           (click)="$event.stopPropagation()"
+                           (change)="toggleRecurso(r.id_recurso)">
+                  </td>
+                  <td>{{ r.nombre_recurso }}</td>
+                  <td>{{ r.nombre_tipo_recurso }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="sin-responsables" *ngIf="recursos.length === 0">No hay recursos disponibles</p>
           </div>
       </div>
 
@@ -240,13 +302,24 @@
     </div>
   </div>
 
-  <div class="buscador-container">
+  <div class="filtros-container">
     <input
       type="text"
       class="buscador-input"
-      placeholder="Buscar solicitudes o solicitantes..."
+      placeholder="Buscar por actividad, solicitante o responsable..."
       [(ngModel)]="textoBusqueda"
+      (ngModelChange)="cambiarBusqueda()"
     >
+    <select
+      class="filtro-estado"
+      [(ngModel)]="filtroEstado"
+      (ngModelChange)="cambiarFiltroEstado()"
+    >
+      <option value="">Todos los estados</option>
+      <option *ngFor="let e of estadosActividad" [value]="e.nombre_estado">
+        {{ e.nombre_estado }}
+      </option>
+    </select>
   </div>
 
   <div class="tabla-container">
@@ -262,7 +335,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let s of solicitudesFiltradas">
+        <tr *ngFor="let s of solicitudesPaginadas">
           <td>{{ s.nombre_actividad }}</td>
           <td>{{ s.nombre_solicitante }}</td>
           <td>{{ rangoFechas(s.fecha_actividad, s.fecha_fin_actividad) }}</td>
@@ -293,6 +366,31 @@
     </table>
     <div *ngIf="solicitudesFiltradas.length === 0" class="sin-resultados">
       <p>No se encontraron solicitudes</p>
+    </div>
+
+    <div class="paginacion" *ngIf="solicitudesFiltradas.length > porPagina">
+      <button
+        class="btn-pagina"
+        [disabled]="paginaActual === 1"
+        (click)="paginaAnterior()"
+      >&laquo; Anterior</button>
+
+      <button
+        *ngFor="let p of paginasVisibles"
+        class="btn-pagina"
+        [class.pagina-activa]="p === paginaActual"
+        (click)="irAPagina(p)"
+      >{{ p }}</button>
+
+      <button
+        class="btn-pagina"
+        [disabled]="paginaActual === totalPaginas"
+        (click)="paginaSiguiente()"
+      >Siguiente &raquo;</button>
+
+      <span class="paginacion-info">
+        Página {{ paginaActual }} de {{ totalPaginas }} &middot; {{ solicitudesFiltradas.length }} solicitud(es)
+      </span>
     </div>
   </div>
 

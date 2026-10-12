@@ -53,8 +53,14 @@ export class SolicitudesComponent implements OnInit {
   idUsuarioAsignar = 0;
   idRecursoAsignar = 0;
   personalAsignado: number[] = [];
+  recursosSeleccionados: number[] = [];
   responsablesAsignados: any[] = [];
   textoBusqueda = '';
+  filtroEstado = '';
+
+  // Paginacion de la lista
+  paginaActual = 1;
+  porPagina = 10;
 
   constructor(
     private solicitudService: SolicitudService,
@@ -75,10 +81,13 @@ export class SolicitudesComponent implements OnInit {
     this.obtenerUsuarios();
     this.obtenerRecursos();
 
-    // Apertura automatica del formulario: /inicio/solicitudes?nueva=true
+    // Apertura automatica del formulario: /inicio/solicitudes?nueva=true o ?editar=<id>
     this.route.queryParams.subscribe((params) => {
-      if (params['nueva'] === 'true' && this.authService.esAdmin()) {
+      if (!this.authService.esAdmin()) return;
+      if (params['nueva'] === 'true') {
         this.nuevo();
+      } else if (params['editar']) {
+        this.editar(parseInt(params['editar'], 10));
       }
     });
   }
@@ -126,16 +135,74 @@ export class SolicitudesComponent implements OnInit {
   }
 
   get solicitudesFiltradas(): any[] {
-    if (!this.textoBusqueda.trim()) return this.solicitudes;
-    const termino = this.textoBusqueda.toLowerCase().trim();
-    return this.solicitudes.filter(s =>
-      s.nombre_actividad?.toLowerCase().includes(termino) ||
-      s.descripcion_actividad?.toLowerCase().includes(termino) ||
-      s.lugar_actividad?.toLowerCase().includes(termino) ||
-      s.nombre_solicitante?.toLowerCase().includes(termino) ||
-      s.nombre_responsable?.toLowerCase().includes(termino) ||
-      s.estado?.toLowerCase().includes(termino)
-    );
+    let resultado = this.solicitudes;
+
+    if (this.filtroEstado) {
+      resultado = resultado.filter((s) => s.estado === this.filtroEstado);
+    }
+
+    if (this.textoBusqueda.trim()) {
+      const termino = this.normalizarTexto(this.textoBusqueda);
+      resultado = resultado.filter(s =>
+        this.normalizarTexto(s.nombre_actividad).includes(termino) ||
+        this.normalizarTexto(s.descripcion_actividad).includes(termino) ||
+        this.normalizarTexto(s.lugar_actividad).includes(termino) ||
+        this.normalizarTexto(s.nombre_solicitante).includes(termino) ||
+        this.normalizarTexto(s.nombre_responsable).includes(termino) ||
+        this.normalizarTexto(s.estado).includes(termino)
+      );
+    }
+
+    return resultado;
+  }
+
+  // Minusculas + espacios multiples a uno solo (evita fallos con "Juan  Tzine")
+  private normalizarTexto(valor: string): string {
+    return (valor || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.solicitudesFiltradas.length / this.porPagina));
+  }
+
+  get solicitudesPaginadas(): any[] {
+    if (this.paginaActual > this.totalPaginas) {
+      this.paginaActual = this.totalPaginas;
+    }
+    const inicio = (this.paginaActual - 1) * this.porPagina;
+    return this.solicitudesFiltradas.slice(inicio, inicio + this.porPagina);
+  }
+
+  cambiarFiltroEstado(): void {
+    this.paginaActual = 1;
+  }
+
+  cambiarBusqueda(): void {
+    this.paginaActual = 1;
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaActual > 1) this.paginaActual--;
+  }
+
+  paginaSiguiente(): void {
+    if (this.paginaActual < this.totalPaginas) this.paginaActual++;
+  }
+
+  irAPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+    }
+  }
+
+  get paginasVisibles(): number[] {
+    const total = this.totalPaginas;
+    const actual = this.paginaActual;
+    const inicio = Math.max(1, Math.min(actual - 2, total - 4));
+    const fin = Math.min(total, inicio + 4);
+    const paginas: number[] = [];
+    for (let i = inicio; i <= fin; i++) paginas.push(i);
+    return paginas;
   }
 
   nuevo(): void {
@@ -148,6 +215,7 @@ export class SolicitudesComponent implements OnInit {
 
   editar(id: number): void {
     this.personalAsignado = [];
+    this.recursosSeleccionados = [];
     this.responsablesAsignados = [];
     this.pestana = 'datos';
     this.solicitudService.obtenerPorId(id).subscribe({
@@ -175,6 +243,13 @@ export class SolicitudesComponent implements OnInit {
             this.personalAsignado = asignaciones.map((a: any) => a.id_usuario);
           },
           error: (err) => console.error('Error al cargar asignaciones', err)
+        });
+
+        this.solicitudService.obtenerAsignacionesRecurso(id).subscribe({
+          next: (asignaciones) => {
+            this.recursosSeleccionados = asignaciones.map((a: any) => a.id_recurso);
+          },
+          error: (err) => console.error('Error al cargar recursos asignados', err)
         });
       },
       error: (error) => console.error('Error:', error)
@@ -221,7 +296,8 @@ export class SolicitudesComponent implements OnInit {
       idSolicitante: this.idSolicitante,
       idEstadoActividad: this.idEstadoActividad,
       idPrioridad: this.idPrioridad,
-      personalAsignado: this.personalAsignado
+      personalAsignado: this.personalAsignado,
+      recursosAsignados: this.recursosSeleccionados.map((idRecurso) => ({ idRecurso, cantidad: 1 }))
     };
 
     if (this.editando) {
@@ -347,6 +423,7 @@ export class SolicitudesComponent implements OnInit {
     this.idEstadoActividad = 0;
     this.idPrioridad = 0;
     this.personalAsignado = [];
+    this.recursosSeleccionados = [];
     this.responsablesAsignados = [];
   }
 
@@ -386,5 +463,18 @@ export class SolicitudesComponent implements OnInit {
 
   estaAsignado(idUsuario: number): boolean {
     return this.personalAsignado.includes(idUsuario);
+  }
+
+  toggleRecurso(idRecurso: number): void {
+    const idx = this.recursosSeleccionados.indexOf(idRecurso);
+    if (idx >= 0) {
+      this.recursosSeleccionados.splice(idx, 1);
+    } else {
+      this.recursosSeleccionados.push(idRecurso);
+    }
+  }
+
+  estaRecursoAsignado(idRecurso: number): boolean {
+    return this.recursosSeleccionados.includes(idRecurso);
   }
 }

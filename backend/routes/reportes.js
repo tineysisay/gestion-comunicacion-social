@@ -151,6 +151,43 @@ router.get('/reportes/solicitudes-por-fecha', (req, res) => {
   });
 });
 
+// GET - Detalle de solicitudes filtradas por estado (para exportar)
+router.get('/reportes/solicitudes-detalle-por-estado', (req, res) => {
+  const { idEstado } = req.query;
+
+  if (!idEstado) {
+    return res.status(400).json({ mensaje: 'idEstado es requerido' });
+  }
+
+  const sql = `
+    SELECT 
+      sa.id_solicitud,
+      sa.nombre_actividad,
+      sa.fecha_actividad,
+      COALESCE(sa.fecha_fin_actividad, sa.fecha_actividad) AS fecha_fin_actividad,
+      sa.hora_inicio,
+      sa.hora_fin,
+      sa.lugar_actividad,
+      ea.nombre_estado,
+      pa.nombre_prioridad,
+      CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS solicitante
+    FROM solicitud_actividad sa
+    INNER JOIN estado_actividad ea ON sa.id_estado_actividad = ea.id_estado_actividad
+    INNER JOIN prioridad_actividad pa ON sa.id_prioridad = pa.id_prioridad
+    INNER JOIN solicitante s ON sa.id_solicitante = s.id_solicitante
+    WHERE sa.id_estado_actividad = ?
+    ORDER BY sa.fecha_actividad DESC
+  `;
+
+  conexion.query(sql, [parseInt(idEstado)], (error, resultados) => {
+    if (error) {
+      console.error('ERROR MYSQL:', error);
+      return res.status(500).json({ mensaje: 'Error al obtener solicitudes por estado' });
+    }
+    res.json(resultados);
+  });
+});
+
 // GET - Solicitudes agrupadas por institucion
 router.get('/reportes/solicitudes-por-institucion', (req, res) => {
   const sql = `

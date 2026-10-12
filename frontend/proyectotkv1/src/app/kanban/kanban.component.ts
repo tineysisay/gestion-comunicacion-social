@@ -43,6 +43,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   estadosActividad: any[] = [];
   prioridades: any[] = [];
   usuarios: any[] = [];
+  recursos: any[] = [];
 
   // Pestañas del formulario
   pestana = 'datos';
@@ -61,6 +62,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   idEstadoActividad = 0;
   idPrioridad = 0;
   personalAsignado: number[] = [];
+  recursosSeleccionados: number[] = [];
 
   constructor(
     private solicitudService: SolicitudService,
@@ -134,6 +136,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
       next: (datos) => this.usuarios = datos,
       error: (err) => console.error('Error al cargar usuarios', err)
     });
+
+    this.api.get<any[]>('recursos').subscribe({
+      next: (datos) => this.recursos = datos,
+      error: (err) => console.error('Error al cargar recursos', err)
+    });
   }
 
   cargarSolicitudes(): void {
@@ -201,11 +208,19 @@ export class KanbanComponent implements OnInit, OnDestroy {
       },
       error: (err) => console.error('Error al cargar asignaciones', err)
     });
+
+    this.solicitudService.obtenerAsignacionesRecurso(s.id_solicitud).subscribe({
+      next: (asignaciones) => {
+        this.recursosSeleccionados = asignaciones.map((a: any) => a.id_recurso);
+      },
+      error: (err) => console.error('Error al cargar recursos asignados', err)
+    });
   }
 
   cancelarEdicion(): void {
     this.modoEdicion = false;
     this.personalAsignado = [];
+    this.recursosSeleccionados = [];
   }
 
   toggleResponsable(idUsuario: number): void {
@@ -219,6 +234,19 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   estaAsignado(idUsuario: number): boolean {
     return this.personalAsignado.includes(idUsuario);
+  }
+
+  toggleRecurso(idRecurso: number): void {
+    const idx = this.recursosSeleccionados.indexOf(idRecurso);
+    if (idx >= 0) {
+      this.recursosSeleccionados.splice(idx, 1);
+    } else {
+      this.recursosSeleccionados.push(idRecurso);
+    }
+  }
+
+  estaRecursoAsignado(idRecurso: number): boolean {
+    return this.recursosSeleccionados.includes(idRecurso);
   }
 
   rangoFechas(inicio: string, fin: string): string {
@@ -332,7 +360,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
       idSolicitante: this.idSolicitante,
       idEstadoActividad: this.idEstadoActividad,
       idPrioridad: this.idPrioridad,
-      personalAsignado: this.personalAsignado
+      personalAsignado: this.personalAsignado,
+      recursosAsignados: this.recursosSeleccionados.map((idRecurso) => ({ idRecurso, cantidad: 1 }))
     };
 
     this.solicitudService.actualizar(this.idEditar, data).subscribe({
@@ -342,6 +371,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
         this.modoEdicion = false;
         this.solicitudSeleccionada = null;
         this.personalAsignado = [];
+        this.recursosSeleccionados = [];
         this.cargarSolicitudes();
         this.solicitudService.notificarCambio();
       },

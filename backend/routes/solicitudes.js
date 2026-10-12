@@ -346,7 +346,8 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
     nombreActividad,
     descripcionActividad,
     lugarActividad,
-    personalAsignado
+    personalAsignado,
+    recursosAsignados
   } = req.body;
 
   if (fechaActividad && fechaFinActividad && fechaFinActividad < fechaActividad) {
@@ -448,6 +449,58 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
     }
   }
 
+  // Sincroniza recursos de la solicitud (delete + insert) y luego llama a callback
+  function sincronizarRecursos(callback) {
+    if (!recursosAsignados || !Array.isArray(recursosAsignados)) {
+      return callback();
+    }
+
+    const sqlDeleteR = 'DELETE FROM asignacion_recurso WHERE id_solicitud = ?';
+    conexion.query(sqlDeleteR, [id], (error) => {
+      if (error) {
+        return conexion.rollback(() => {
+          console.error('ERROR MYSQL:', error);
+          res.status(500).json({ mensaje: 'Error al actualizar recursos' });
+        });
+      }
+
+      if (recursosAsignados.length === 0) {
+        return callback();
+      }
+
+      const sqlInsertR = 'INSERT INTO asignacion_recurso (id_solicitud, id_recurso, cantidad, fecha_asignacion, observacion) VALUES ?';
+      const valoresR = recursosAsignados.map((r) => {
+        const idRecurso = (r !== null && typeof r === 'object') ? r.idRecurso : r;
+        const cantidad = (r !== null && typeof r === 'object') ? (r.cantidad || 1) : 1;
+        const observacion = (r !== null && typeof r === 'object') ? (r.observacion || null) : null;
+        return [id, parseInt(idRecurso), cantidad, new Date(), observacion];
+      });
+
+      conexion.query(sqlInsertR, [valoresR], (error) => {
+        if (error) {
+          return conexion.rollback(() => {
+            console.error('ERROR MYSQL:', error);
+            res.status(500).json({ mensaje: 'Error al asignar recursos' });
+          });
+        }
+        callback();
+      });
+    });
+  }
+
+  function finalizar() {
+    conexion.commit((error) => {
+      if (error) {
+        return conexion.rollback(() => {
+          console.error('ERROR MYSQL:', error);
+          res.status(500).json({ mensaje: 'Error al confirmar cambios' });
+        });
+      }
+      notificarCambios();
+      res.json({ mensaje: 'Solicitud actualizada correctamente' });
+    });
+  }
+
   conexion.beginTransaction((error) => {
     if (error) {
       console.error('ERROR MYSQL:', error);
@@ -505,21 +558,16 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
             }
 
             if (personalAsignado.length === 0) {
-              conexion.commit((error) => {
-                if (error) {
-                  return conexion.rollback(() => {
-                    console.error('ERROR MYSQL:', error);
-                    res.status(500).json({ mensaje: 'Error al confirmar cambios' });
-                  });
-                }
-                notificarCambios();
-                res.json({ mensaje: 'Solicitud actualizada correctamente' });
-              });
+              sincronizarRecursos(finalizar);
               return;
             }
 
             const sqlInsert = 'INSERT INTO asignacion_usuario (id_solicitud, id_usuario, fecha_asignacion) VALUES ?';
-            const valores = personalAsignado.map(idUsuario => [id, parseInt(idUsuario), new Date()]);
+            const valores = personalAsignado.map(p => [
+              id,
+              parseInt((p !== null && typeof p === 'object') ? p.idUsuario : p),
+              new Date()
+            ]);
             conexion.query(sqlInsert, [valores], (error) => {
               if (error) {
                 return conexion.rollback(() => {
@@ -527,29 +575,11 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
                   res.status(500).json({ mensaje: 'Error al asignar responsables' });
                 });
               }
-              conexion.commit((error) => {
-                if (error) {
-                  return conexion.rollback(() => {
-                    console.error('ERROR MYSQL:', error);
-                    res.status(500).json({ mensaje: 'Error al confirmar cambios' });
-                  });
-                }
-                notificarCambios();
-                res.json({ mensaje: 'Solicitud actualizada correctamente' });
-              });
+              sincronizarRecursos(finalizar);
             });
           });
         } else {
-          conexion.commit((error) => {
-            if (error) {
-              return conexion.rollback(() => {
-                console.error('ERROR MYSQL:', error);
-                res.status(500).json({ mensaje: 'Error al confirmar cambios' });
-              });
-            }
-            notificarCambios();
-            res.json({ mensaje: 'Solicitud actualizada correctamente' });
-          });
+          sincronizarRecursos(finalizar);
         }
       }
     );

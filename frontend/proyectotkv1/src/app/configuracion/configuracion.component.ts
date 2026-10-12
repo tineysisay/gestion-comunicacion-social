@@ -21,8 +21,6 @@ export class ConfiguracionComponent implements OnInit {
     { id: 'perfil', nombre: 'Perfil' },
     { id: 'estados-actividad', nombre: 'Estados de Actividad' },
     { id: 'prioridades', nombre: 'Prioridades' },
-    { id: 'tipos-recurso', nombre: 'Tipos de Recurso' },
-    { id: 'instituciones', nombre: 'Instituciones' },
     { id: 'cargos', nombre: 'Cargos' },
     { id: 'roles', nombre: 'Roles' },
     { id: 'tipos-empleado', nombre: 'Tipos de Empleado' },
@@ -109,8 +107,6 @@ export class ConfiguracionComponent implements OnInit {
     const methods: Record<string, () => Observable<any[]>> = {
       'estados-actividad': () => this.catalogoService.obtenerEstadosActividad(),
       'prioridades': () => this.catalogoService.obtenerPrioridades(),
-      'tipos-recurso': () => this.catalogoService.obtenerTiposRecurso(),
-      'instituciones': () => this.catalogoService.obtenerInstituciones(),
       'cargos': () => this.catalogoService.obtenerCargos(),
       'roles': () => this.catalogoService.obtenerRoles(),
       'tipos-empleado': () => this.catalogoService.obtenerTiposEmpleado(),
@@ -128,8 +124,6 @@ export class ConfiguracionComponent implements OnInit {
     const placeholders: Record<string, string> = {
       'estados-actividad': 'Nombre del estado',
       'prioridades': 'Nombre de la prioridad',
-      'tipos-recurso': 'Nombre del tipo de recurso',
-      'instituciones': 'Nombre de la institucion',
       'cargos': 'Nombre del cargo',
       'roles': 'Nombre del rol',
       'tipos-empleado': 'Nombre del tipo',
@@ -142,12 +136,10 @@ export class ConfiguracionComponent implements OnInit {
     const columnas: Record<string, string> = {
       'estados-actividad': 'nombre_estado',
       'prioridades': 'nombre_prioridad',
-      'tipos-recurso': 'nombre_tipo_recurso',
-      'instituciones': 'nombre_institucion',
       'cargos': 'nombre_cargo',
       'roles': 'nombre_rol',
       'tipos-empleado': 'nombre_tipo_empleado',
-      'estados-usuario': 'nombre_estado_usuario'
+      'estados-usuario': 'nombre_estado'
     };
     return columnas[this.pestanaActiva] || 'nombre';
   }
@@ -156,8 +148,6 @@ export class ConfiguracionComponent implements OnInit {
     const ids: Record<string, string> = {
       'estados-actividad': 'id_estado_actividad',
       'prioridades': 'id_prioridad',
-      'tipos-recurso': 'id_tipo_recurso',
-      'instituciones': 'id_institucion',
       'cargos': 'id_cargo',
       'roles': 'id_rol',
       'tipos-empleado': 'id_tipo_empleado',
@@ -170,8 +160,6 @@ export class ConfiguracionComponent implements OnInit {
     const columnas: Record<string, string> = {
       'estados-actividad': 'descripcion_estado',
       'prioridades': 'descripcion_prioridad',
-      'tipos-recurso': 'descripcion_tipo_recurso',
-      'instituciones': 'descripcion_institucion',
       'cargos': 'descripcion_cargo',
       'roles': 'descripcion_rol',
       'tipos-empleado': 'descripcion_tipo_empleado',
@@ -220,8 +208,6 @@ export class ConfiguracionComponent implements OnInit {
     const payloads: Record<string, any> = {
       'estados-actividad': { nombre, descripcion, nombreEstado: nombre, descripcionEstado: descripcion },
       'prioridades': { nombre, descripcion, nombrePrioridad: nombre, descripcionPrioridad: descripcion },
-      'tipos-recurso': { nombre, descripcion, nombreTipoRecurso: nombre, descripcionTipoRecurso: descripcion },
-      'instituciones': { nombre, descripcion, nombreInstitucion: nombre, descripcionInstitucion: descripcion },
       'cargos': { nombre, descripcion, nombreCargo: nombre, descripcionCargo: descripcion },
       'roles': { nombre, descripcion, nombreRol: nombre, descripcionRol: descripcion },
       'tipos-empleado': { nombre, descripcion, nombreTipoEmpleado: nombre, descripcionTipoEmpleado: descripcion },
@@ -247,8 +233,6 @@ export class ConfiguracionComponent implements OnInit {
     const methods: Record<string, (data: any) => Observable<any>> = {
       'estados-actividad': (d) => this.catalogoService.crearEstadoActividad(d),
       'prioridades': (d) => this.catalogoService.crearPrioridad(d),
-      'tipos-recurso': (d) => this.catalogoService.crearTipoRecurso(d),
-      'instituciones': (d) => this.catalogoService.crearInstitucion(d),
       'cargos': (d) => this.catalogoService.crearCargo(d),
       'roles': (d) => this.catalogoService.crearRol(d),
       'tipos-empleado': (d) => this.catalogoService.crearTipoEmpleado(d),
@@ -261,8 +245,6 @@ export class ConfiguracionComponent implements OnInit {
     const methods: Record<string, (id: number, data: any) => Observable<any>> = {
       'estados-actividad': (id, d) => this.catalogoService.actualizarEstadoActividad(id, d),
       'prioridades': (id, d) => this.catalogoService.actualizarPrioridad(id, d),
-      'tipos-recurso': (id, d) => this.catalogoService.actualizarTipoRecurso(id, d),
-      'instituciones': (id, d) => this.catalogoService.actualizarInstitucion(id, d),
       'cargos': (id, d) => this.catalogoService.actualizarCargo(id, d),
       'roles': (id, d) => this.catalogoService.actualizarRol(id, d),
       'tipos-empleado': (id, d) => this.catalogoService.actualizarTipoEmpleado(id, d),
@@ -275,8 +257,6 @@ export class ConfiguracionComponent implements OnInit {
     const methods: Record<string, (id: number) => Observable<any>> = {
       'estados-actividad': (id) => this.catalogoService.eliminarEstadoActividad(id),
       'prioridades': (id) => this.catalogoService.eliminarPrioridad(id),
-      'tipos-recurso': (id) => this.catalogoService.eliminarTipoRecurso(id),
-      'instituciones': (id) => this.catalogoService.eliminarInstitucion(id),
       'cargos': (id) => this.catalogoService.eliminarCargo(id),
       'roles': (id) => this.catalogoService.eliminarRol(id),
       'tipos-empleado': (id) => this.catalogoService.eliminarTipoEmpleado(id),

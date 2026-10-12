@@ -4,11 +4,18 @@
 }
 
 /* === BUSCADOR === */
+.filtros-container {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
 .buscador-container {
   margin-bottom: var(--space-lg);
 }
 
 .buscador-input {
+  flex: 1;
   width: 100%;
   padding: 12px 16px;
   font-family: inherit;
@@ -20,6 +27,36 @@
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   box-sizing: border-box;
+}
+
+.filtro-estado {
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  min-width: 200px;
+}
+
+.filtro-estado:focus {
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.12);
+}
+
+@media (max-width: 640px) {
+  .filtros-container {
+    flex-direction: column;
+  }
+
+  .filtro-estado {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 .buscador-input::placeholder {
@@ -37,6 +74,54 @@
   padding: var(--space-2xl);
   color: var(--color-text-muted);
   font-size: 0.9375rem;
+}
+
+/* === PAGINACION === */
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs, 6px);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md, 12px);
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-pagina {
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-pagina:hover:not(:disabled):not(.pagina-activa) {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+
+.btn-pagina:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-pagina.pagina-activa {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: #fff;
+}
+
+.paginacion-info {
+  width: 100%;
+  text-align: center;
+  margin-top: var(--space-xs, 6px);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }
 
 /* === TABLA === */
@@ -225,6 +310,12 @@
 }
 
 /* === PESTAÑAS DEL FORMULARIO === */
+/* Altura fija: el modal no cambia de tamano al cambiar de pestana */
+.pestana-contenido {
+  height: 500px;
+  overflow-y: auto;
+}
+
 .formulario-card .tabs-container {
   margin-bottom: var(--space-xl);
 }
@@ -260,37 +351,67 @@
   gap: 8px;
 }
 
-.responsable-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: #F8FAFC;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-  font-size: 0.875rem;
-  color: var(--color-text);
+.tabla-responsables {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.responsable-item:hover {
+.tabla-responsables th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--color-text-muted);
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tabla-responsables td {
+  padding: 9px 10px;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tabla-responsables tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tabla-responsables tbody tr:hover {
   background: #F1F5F9;
 }
 
-.responsable-item.responsable-extra {
-  background: #FFFBEB;
-  border: 1px dashed var(--color-warning);
+.tabla-responsables tbody tr.seleccionado {
+  background: #EFF6FF;
 }
 
-.responsable-item.responsable-extra:hover {
+.tabla-responsables tbody tr.fila-extra {
+  background: #FFFBEB;
+}
+
+.tabla-responsables tbody tr.fila-extra:hover {
   background: #FEF3C7;
 }
 
-.responsable-item input[type="checkbox"] {
+.tabla-responsables .col-check {
+  width: 40px;
+  text-align: center;
+}
+
+.tabla-responsables input[type="checkbox"] {
   width: 16px;
   height: 16px;
   accent-color: #1B3A6B;
   cursor: pointer;
+}
+
+.sin-acceso {
+  color: var(--color-warning);
+  font-size: 0.75rem;
+  font-style: italic;
 }
 
 .sin-responsables {
