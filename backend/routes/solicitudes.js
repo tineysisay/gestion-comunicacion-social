@@ -27,6 +27,9 @@ router.get('/solicitudes', (req, res) => {
       sa.lugar_actividad,
       sa.fecha_creacion,
       COALESCE(sa.fecha_fin_actividad, sa.fecha_actividad) AS fecha_fin_actividad,
+      (SELECT MAX(he.fecha_cambio)
+       FROM historial_estado_actividad he
+       WHERE he.id_solicitud = sa.id_solicitud AND he.id_estado_nuevo = 4) AS fecha_finalizacion,
       ea.nombre_estado AS estado,
       pa.nombre_prioridad AS prioridad,
       pa.nivel_prioridad,
@@ -356,7 +359,7 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
 
   // Leer valores actuales antes de editar (para detectar cambios y notificar)
   const sqlAntes = `
-    SELECT fecha_actividad, fecha_fin_actividad, hora_inicio, hora_fin, lugar_actividad
+    SELECT id_estado_actividad, fecha_actividad, fecha_fin_actividad, hora_inicio, hora_fin, lugar_actividad
     FROM solicitud_actividad WHERE id_solicitud = ?
   `;
   const sqlAsignadosAntes = 'SELECT id_usuario FROM asignacion_usuario WHERE id_solicitud = ?';
@@ -501,6 +504,36 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
     });
   }
 
+  // Si el estado cambio, deja registro en historial (para que las finalizaciones
+  // hechas desde el formulario tambien tengan fecha en historial_estado_actividad)
+  function registrarCambioEstado(callback) {
+    const estadoNuevo = parseInt(idEstadoActividad, 10);
+    const estadoAnterior = antes ? parseInt(antes.id_estado_actividad, 10) : null;
+
+    if (!estadoNuevo || !estadoAnterior || estadoNuevo === estadoAnterior) {
+      return callback();
+    }
+
+    const sqlHistorial = `
+      INSERT INTO historial_estado_actividad
+        (id_solicitud, id_estado_anterior, id_estado_nuevo, id_usuario, fecha_cambio, observacion)
+      VALUES (?, ?, ?, ?, NOW(), ?)
+    `;
+    conexion.query(
+      sqlHistorial,
+      [id, estadoAnterior, estadoNuevo, req.usuario.id_usuario, 'Cambio de estado desde la edicion de la solicitud'],
+      (error) => {
+        if (error) {
+          return conexion.rollback(() => {
+            console.error('ERROR MYSQL:', error);
+            res.status(500).json({ mensaje: 'Error al registrar el historial' });
+          });
+        }
+        callback();
+      }
+    );
+  }
+
   conexion.beginTransaction((error) => {
     if (error) {
       console.error('ERROR MYSQL:', error);
@@ -547,6 +580,8 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
           });
         }
 
+        registrarCambioEstado(() => {
+
         if (personalAsignado && Array.isArray(personalAsignado)) {
           const sqlDelete = 'DELETE FROM asignacion_usuario WHERE id_solicitud = ?';
           conexion.query(sqlDelete, [id], (error) => {
@@ -581,6 +616,8 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
         } else {
           sincronizarRecursos(finalizar);
         }
+
+        }); // fin registrarCambioEstado
       }
     );
   });

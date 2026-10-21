@@ -78,7 +78,45 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
   flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: filter var(--transition-fast);
+}
+
+.column-header:hover {
+  filter: brightness(1.08);
+}
+
+.column-header-der {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.flecha-columna {
+  width: 14px;
+  height: 14px;
+  color: white;
+  opacity: 0.85;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.flecha-columna.plegada {
+  transform: rotate(-90deg);
+}
+
+/* Columna plegada: solo encabezado con el contador */
+.kanban-column.plegada {
+  align-self: flex-start;
+}
+
+.kanban-column.plegada .column-header {
+  border-radius: 12px;
+  border-bottom: none;
 }
 
 .column-header h3 {
@@ -403,7 +441,11 @@
 
 /* === PESTAÑAS DEL FORMULARIO === */
 .modal-body .tabs-container {
-  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: white;
+  margin: 0 0 16px;
 }
 
 .modal-body .tab-btn {
@@ -532,6 +574,12 @@
 
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
+  .kanban-header {
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+  }
+
   .kanban-board {
     flex-direction: column;
     overflow-y: auto;
@@ -540,5 +588,14 @@
   .kanban-column {
     min-width: 100%;
     max-height: 300px;
+  }
+
+  .kanban-column.plegada {
+    align-self: stretch;
+    max-height: none;
+  }
+
+  .kanban-column.plegada .column-header {
+    border-radius: 12px;
   }
 }

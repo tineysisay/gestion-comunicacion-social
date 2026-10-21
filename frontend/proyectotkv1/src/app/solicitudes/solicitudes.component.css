@@ -317,7 +317,11 @@
 }
 
 .formulario-card .tabs-container {
-  margin-bottom: var(--space-xl);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--color-surface);
+  margin: 0 0 var(--space-xl);
 }
 
 .formulario-card .tab-btn.active {

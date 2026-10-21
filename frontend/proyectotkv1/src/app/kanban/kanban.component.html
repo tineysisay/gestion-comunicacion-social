@@ -15,13 +15,24 @@
   </div>
 
   <div class="kanban-board">
-    <div class="kanban-column" *ngFor="let columna of columnas">
-      <div class="column-header" [style.background]="columna.color">
+    <div class="kanban-column" *ngFor="let columna of columnas" [class.plegada]="columna.plegada">
+      <div
+        class="column-header"
+        [style.background]="columna.color"
+        (click)="alternarColumna(columna)"
+        [attr.aria-expanded]="!columna.plegada"
+        [title]="columna.plegada ? 'Expandir columna' : 'Contraer columna'">
         <h3>{{ columna.nombre }}</h3>
-        <span class="badge">{{ columna.solicitudes.length }}</span>
+        <span class="column-header-der">
+          <span class="badge">{{ columna.solicitudes.length }}</span>
+          <svg class="flecha-columna" [class.plegada]="columna.plegada" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+          </svg>
+        </span>
       </div>
 
       <div
+        *ngIf="!columna.plegada"
         class="column-body"
         [class.drag-over]="columnaResaltada === columna.id"
         (dragover)="onDragOver($event)"

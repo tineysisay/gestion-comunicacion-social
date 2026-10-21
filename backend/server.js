@@ -14,6 +14,7 @@ const asignacionesRoutes = require('./routes/asignaciones');
 const historialRoutes = require('./routes/historial');
 const notificacionesRoutes = require('./routes/notificaciones');
 const reportesRoutes = require('./routes/reportes');
+const backupRoutes = require('./routes/backup');
 
 const app = express();
 
@@ -128,7 +129,7 @@ app.get('/api/usuarios/perfil', verificarToken, (req, res) => {
       cu.id_rol,
       r.nombre_rol,
       cu.id_estado_usuario,
-      eu.nombre_estado_usuario AS nombre_estado,
+      eu.nombre_estado,
       ca.nombre_cargo
     FROM cuenta_usuario cu
     INNER JOIN datos_usuario du ON cu.id_usuario = du.id_usuario
@@ -222,6 +223,7 @@ app.use('/api', asignacionesRoutes);
 app.use('/api', historialRoutes);
 app.use('/api', notificacionesRoutes);
 app.use('/api', reportesRoutes);
+app.use('/api', backupRoutes);
 
 app.post('/api/usuarios', verificarToken, soloAdmin, async (req, res) => {
 

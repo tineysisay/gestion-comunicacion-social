@@ -828,3 +828,67 @@ h4 { font-size: 0.9375rem; font-weight: 600; color: var(--color-text); line-heig
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+/* === RESPONSIVE GLOBAL === */
+@media (max-width: 700px) {
+  /* Encabezados de modulo: el boton pasa a segunda linea */
+  .encabezado {
+    flex-wrap: wrap;
+    padding: var(--space-lg);
+    gap: var(--space-md);
+  }
+
+  .encabezado > button,
+  .encabezado > .encabezado-acciones {
+    margin-left: auto;
+  }
+
+  .encabezado h1 {
+    font-size: 1.2rem;
+  }
+
+  .encabezado p {
+    font-size: 0.85rem;
+  }
+
+  .encabezado-icono {
+    width: 40px;
+    height: 40px;
+  }
+
+  .encabezado-icono svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Formularios a una columna */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modales */
+  .modal-overlay {
+    padding: var(--space-md);
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--space-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .encabezado {
+    padding: var(--space-md);
+  }
+
+  .encabezado-info {
+    gap: var(--space-md);
+  }
+
+  .tabla-container th,
+  .tabla-container td {
+    padding: 10px 12px;
+  }
+}

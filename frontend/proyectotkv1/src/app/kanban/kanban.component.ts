@@ -114,6 +114,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
             orden: e.orden_kanban,
             color: paleta.color,
             colorClaro: paleta.claro,
+            plegada: false,
             solicitudes: []
           };
         });
@@ -156,11 +157,48 @@ export class KanbanComponent implements OnInit, OnDestroy {
   asignarSolicitudesAColumnas(): void {
     this.columnas.forEach(col => col.solicitudes = []);
     this.solicitudes.forEach(sol => {
+      if (this.ocultaDelTablero(sol)) {
+        return;
+      }
       const col = this.columnas.find(c => c.nombre === sol.estado);
       if (col) {
         col.solicitudes.push(sol);
       }
     });
+  }
+
+  // Las solicitudes FINALIZADO desaparecen del tablero 7 dias despues de finalizadas
+  // (solo de la vista; el registro sigue en la BD, en solicitudes, calendario y reportes)
+  private ocultaDelTablero(sol: any): boolean {
+    if ((sol.estado || '').toUpperCase() !== 'FINALIZADO') {
+      return false;
+    }
+
+    const hoy = new Date();
+    const sieteDiasMs = 7 * 24 * 60 * 60 * 1000;
+
+    // Fecha en que se marco como FINALIZADO (registrada en historial_estado_actividad)
+    if (sol.fecha_finalizacion) {
+      const fechaFinalizacion = new Date(sol.fecha_finalizacion);
+      if (!isNaN(fechaFinalizacion.getTime()) && (hoy.getTime() - fechaFinalizacion.getTime()) > sieteDiasMs) {
+        return true;
+      }
+      return false;
+    }
+
+    // Respaldo para solicitudes antiguas sin registro en historial: fecha fin de la actividad
+    if (sol.fecha_fin_actividad) {
+      const fechaFin = new Date(sol.fecha_fin_actividad);
+      if (!isNaN(fechaFin.getTime()) && (hoy.getTime() - fechaFin.getTime()) > sieteDiasMs) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  alternarColumna(columna: any): void {
+    columna.plegada = !columna.plegada;
   }
 
   verDetalle(solicitud: any): void {

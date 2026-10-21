@@ -19,6 +19,10 @@ export class LoginComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
+  irAlKanban() {
+    this.router.navigate(['/inicio/kanban']);
+  }
+
   iniciarSesion() {
     this.errorLogin = '';
 

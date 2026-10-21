@@ -209,9 +209,12 @@ router.get('/reportes/solicitudes-por-institucion', (req, res) => {
   });
 });
 
-// GET - Carga de trabajo por usuario asignado
+// GET - Carga de trabajo por usuario asignado (opcionalmente por mes)
+// Uso: /reportes/carga-por-usuario?anio=2026&mes=10
 router.get('/reportes/carga-por-usuario', (req, res) => {
-  const sql = `
+  const { anio, mes } = req.query;
+
+  let sql = `
     SELECT 
       du.id_usuario,
       CONCAT(du.primer_nombre, ' ', du.primer_apellido) AS nombre_usuario,
@@ -220,10 +223,26 @@ router.get('/reportes/carga-por-usuario', (req, res) => {
     FROM datos_usuario du
     INNER JOIN cargo_usuario ca ON du.id_cargo = ca.id_cargo
     LEFT JOIN asignacion_usuario au ON du.id_usuario = au.id_usuario
-    GROUP BY du.id_usuario, nombre_usuario, ca.nombre_cargo
-    ORDER BY total_asignaciones DESC
   `;
-  conexion.query(sql, (error, resultados) => {
+
+  const params = [];
+
+  if (anio && mes) {
+    const anioNum = parseInt(anio, 10);
+    const mesNum = parseInt(mes, 10);
+    if (anioNum && mesNum >= 1 && mesNum <= 12) {
+      const inicio = `${anioNum}-${String(mesNum).padStart(2, '0')}-01`;
+      const sigAnio = mesNum === 12 ? anioNum + 1 : anioNum;
+      const sigMes = mesNum === 12 ? 1 : mesNum + 1;
+      const fin = `${sigAnio}-${String(sigMes).padStart(2, '0')}-01`;
+      sql += ' AND au.fecha_asignacion >= ? AND au.fecha_asignacion < ?';
+      params.push(inicio, fin);
+    }
+  }
+
+  sql += ' GROUP BY du.id_usuario, nombre_usuario, ca.nombre_cargo ORDER BY total_asignaciones DESC';
+
+  conexion.query(sql, params, (error, resultados) => {
     if (error) {
       console.error('ERROR MYSQL:', error);
       return res.status(500).json({ mensaje: 'Error al obtener carga por usuario' });

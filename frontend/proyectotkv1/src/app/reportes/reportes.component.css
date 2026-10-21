@@ -173,6 +173,57 @@
 .grafico-container { position: relative; height: 260px; }
 .grafico-container canvas { max-height: 100%; }
 
+/* Cabecera del grafico con navegador de meses */
+.grafico-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-lg);
+}
+
+.grafico-card .grafico-header h3 {
+  margin: 0;
+}
+
+.mes-controles {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.btn-mes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-mes:hover {
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 10px rgba(27, 58, 107, 0.25);
+}
+
+.mes-label {
+  min-width: 150px;
+  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 /* === ACTIVIDADES POR TRABAJADOR === */
 .trabajador-grupo {
   border: 1px solid var(--border-color);

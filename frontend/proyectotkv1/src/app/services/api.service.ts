@@ -35,4 +35,12 @@ export class ApiService {
   delete<T>(endpoint: string): Observable<T> {
     return this.http.delete<T>(`${this.apiUrl}/${endpoint}`, { headers: this.getHeaders() });
   }
+
+  // Descarga archivos binarios (ej. backup .sql)
+  descargar(endpoint: string): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/${endpoint}`, {}, {
+      headers: this.getHeaders(),
+      responseType: 'blob'
+    });
+  }
 }

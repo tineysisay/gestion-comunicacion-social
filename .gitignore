@@ -3,3 +3,5 @@ dist/
 .angular/
 .env
 *.log
+backups/
+backend/backups/

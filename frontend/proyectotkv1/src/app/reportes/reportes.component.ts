@@ -47,7 +47,21 @@ export class ReportesComponent implements OnInit, AfterViewInit {
   textoFiltro = '';
   cargarCompletado = false;
 
+  // Mes mostrado en el grafico de carga
+  mesGrafica = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  private readonly MESES_GRAFICA = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
   chartCarga: Chart | null = null;
+
+  // Paleta Figma del proyecto para las barras del grafico
+  private readonly PALETA_BARRAS: { color: string; hover: string }[] = [
+    { color: '#1B3A6B', hover: '#122850' },
+    { color: '#2A5298', hover: '#1B3A6B' },
+    { color: '#243F7A', hover: '#122850' },
+    { color: '#122850', hover: '#0C1A33' },
+    { color: '#A8BDD8', hover: '#8FA9C9' }
+  ];
 
   constructor(
     private reporteService: ReporteService,
@@ -75,13 +89,24 @@ export class ReportesComponent implements OnInit, AfterViewInit {
   }
 
   cargarCargaPorUsuario(): void {
-    this.reporteService.cargaPorUsuario().subscribe({
+    const anio = this.mesGrafica.getFullYear();
+    const mes = this.mesGrafica.getMonth() + 1;
+    this.reporteService.cargaPorUsuario(anio, mes).subscribe({
       next: (datos) => {
         this.cargaPorUsuario = datos;
         setTimeout(() => this.graficarCarga(datos), 100);
       },
       error: (error) => console.error('Error:', error)
     });
+  }
+
+  get tituloMesGrafica(): string {
+    return `${this.MESES_GRAFICA[this.mesGrafica.getMonth()]} ${this.mesGrafica.getFullYear()}`;
+  }
+
+  cambiarMesGrafica(delta: number): void {
+    this.mesGrafica = new Date(this.mesGrafica.getFullYear(), this.mesGrafica.getMonth() + delta, 1);
+    this.cargarCargaPorUsuario();
   }
 
   cargarActividadesPorUsuario(): void {
@@ -139,10 +164,10 @@ export class ReportesComponent implements OnInit, AfterViewInit {
       data: {
         labels: datos.map(d => d.nombre_usuario),
         datasets: [{
-          label: 'Asignaciones',
+          label: 'Asignaciones en el mes',
           data: datos.map(d => d.total_asignaciones),
-          backgroundColor: 'rgba(42, 82, 152, 0.85)',
-          hoverBackgroundColor: '#1B3A6B',
+          backgroundColor: datos.map((_, i) => this.PALETA_BARRAS[i % this.PALETA_BARRAS.length].color),
+          hoverBackgroundColor: datos.map((_, i) => this.PALETA_BARRAS[i % this.PALETA_BARRAS.length].hover),
           borderRadius: 8,
           borderSkipped: false,
           maxBarThickness: 42

@@ -64,7 +64,14 @@
 
   <!-- Carga de trabajo por usuario -->
   <div class="grafico-card">
-    <h3>Carga de Trabajo por Usuario</h3>
+    <div class="grafico-header">
+      <h3>Carga de Trabajo por Usuario</h3>
+      <div class="mes-controles">
+        <button class="btn-mes" title="Mes anterior" (click)="cambiarMesGrafica(-1)">&#8249;</button>
+        <span class="mes-label">{{ tituloMesGrafica }}</span>
+        <button class="btn-mes" title="Mes siguiente" (click)="cambiarMesGrafica(1)">&#8250;</button>
+      </div>
+    </div>
     <div class="grafico-container">
       <canvas #chartCarga></canvas>
     </div>

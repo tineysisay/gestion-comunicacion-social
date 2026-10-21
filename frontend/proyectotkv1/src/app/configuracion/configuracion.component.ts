@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { CatalogoService } from '../services/catalogo.service';
 import { AuthService } from '../services/auth.service';
 import { NotificacionService } from '../services/notificacion.service';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-configuracion',
@@ -19,6 +20,7 @@ export class ConfiguracionComponent implements OnInit {
 
   pestanas = [
     { id: 'perfil', nombre: 'Perfil' },
+    { id: 'base-datos', nombre: 'Base de Datos' },
     { id: 'estados-actividad', nombre: 'Estados de Actividad' },
     { id: 'prioridades', nombre: 'Prioridades' },
     { id: 'cargos', nombre: 'Cargos' },
@@ -38,21 +40,30 @@ export class ConfiguracionComponent implements OnInit {
   perfil: any = {};
   editandoPerfil = false;
 
+  // Backup de base de datos
+  generandoBackup = false;
+
   constructor(
     private catalogoService: CatalogoService,
     public authService: AuthService,
-    private notificacion: NotificacionService
+    private notificacion: NotificacionService,
+    private apiService: ApiService
   ) {}
 
   ngOnInit(): void {
-    this.cargarDatos();
+    if (this.pestanaActiva === 'perfil') {
+      this.cargarPerfil();
+    } else {
+      this.cargarDatos();
+    }
   }
 
   get pestanasFiltradas(): any[] {
     if (this.authService.esLector()) {
       return this.pestanas.filter(p => p.id === 'perfil');
     }
-    return this.pestanas;
+    // Base de Datos: solo administrador (el endpoint esta protegido con soloAdmin)
+    return this.pestanas.filter(p => p.id !== 'base-datos' || this.authService.esAdmin());
   }
 
   cambiarPestana(pestanha: string): void {
@@ -60,7 +71,7 @@ export class ConfiguracionComponent implements OnInit {
     this.mostrarFormulario = false;
     if (pestanha === 'perfil') {
       this.cargarPerfil();
-    } else {
+    } else if (pestanha !== 'base-datos') {
       this.cargarDatos();
     }
   }
@@ -89,6 +100,50 @@ export class ConfiguracionComponent implements OnInit {
         this.editandoPerfil = false;
       },
       error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al guardar')
+    });
+  }
+
+  // ===== BACKUP DE BASE DE DATOS =====
+  generarBackup(): void {
+    if (this.generandoBackup) {
+      return;
+    }
+    this.generandoBackup = true;
+
+    this.apiService.descargar('backup').subscribe({
+      next: (blob) => {
+        // El backend devuelve Content-Disposition con el nombre; aqui se arma uno equivalente
+        let nombreArchivo = 'backup.sql';
+        const fecha = new Date();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        nombreArchivo = `backup_gestion_comunicacion_social_${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}_${pad(fecha.getHours())}${pad(fecha.getMinutes())}${pad(fecha.getSeconds())}.sql`;
+
+        const url = window.URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        enlace.click();
+        window.URL.revokeObjectURL(url);
+
+        this.generandoBackup = false;
+        this.notificacion.exito('Backup generado. El archivo se descargo a tu equipo y quedo guardado en el servidor (backend/backups)');
+      },
+      error: (error) => {
+        this.generandoBackup = false;
+        let mensaje = 'Error al generar el backup';
+        if (error?.error instanceof Blob) {
+          // El backend responde JSON en caso de error
+          error.error.text().then((texto: string) => {
+            try {
+              this.notificacion.error(JSON.parse(texto).mensaje || mensaje);
+            } catch {
+              this.notificacion.error(mensaje);
+            }
+          });
+        } else {
+          this.notificacion.error(error?.error?.mensaje || mensaje);
+        }
+      }
     });
   }
 

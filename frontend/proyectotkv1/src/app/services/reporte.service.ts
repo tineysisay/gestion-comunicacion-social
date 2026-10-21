@@ -33,8 +33,12 @@ export class ReporteService {
     return this.api.get<any[]>('reportes/solicitudes-por-institucion');
   }
 
-  cargaPorUsuario(): Observable<any[]> {
-    return this.api.get<any[]>('reportes/carga-por-usuario');
+  cargaPorUsuario(anio?: number, mes?: number): Observable<any[]> {
+    let url = 'reportes/carga-por-usuario';
+    if (anio && mes) {
+      url += `?anio=${anio}&mes=${mes}`;
+    }
+    return this.api.get<any[]>(url);
   }
 
   actividadesPorUsuario(): Observable<any[]> {

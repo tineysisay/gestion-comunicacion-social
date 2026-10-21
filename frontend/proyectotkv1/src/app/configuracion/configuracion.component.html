@@ -106,8 +106,52 @@
     </form>
   </div>
 
+  <!-- BASE DE DATOS (solo administrador) -->
+  <div *ngIf="pestanaActiva === 'base-datos'" class="backup-container">
+    <div class="perfil-header">
+      <div class="perfil-titulo">
+        <span class="perfil-avatar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+          </svg>
+        </span>
+        <h2>Respaldo de la Base de Datos</h2>
+      </div>
+    </div>
+
+    <div class="backup-info">
+      <p class="backup-descripcion">
+        Genere una copia completa de la base de datos del sistema en formato <strong>.sql</strong>.
+        El archivo se descargara a este equipo y tambien quedara guardado automaticamente en el servidor
+        dentro de la carpeta <code>backend/backups</code>, para que pueda restaurarlo en caso de un problema.
+      </p>
+
+      <button
+        class="btn-guardar btn-backup"
+        [disabled]="generandoBackup"
+        (click)="generarBackup()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        {{ generandoBackup ? 'Generando backup...' : 'Generar backup' }}
+      </button>
+
+      <p class="backup-nota" *ngIf="generandoBackup">
+        Espere unos segundos, el tamano de la base de datos determina el tiempo de generacion.
+      </p>
+
+      <div class="backup-ayuda">
+        <h4>Para restaurar una copia</h4>
+        <p>
+          Si el sistema presenta un problema, la restauracion se realiza desde la consola de MySQL con:
+          <br><code>mysql -u root -p gestion_comunicacion_social &lt; backup_archivo.sql</code>
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- CATALOGOS -->
-  <div *ngIf="pestanaActiva !== 'perfil'">
+  <div *ngIf="pestanaActiva !== 'perfil' && pestanaActiva !== 'base-datos'">
     <div class="formulario-container" *ngIf="mostrarFormulario">
       <div class="formulario-card">
       <div class="formulario-header">
