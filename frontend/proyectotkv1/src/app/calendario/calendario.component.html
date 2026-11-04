@@ -118,45 +118,59 @@
   <!-- DETALLE SOLICITUD -->
   <div class="detalle-overlay" *ngIf="mostrarDetalle && solicitudSeleccionada" (click)="cerrarDetalle()">
     <div class="detalle-card" (click)="$event.stopPropagation()">
-      <div class="detalle-header">
-        <h2>{{ solicitudSeleccionada.nombre_actividad }}</h2>
+
+      <div class="detalle-header" [style.background]="getColorEstado(solicitudSeleccionada.estado)">
+        <div class="detalle-header-info">
+          <span class="detalle-header-icono">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+            </svg>
+          </span>
+          <div>
+            <span class="detalle-header-estado"
+                  [style.background]="'rgba(255,255,255,0.22)'">
+              {{ solicitudSeleccionada.estado }}
+            </span>
+            <h2>{{ solicitudSeleccionada.nombre_actividad }}</h2>
+          </div>
+        </div>
         <button class="btn-cerrar" (click)="cerrarDetalle()">&times;</button>
       </div>
+
       <div class="detalle-body">
-        <div class="detalle-row">
-          <label>Actividad:</label>
-          <span>{{ solicitudSeleccionada.nombre_actividad }}</span>
-        </div>
-        <div class="detalle-row">
-          <label>Solicitante:</label>
-          <span>{{ solicitudSeleccionada.nombre_solicitante }}</span>
-        </div>
-        <div class="detalle-row">
-          <label>Lugar:</label>
-          <span>{{ solicitudSeleccionada.lugar_actividad }}</span>
-        </div>
-        <div class="detalle-row">
-          <label>Fecha:</label>
-          <span>{{ rangoFechasTexto(solicitudSeleccionada) }}</span>
-        </div>
-        <div class="detalle-row">
-          <label>Horario:</label>
-          <span>{{ solicitudSeleccionada.hora_inicio | formatoFecha:'hora' }} - {{ solicitudSeleccionada.hora_fin | formatoFecha:'hora' }}</span>
-        </div>
-        <div class="detalle-row">
-          <label>Estado:</label>
-          <span>{{ solicitudSeleccionada.estado }}</span>
-        </div>
-        <div class="detalle-row">
-          <label>Prioridad:</label>
-          <span>{{ solicitudSeleccionada.prioridad }}</span>
-        </div>
-        <div class="detalle-row">
-          <label>Creada:</label>
-          <span>{{ solicitudSeleccionada.fecha_creacion | formatoFecha:'fecha' }}</span>
+        <div class="detalle-grid">
+          <div class="detalle-campo">
+            <label>Solicitante</label>
+            <span>{{ solicitudSeleccionada.nombre_solicitante }}</span>
+          </div>
+          <div class="detalle-campo">
+            <label>Lugar</label>
+            <span>{{ solicitudSeleccionada.lugar_actividad }}</span>
+          </div>
+          <div class="detalle-campo">
+            <label>Fecha</label>
+            <span>{{ rangoFechasTexto(solicitudSeleccionada) }}</span>
+          </div>
+          <div class="detalle-campo">
+            <label>Horario</label>
+            <span>{{ solicitudSeleccionada.hora_inicio | formatoFecha:'hora' }} - {{ solicitudSeleccionada.hora_fin | formatoFecha:'hora' }}</span>
+          </div>
+          <div class="detalle-campo">
+            <label>Creada</label>
+            <span>{{ solicitudSeleccionada.fecha_creacion | formatoFecha:'fecha' }}</span>
+          </div>
+          <div class="detalle-campo">
+            <label>Prioridad</label>
+            <span class="detalle-badge detalle-badge-prioridad"
+                  [style.background]="getColorPrioridad(solicitudSeleccionada.prioridad)">
+              {{ solicitudSeleccionada.prioridad }}
+            </span>
+          </div>
         </div>
       </div>
+
       <div class="detalle-footer">
+        <button class="btn-secundario" (click)="cerrarDetalle()">Cerrar</button>
         <button class="btn-editar" *ngIf="authService.esAdmin()" (click)="editarSolicitud()">Editar</button>
       </div>
     </div>

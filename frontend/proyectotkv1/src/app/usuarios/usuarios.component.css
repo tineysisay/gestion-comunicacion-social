@@ -55,6 +55,64 @@
   color: white;
 }
 
+.btn-editar:disabled,
+.btn-protegido {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-editar:disabled:hover,
+.btn-protegido:hover {
+  background: var(--color-secondary-bg, #EFF6FF);
+  color: var(--color-secondary);
+}
+
+/* === FILA DE ACCIONES (Opciones) === */
+.acciones-fila {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Botón restablecer contraseña (ámbar, diferenciado) */
+.btn-restablecer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: #FFFBEB;
+  color: var(--color-warning);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-restablecer svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-restablecer:hover:not(:disabled) {
+  background: var(--color-warning);
+  color: #fff;
+}
+
+.btn-restablecer:disabled,
+.btn-restablecer.btn-protegido {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-restablecer:disabled:hover,
+.btn-restablecer.btn-protegido:hover {
+  background: #FFFBEB;
+  color: var(--color-warning);
+}
+
 /* === FORMULARIO MODAL === */
 .formulario-container {
   position: fixed;
@@ -85,14 +143,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 32px;
-  border-bottom: 1px solid var(--border-color-light);
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #1B3A6B 0%, #2A5298 100%);
 }
 
 .formulario-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: var(--color-primary);
+  color: #fff;
 }
 
 .btn-cerrar {
@@ -101,20 +159,20 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: none;
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   font-size: 1.375rem;
-  color: var(--color-text-muted);
+  color: #fff;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   transition: all var(--transition-fast);
   line-height: 1;
   flex-shrink: 0;
 }
 
 .btn-cerrar:hover {
-  background: #F1F5F9;
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
 /* === CONTENIDO DEL FORMULARIO === */
@@ -165,9 +223,10 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 20px 32px;
-  margin-top: 8px;
-  border-top: 1px solid var(--border-color-light);
+  margin: 16px -32px -28px;
+  padding: 18px 32px;
+  background: #F8FAFC;
+  border-top: 1px solid #EDF2F7;
 }
 
 .btn-guardar {
@@ -237,6 +296,103 @@
 
 .btn-ojo:hover {
   background: rgba(0, 0, 0, 0.06);
+}
+
+/* === MODAL DE CREDENCIALES TEMPORALES === */
+.modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  width: 460px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: scaleInModal 0.2s ease;
+}
+
+.modal-card .modal-header {
+  padding: var(--space-xl) var(--space-2xl);
+}
+
+.modal-card .modal-header h2 {
+  font-size: 1.15rem;
+  color: var(--color-primary);
+}
+
+.modal-card .btn-cerrar {
+  background: rgba(27, 58, 107, 0.08);
+  color: var(--color-text-secondary);
+}
+
+.modal-card .btn-cerrar:hover {
+  background: rgba(27, 58, 107, 0.16);
+  color: var(--color-text);
+}
+
+.modal-texto {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-xl);
+}
+
+.credenciales {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.credencial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: var(--space-lg);
+  background: var(--color-secondary-bg, #EFF6FF);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.credencial-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.credencial-valor {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+/* Contraseña temporal: destacada, centrada y different al resto */
+.credencial-valor.contrasena-temporal {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--color-primary-dark, #1B3A6B);
+  background: var(--color-surface);
+  border: 2px dashed var(--color-secondary);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
+  border-top: 1px solid var(--border-color-light);
+  margin-top: var(--space-xl);
 }
 
 /* === RESPONSIVE === */

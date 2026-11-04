@@ -287,14 +287,61 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #F1F5F9;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1B3A6B 0%, #2A5298 100%);
+  color: #fff;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: #1B3A6B;
+  color: #fff;
+}
+
+/* Header del modo detalle (el color de fondo lo pone el componente) */
+.detalle-header {
+  align-items: flex-start;
+}
+
+.detalle-header-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.detalle-header-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.detalle-header-icono svg {
+  width: 24px;
+  height: 24px;
+}
+
+.detalle-header-texto {
+  min-width: 0;
+}
+
+.detalle-header-estado {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #fff;
+  margin-bottom: 6px;
 }
 
 .header-buttons {
@@ -322,67 +369,135 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: none;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.15);
   border: none;
-  font-size: 1.25rem;
-  color: #94A3B8;
+  font-size: 1.375rem;
+  color: #fff;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
   transition: all 0.15s;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .btn-close:hover {
-  background: #F1F5F9;
-  color: #1A202C;
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 20px;
 }
 
-.detail-row {
-  display: flex;
-  margin-bottom: 14px;
+/* === CAMPOS DEL DETALLE (tarjetas) === */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.detail-row label {
-  font-weight: 600;
-  color: #475569;
-  width: 120px;
-  flex-shrink: 0;
+.detalle-campo {
+  background: #F8FAFC;
+  border: 1px solid #EDF2F7;
+  border-radius: 10px;
+  padding: 11px 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.detalle-campo:hover {
+  border-color: #D9E2EC;
+  box-shadow: 0 2px 8px rgba(27, 58, 107, 0.06);
+}
+
+.detalle-campo.campo-completo {
+  grid-column: 1 / -1;
+}
+
+.detalle-campo label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  margin-bottom: 5px;
+}
+
+.detalle-campo span {
   font-size: 0.9375rem;
-}
-
-.detail-row span {
+  font-weight: 500;
   color: #1A202C;
-  font-size: 0.9375rem;
+  word-break: break-word;
+}
+
+.detalle-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.detalle-badge-prioridad {
+  color: #fff;
 }
 
 .detail-section {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid #F1F5F9;
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: #F8FAFC;
+  border: 1px solid #EDF2F7;
+  border-radius: 10px;
 }
 
 .detail-section h4 {
   margin: 0 0 10px;
-  color: #1A202C;
-  font-size: 1rem;
+  color: #1B3A6B;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .detail-section ul {
   margin: 0;
-  padding-left: 16px;
+  padding-left: 18px;
 }
 
 .detail-section li {
   margin-bottom: 5px;
-  color: #475569;
+  color: #334155;
   font-size: 0.9375rem;
+}
+
+/* === FOOTER DEL MODAL === */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  background: #F8FAFC;
+  border-top: 1px solid #EDF2F7;
+}
+
+.btn-secundario {
+  padding: 8px 18px;
+  background: #fff;
+  color: #475569;
+  border: 1px solid #CBD5E0;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-secundario:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
 }
 
 /* === FORMULARIO EDICION === */
@@ -532,9 +647,11 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid #F1F5F9;
+  margin: 20px -20px -20px;
+  padding: 14px 20px;
+  background: #F8FAFC;
+  border-top: 1px solid #EDF2F7;
+  border-radius: 0 0 10px 10px;
 }
 
 .btn-guardar {
@@ -570,6 +687,123 @@
 .btn-cancelar:hover {
   background: #F8FAFC;
   border-color: #CBD5E0;
+}
+
+/* === BITACORA (solo admin) === */
+.btn-bitacora {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #64748B;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-bitacora:hover {
+  background: #475569;
+}
+
+.bitacora-vacio {
+  text-align: center;
+  color: #64748B;
+  padding: 32px 16px;
+  font-size: 14px;
+}
+
+.bitacora-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.bitacora-lista::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: #E2E8F0;
+}
+
+.bitacora-item {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.bitacora-punto {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3B82F6;
+  border: 3px solid #DBEAFE;
+  margin-top: 3px;
+  position: relative;
+  z-index: 1;
+}
+
+.bitacora-contenido {
+  flex: 1;
+}
+
+.bitacora-estados {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.bitacora-estado {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.estado-anterior {
+  background: #F1F5F9;
+  color: #64748B;
+  text-decoration: line-through;
+}
+
+.estado-nuevo {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.bitacora-flecha {
+  color: #94A3B8;
+  font-weight: 700;
+}
+
+.bitacora-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #334155;
+  flex-wrap: wrap;
+}
+
+.bitacora-fecha {
+  color: #94A3B8;
+  font-size: 12px;
+}
+
+.bitacora-obs {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #64748B;
+  font-style: italic;
 }
 
 /* === RESPONSIVE === */

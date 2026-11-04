@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -16,8 +16,18 @@ export class LoginComponent {
   usuario = '';
   contrasena = '';
   errorLogin = '';
+  mensajeExito = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
+    // Mensaje de confirmacion al crear la contraseña (se llega con logout({cambio:'exitoso'}))
+    if (this.route.snapshot.queryParamMap.get('cambio') === 'exitoso') {
+      this.mensajeExito = 'Contrasena creada correctamente. Inicie sesion con su nueva contrasena.';
+    }
+  }
 
   irAlKanban() {
     this.router.navigate(['/inicio/kanban']);
@@ -25,11 +35,17 @@ export class LoginComponent {
 
   iniciarSesion() {
     this.errorLogin = '';
+    this.mensajeExito = '';
 
     this.authService.login(this.usuario, this.contrasena).subscribe({
       next: (respuesta) => {
         console.log('Login exitoso:', respuesta);
-        this.router.navigate(['/inicio/kanban']);
+        if (respuesta.debe_cambiar_contrasena) {
+          // Contraseña temporal: debe crear una nueva contraseña antes de entrar
+          this.router.navigate(['/cambiar-contrasena']);
+        } else {
+          this.router.navigate(['/inicio/kanban']);
+        }
       },
       error: (error) => {
         console.log('Error de login:', error);

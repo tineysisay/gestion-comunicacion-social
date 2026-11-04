@@ -16,7 +16,9 @@
 - `app.use('/api', catalogRoutes)` must come AFTER login route
 - PowerShell on Windows: use `;` not `&&` for chaining commands
 - MySQL full path: `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p12345678 gestion_comunicacion_social -e "..."`
-- Roles: Admin (1), Lector (2), Jefe (3) — with `soloAdmin`, `soloAdminYJefe`, `soloLectura` middleware
+- Roles: Admin (1), Lector (2), Jefe (3), Desarrollador (7) — with `soloAdmin`, `soloAdminYJefe`, `soloLectura` middleware
+- **Desarrollador (id_rol=7)**: mismo acceso que Admin (soloAdmin acepta 1 y 7; esAdmin() en frontend acepta 1 y 7). Existe para rescatar cuentas (ej. si el admin olvida su contraseña). Cuenta: jtiney (Juan Luis Tiney Sisay). AuthService tiene `esDesarrollador()` para distinguirlo si se necesita.
+- **Nota BD vs código**: en la BD real `rol_usuario` tiene 2=DIRECTOR DE DEPENDENCIA, 3=LECTOR (no 2=Lector/3=Jefe como asume el código). Roles duplicados en ids 4,5,6. `esLector()`/`esJefe()` del frontend comparan por id (2 y 3) — cuidado al tocar.
 - SolicitudService has BehaviorSubject for cross-component updates (kanban ↔ calendario ↔ solicitudes)
 
 ## Database Tables (key ones)

@@ -68,6 +68,10 @@
     <div class="login-card">
       <h3 class="login-titulo">Inicio de Sesion</h3>
 
+      <div class="mensaje-exito" *ngIf="mensajeExito">
+        {{ mensajeExito }}
+      </div>
+
       <form (ngSubmit)="iniciarSesion()">
         <div class="campo">
           <label for="usuario">Usuario</label>

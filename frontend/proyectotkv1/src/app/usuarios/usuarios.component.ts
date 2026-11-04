@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
 import { NotificacionService } from '../services/notificacion.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-usuarios',
@@ -14,8 +15,12 @@ import { NotificacionService } from '../services/notificacion.service';
 export class UsuariosComponent implements OnInit {
 
   mostrarFormulario = false;
-  mostrarContrasena = false;
   usuarios: any[] = [];
+
+  // Modal de credenciales temporales (tras crear o restablecer una cuenta)
+  modalTemporal = false;
+  contrasenaTemporal = '';
+  nombreUsuarioTemporal = '';
 
   tiposEmpleado: any[] = [];
   cargos: any[] = [];
@@ -37,11 +42,14 @@ export class UsuariosComponent implements OnInit {
   idCargo = 0;
 
   nombreUsuario = '';
-  contrasena = '';
   idRol = 0;
   idEstadoUsuario = 0;
 
-  constructor(private api: ApiService, private notificacion: NotificacionService) {}
+  constructor(
+    private api: ApiService,
+    private notificacion: NotificacionService,
+    public authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.obtenerUsuarios();
@@ -60,6 +68,10 @@ export class UsuariosComponent implements OnInit {
         console.error('Error al obtener usuarios:', error);
       }
     });
+  }
+
+  esCuentaProtegida(idRol: number): boolean {
+    return idRol === 7 && !this.authService.esDesarrollador();
   }
 
   obtenerTiposEmpleado(): void {
@@ -115,7 +127,6 @@ export class UsuariosComponent implements OnInit {
         this.idCuentaEditar = usuario.id_cuenta;
         this.editando = true;
         this.mostrarFormulario = true;
-        this.mostrarContrasena = false;
 
         this.primerNombre = usuario.primer_nombre;
         this.segundoNombre = usuario.segundo_nombre;
@@ -129,7 +140,6 @@ export class UsuariosComponent implements OnInit {
         this.idCargo = usuario.id_cargo;
 
         this.nombreUsuario = usuario.nombre_usuario;
-        this.contrasena = usuario.contrasena;
         this.idRol = usuario.id_rol;
         this.idEstadoUsuario = usuario.id_estado_usuario;
 
@@ -163,7 +173,6 @@ export class UsuariosComponent implements OnInit {
       idTipoEmpleado: this.idTipoEmpleado,
       idCargo: this.idCargo,
       nombreUsuario: this.nombreUsuario,
-      contrasena: this.contrasena,
       idRol: this.idRol,
       idEstadoUsuario: this.idEstadoUsuario
     };
@@ -214,6 +223,13 @@ export class UsuariosComponent implements OnInit {
 
         this.mostrarFormulario = false;
 
+        // Se genera una contraseña temporal que el administrador debe entregar al usuario
+        if (respuesta.contrasenaTemporal) {
+          this.nombreUsuarioTemporal = this.nombreUsuario;
+          this.contrasenaTemporal = respuesta.contrasenaTemporal;
+          this.modalTemporal = true;
+        }
+
         this.limpiarFormulario();
 
         this.obtenerUsuarios();
@@ -249,18 +265,64 @@ export class UsuariosComponent implements OnInit {
     this.idCargo = 0;
 
     this.nombreUsuario = '';
-    this.contrasena = '';
     this.idRol = 0;
     this.idEstadoUsuario = 0;
 
     this.editando = false;
     this.idCuentaEditar = 0;
-    this.mostrarContrasena = false;
 
   }
 
-  toggleContrasena(): void {
-    this.mostrarContrasena = !this.mostrarContrasena;
+  // Restablece la contraseña de una cuenta: genera una contraseña temporal
+  restablecerContrasena(usuario: any): void {
+
+    const nombre = `${usuario.primer_nombre} ${usuario.primer_apellido}`.trim();
+
+    const confirmar = confirm(
+      `¿Restablecer la contraseña de ${nombre} (${usuario.nombre_usuario})?\n\n` +
+      'Se generará una contraseña temporal que deberá entregarle; ' +
+      'al iniciar sesión, el usuario deberá crear una nueva contraseña.'
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    this.api.post(`usuarios/${usuario.id_cuenta}/restablecer`, {}).subscribe({
+
+      next: (respuesta: any) => {
+        this.nombreUsuarioTemporal = usuario.nombre_usuario;
+        this.contrasenaTemporal = respuesta.contrasenaTemporal;
+        this.modalTemporal = true;
+        this.notificacion.exito(respuesta.mensaje);
+      },
+
+      error: (error: any) => {
+        console.error('Error al restablecer contraseña:', error);
+        this.notificacion.error(
+          error.error?.mensaje ||
+          'No se pudo restablecer la contraseña'
+        );
+      }
+
+    });
+
+  }
+
+  cerrarModalTemporal(): void {
+    this.modalTemporal = false;
+    this.contrasenaTemporal = '';
+    this.nombreUsuarioTemporal = '';
+  }
+
+  copiarTemporal(): void {
+    if (navigator.clipboard && this.contrasenaTemporal) {
+      navigator.clipboard.writeText(this.contrasenaTemporal).then(() => {
+        this.notificacion.exito('Contraseña copiada al portapapeles');
+      }).catch(() => {
+        this.notificacion.error('No se pudo copiar la contraseña');
+      });
+    }
   }
 
 }

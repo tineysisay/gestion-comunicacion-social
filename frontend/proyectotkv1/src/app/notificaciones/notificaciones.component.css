@@ -22,35 +22,48 @@
   box-shadow: 0 4px 12px rgba(27, 58, 107, 0.35);
 }
 
-/* === FILTROS === */
-.filtros {
-  display: flex;
-  gap: var(--space-sm);
+/* === SECCIONES (No leidas / Leidas) === */
+.seccion {
   margin-bottom: var(--space-xl);
 }
 
-.btn-filtro {
-  padding: 8px 16px;
+.seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.seccion-titulo h2 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+}
+
+.seccion-contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.contador-no-leidas {
+  background: #2563EB;
+  color: #fff;
+}
+
+.contador-leidas {
   background: var(--color-surface);
   color: var(--color-text-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-filtro:hover {
-  background: #F8FAFC;
-  border-color: #CBD5E0;
-}
-
-.btn-filtro.activa {
-  background: var(--color-secondary);
-  color: var(--color-text-inverse);
-  border-color: var(--color-secondary);
 }
 
 /* === LISTA === */
@@ -196,11 +209,6 @@
   height: 16px;
 }
 
-.btn-leer:hover {
-  background: #F0FDF4;
-  color: #15803D;
-}
-
 .btn-eliminar:hover {
   background: #FEF2F2;
   color: #B91C1C;
@@ -251,9 +259,5 @@
 
   .notif-acciones {
     flex-direction: column;
-  }
-
-  .filtros {
-    flex-wrap: wrap;
   }
 }

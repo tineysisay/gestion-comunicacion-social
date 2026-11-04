@@ -18,7 +18,6 @@ export class NotificacionesComponent implements OnInit {
 
   notificaciones: NotificacionUsuario[] = [];
   cargando = false;
-  filtro: 'todas' | 'no-leidas' = 'todas';
 
   constructor(
     private notificacionUsuarioService: NotificacionUsuarioService,
@@ -49,19 +48,22 @@ export class NotificacionesComponent implements OnInit {
     return this.notificaciones.filter((n) => !this.convertidaALeida(n)).length;
   }
 
-  get filtradas(): NotificacionUsuario[] {
-    if (this.filtro === 'no-leidas') {
-      return this.notificaciones.filter((n) => !this.convertidaALeida(n));
-    }
-    return this.notificaciones;
+  get leidas(): number {
+    return this.notificaciones.filter((n) => this.convertidaALeida(n)).length;
+  }
+
+  // Seccion 1: notificaciones sin leer
+  get sinLeer(): NotificacionUsuario[] {
+    return this.notificaciones.filter((n) => !this.convertidaALeida(n));
+  }
+
+  // Seccion 2: notificaciones leidas (aqui aparece la opcion de eliminar)
+  get leidasLista(): NotificacionUsuario[] {
+    return this.notificaciones.filter((n) => this.convertidaALeida(n));
   }
 
   convertidaALeida(n: NotificacionUsuario): boolean {
     return n.leida === true || n.leida === 1;
-  }
-
-  cambiarFiltro(filtro: 'todas' | 'no-leidas'): void {
-    this.filtro = filtro;
   }
 
   // Clic en una notificacion -> marcar leida y ir a Solicitudes

@@ -40,6 +40,13 @@ export class ConfiguracionComponent implements OnInit {
   perfil: any = {};
   editandoPerfil = false;
 
+  // Cambiar contraseña (perfil)
+  editandoContrasena = false;
+  contrasenaActual = '';
+  contrasenaNueva = '';
+  confirmarContrasena = '';
+  enviandoContrasena = false;
+
   // Backup de base de datos
   generandoBackup = false;
 
@@ -100,6 +107,67 @@ export class ConfiguracionComponent implements OnInit {
         this.editandoPerfil = false;
       },
       error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al guardar')
+    });
+  }
+
+  // ===== CAMBIAR CONTRASEÑA (perfil) =====
+  editarContrasena(): void {
+    this.contrasenaActual = '';
+    this.contrasenaNueva = '';
+    this.confirmarContrasena = '';
+    this.editandoContrasena = true;
+  }
+
+  cancelarContrasena(): void {
+    this.editandoContrasena = false;
+    this.contrasenaActual = '';
+    this.contrasenaNueva = '';
+    this.confirmarContrasena = '';
+  }
+
+  get tiene8(): boolean {
+    return this.contrasenaNueva.length >= 8;
+  }
+
+  get tieneMayuscula(): boolean {
+    return /[A-Z]/.test(this.contrasenaNueva);
+  }
+
+  get tieneNumero(): boolean {
+    return /[0-9]/.test(this.contrasenaNueva);
+  }
+
+  get contrasenasCoinciden(): boolean {
+    return this.contrasenaNueva.length > 0 && this.contrasenaNueva === this.confirmarContrasena;
+  }
+
+  get formularioContrasenaValido(): boolean {
+    return (
+      this.contrasenaActual.length > 0 &&
+      this.tiene8 &&
+      this.tieneMayuscula &&
+      this.tieneNumero &&
+      this.contrasenasCoinciden
+    );
+  }
+
+  guardarContrasena(): void {
+    if (!this.formularioContrasenaValido || this.enviandoContrasena) {
+      return;
+    }
+
+    this.enviandoContrasena = true;
+
+    this.authService.cambiarContrasena(this.contrasenaActual, this.contrasenaNueva).subscribe({
+      next: (respuesta) => {
+        this.enviandoContrasena = false;
+        this.notificacion.exito(respuesta.mensaje);
+        this.cancelarContrasena();
+      },
+      error: (error) => {
+        this.enviandoContrasena = false;
+        this.notificacion.error(error.error?.mensaje || 'Error al cambiar la contraseña');
+      }
     });
   }
 

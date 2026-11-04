@@ -37,12 +37,21 @@ import { NotificacionService } from '../services/notificacion.service';
     .confirm-card {
       background: white;
       border-radius: 12px;
-      padding: 30px;
+      padding: 34px 30px 30px;
       max-width: 400px;
       width: 90%;
       text-align: center;
       box-shadow: 0 16px 48px rgba(27, 58, 107, 0.2);
       animation: scaleInModal 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .confirm-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #1B3A6B 0%, #2A5298 100%);
     }
     .confirm-icono { margin-bottom: 15px; }
     .icono-advertencia {

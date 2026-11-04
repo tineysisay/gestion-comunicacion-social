@@ -10,6 +10,7 @@ import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
 import { NotificacionService } from '../services/notificacion.service';
 import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
+import { coloresDeEstado } from '../shared/colores-estado';
 
 @Component({
   selector: 'app-solicitudes',
@@ -450,6 +451,11 @@ export class SolicitudesComponent implements OnInit {
       return inicioFmt.split('-').reverse().join('/');
     }
     return `${inicioFmt.split('-').reverse().join('/')} - ${finFmt.split('-').reverse().join('/')}`;
+  }
+
+  // Color del header del modal de detalle segun el estado
+  colorEstadoDetalle(): string {
+    return coloresDeEstado(this.solicitudActual?.nombre_estado).color;
   }
 
   toggleResponsable(idUsuario: number): void {

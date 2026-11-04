@@ -159,14 +159,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-lg) var(--space-2xl);
-  border-bottom: 1px solid var(--border-color-light);
+  padding: 16px var(--space-2xl);
+  background: linear-gradient(135deg, #1B3A6B 0%, #2A5298 100%);
 }
 
 .formulario-header h2 {
   margin: 0;
-  font-size: 1.125rem;
-  color: var(--color-primary);
+  font-size: 1.25rem;
+  color: #fff;
 }
 
 .btn-cerrar {
@@ -175,20 +175,20 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: none;
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   font-size: 1.375rem;
-  color: var(--color-text-muted);
+  color: #fff;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   transition: all var(--transition-fast);
   line-height: 1;
   flex-shrink: 0;
 }
 
 .btn-cerrar:hover {
-  background: #F1F5F9;
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
 .formulario-body {
@@ -213,7 +213,8 @@
   justify-content: flex-end;
   gap: var(--space-md);
   padding: var(--space-lg) var(--space-2xl);
-  border-top: 1px solid var(--border-color-light);
+  background: #F8FAFC;
+  border-top: 1px solid #EDF2F7;
 }
 
 .btn-guardar {

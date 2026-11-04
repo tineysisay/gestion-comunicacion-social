@@ -145,6 +145,15 @@
 
   <!-- Filtros de fecha -->
   <div class="reporte-fechas">
+
+    <div class="membrete">
+      <img src="assets/LOGOT.png" alt="Logo Municipalidad" class="membrete-logo">
+      <div class="membrete-texto">
+        <span class="membrete-entidad">Municipalidad de Santiago Atitlán</span>
+        <span class="membrete-sistema">Sistema web de gestión operativa bajo la metodología KANBAN</span>
+      </div>
+    </div>
+
     <div class="filtro-header">
       <h3>Reporte por Rango de Fechas</h3>
       <button class="btn-pdf" (click)="exportarPDF()">
@@ -183,8 +192,9 @@
       <button class="btn-buscar" (click)="buscarPorFecha()">Buscar</button>
     </div>
 
-    <div class="filtro-info" *ngIf="filtroActivo !== 'rango'">
+    <div class="filtro-info" *ngIf="textoFiltro">
       <span class="filtro-activa">Filtro activo: <strong>{{ textoFiltro }}</strong></span>
+      <span class="filtro-generado">Generado: <strong>{{ fechaGeneracion }}</strong></span>
     </div>
 
     <div class="tabla-container" *ngIf="solicitudesPorFecha.length > 0">
@@ -193,8 +203,10 @@
           <tr>
             <th>#</th>
             <th>Actividad</th>
+            <th>Descripción</th>
             <th>Fecha</th>
             <th>Lugar</th>
+            <th>Responsables</th>
             <th>Estado</th>
             <th>Prioridad</th>
             <th>Solicitante</th>
@@ -204,6 +216,10 @@
           <tr *ngFor="let s of solicitudesPorFecha; let i = index">
             <td class="col-num">{{ i + 1 }}</td>
             <td class="col-actividad">{{ s.nombre_actividad }}</td>
+            <td class="col-desc">{{ s.descripcion_actividad || '—' }}</td>
+            <td>{{ rangoFechas(s.fecha_actividad, s.fecha_fin_actividad) }}</td>
+            <td>{{ s.lugar_actividad }}</td>
+            <td class="col-resp">{{ s.responsables || 'Sin asignar' }}</td>
             <td>{{ rangoFechas(s.fecha_actividad, s.fecha_fin_actividad) }}</td>
             <td>{{ s.lugar_actividad }}</td>
             <td><span class="badge" [ngClass]="claseBadge(s.nombre_estado)">{{ s.nombre_estado }}</span></td>

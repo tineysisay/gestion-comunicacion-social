@@ -71,6 +71,20 @@
   min-height: 90px;
 }
 
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.logo-link:hover {
+  opacity: 0.85;
+}
+
 .logo-img {
   width: 44px;
   height: 44px;

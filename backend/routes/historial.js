@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
-const { soloAdmin } = require('../middleware/roles');
+const { soloAdmin, soloAdminOAsignado } = require('../middleware/roles');
 const { notificarAsignados, obtenerDatosSolicitud } = require('../helpers/notificar');
 
 router.use(verificarToken);
 
-// GET - Historial de estados de una solicitud
-router.get('/solicitudes/:id/historial', (req, res) => {
+// GET - Historial de estados de una solicitud (bitacora: solo administradores)
+router.get('/solicitudes/:id/historial', soloAdmin, (req, res) => {
   const { id } = req.params;
   const sql = `
     SELECT 
@@ -34,8 +34,8 @@ router.get('/solicitudes/:id/historial', (req, res) => {
   });
 });
 
-// POST - Registrar cambio de estado
-router.post('/solicitudes/:id/historial', soloAdmin, (req, res) => {
+// POST - Registrar cambio de estado (admin o usuario asignado a la solicitud)
+router.post('/solicitudes/:id/historial', soloAdminOAsignado, (req, res) => {
   const { id } = req.params;
   const { idEstadoNuevo, observacion } = req.body;
   const idUsuario = req.usuario.id_usuario;

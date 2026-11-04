@@ -104,6 +104,85 @@
         <button type="submit" class="btn-guardar">Guardar</button>
       </div>
     </form>
+
+    <!-- Cambiar contraseña -->
+    <div class="seguridad-container">
+      <div class="seguridad-header">
+        <div class="seguridad-titulo">
+          <span class="seguridad-icono">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+          </span>
+          <h3>Cambiar contraseña</h3>
+        </div>
+        <button class="btn-editar-perfil" *ngIf="!editandoContrasena" (click)="editarContrasena()">Cambiar</button>
+      </div>
+
+      <form *ngIf="editandoContrasena" (ngSubmit)="guardarContrasena()">
+        <div class="form-grid">
+          <div class="campo campo-completo">
+            <label>Contraseña actual</label>
+            <input
+              type="password"
+              [(ngModel)]="contrasenaActual"
+              name="contrasenaActual"
+              placeholder="Ingresa tu contraseña actual"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+          <div class="campo">
+            <label>Nueva contraseña</label>
+            <input
+              type="password"
+              [(ngModel)]="contrasenaNueva"
+              name="contrasenaNueva"
+              placeholder="Crea tu nueva contraseña"
+              required
+              autocomplete="new-password"
+            >
+          </div>
+          <div class="campo">
+            <label>Confirmar nueva contraseña</label>
+            <input
+              type="password"
+              [(ngModel)]="confirmarContrasena"
+              name="confirmarContrasena"
+              placeholder="Repite la nueva contraseña"
+              required
+              autocomplete="new-password"
+            >
+          </div>
+        </div>
+
+        <ul class="reglas">
+          <li [class.ok]="tiene8">
+            <span class="marca">{{ tiene8 ? '✓' : '○' }}</span>
+            Mínimo 8 caracteres
+          </li>
+          <li [class.ok]="tieneMayuscula">
+            <span class="marca">{{ tieneMayuscula ? '✓' : '○' }}</span>
+            Al menos una mayúscula
+          </li>
+          <li [class.ok]="tieneNumero">
+            <span class="marca">{{ tieneNumero ? '✓' : '○' }}</span>
+            Al menos un número
+          </li>
+          <li [class.ok]="contrasenasCoinciden">
+            <span class="marca">{{ contrasenasCoinciden ? '✓' : '○' }}</span>
+            Las contraseñas coinciden
+          </li>
+        </ul>
+
+        <div class="formulario-botones">
+          <button type="button" class="btn-cancelar" (click)="cancelarContrasena()">Cancelar</button>
+          <button type="submit" class="btn-guardar" [disabled]="enviandoContrasena">
+            {{ enviandoContrasena ? 'Guardando...' : 'Guardar contraseña' }}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- BASE DE DATOS (solo administrador) -->

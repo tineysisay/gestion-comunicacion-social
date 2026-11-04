@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { LoginComponent } from './login/login.component';
+import { CambiarContrasenaComponent } from './cambiar-contrasena/cambiar-contrasena.component';
 import { InicioComponent } from './inicio/inicio.component';
 import { UsuariosComponent } from './usuarios/usuarios.component';
 import { SolicitantesComponent } from './solicitantes/solicitantes.component';
@@ -23,6 +24,11 @@ export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent
+  },
+  {
+    path: 'cambiar-contrasena',
+    component: CambiarContrasenaComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'inicio',

@@ -15,6 +15,7 @@ const historialRoutes = require('./routes/historial');
 const notificacionesRoutes = require('./routes/notificaciones');
 const reportesRoutes = require('./routes/reportes');
 const backupRoutes = require('./routes/backup');
+const { generarContrasena } = require('./helpers/generarContrasena');
 
 const app = express();
 
@@ -33,6 +34,8 @@ app.post('/api/login', async (req, res) => {
       cu.nombre_usuario,
       cu.contrasena,
       cu.id_estado_usuario,
+      cu.debe_cambiar_contrasena,
+      cu.intentos_fallidos,
       du.primer_nombre,
       du.primer_apellido,
       ru.nombre_rol
@@ -41,7 +44,6 @@ app.post('/api/login', async (req, res) => {
     INNER JOIN rol_usuario ru ON cu.id_rol = ru.id_rol
     WHERE cu.nombre_usuario = ?
   `;
-
   conexion.query(sql, [usuario], async (error, resultados) => {
 
     if (error) {
@@ -65,10 +67,49 @@ app.post('/api/login', async (req, res) => {
     const contrasenaValida = await bcrypt.compare(contrasena, usuarioData.contrasena);
 
     if (!contrasenaValida) {
-      return res.status(401).json({
-        mensaje: 'Usuario o contraseña incorrectos'
+
+      // Contrasena incorrecta: se cuenta el intento. A las 5 fallidas
+      // la cuenta pasa de ACTIVO a INACTIVO (id_estado_usuario = 2).
+      const intentos = Number(usuarioData.intentos_fallidos || 0) + 1;
+
+      if (intentos >= 5) {
+
+        await new Promise((resolve, reject) => {
+          conexion.query(
+            'UPDATE cuenta_usuario SET intentos_fallidos = ?, id_estado_usuario = 2 WHERE id_cuenta = ?',
+            [intentos, usuarioData.id_cuenta],
+            (err) => err ? reject(err) : resolve()
+          );
+        });
+
+        return res.status(403).json({
+          mensaje: 'Ha excedido el maximo de intentos permitidos. Su cuenta ha sido desactivada. Contacte al administrador.'
+        });
+
+      }
+
+      await new Promise((resolve, reject) => {
+        conexion.query(
+          'UPDATE cuenta_usuario SET intentos_fallidos = ? WHERE id_cuenta = ?',
+          [intentos, usuarioData.id_cuenta],
+          (err) => err ? reject(err) : resolve()
+        );
       });
+
+      return res.status(401).json({
+        mensaje: `Usuario o contrasena incorrectos. Intentos restantes: ${5 - intentos}`
+      });
+
     }
+
+    // Contrasena correcta: se reinicia el contador de intentos
+    await new Promise((resolve, reject) => {
+      conexion.query(
+        'UPDATE cuenta_usuario SET intentos_fallidos = 0 WHERE id_cuenta = ?',
+        [usuarioData.id_cuenta],
+        (err) => err ? reject(err) : resolve()
+      );
+    });
 
     const estadoResult = await new Promise((resolve, reject) => {
       conexion.query(
@@ -99,6 +140,7 @@ app.post('/api/login', async (req, res) => {
     res.json({
       mensaje: 'Login exitoso',
       token: token,
+      debe_cambiar_contrasena: usuarioData.debe_cambiar_contrasena === 1,
       usuario: {
         id_cuenta: usuarioData.id_cuenta,
         nombre_usuario: usuarioData.nombre_usuario,
@@ -215,6 +257,120 @@ app.put('/api/usuarios/perfil', verificarToken, (req, res) => {
   });
 });
 
+// Politica de contrasena: minimo 8 caracteres, 1 mayuscula y 1 numero
+function validarPoliticaContrasena(contrasena) {
+  if (!contrasena || contrasena.length < 8) {
+    return 'La contraseña debe tener mínimo 8 caracteres';
+  }
+  if (!/[A-Z]/.test(contrasena)) {
+    return 'La contraseña debe incluir al menos una mayúscula';
+  }
+  if (!/[0-9]/.test(contrasena)) {
+    return 'La contraseña debe incluir al menos un número';
+  }
+  return null;
+}
+
+// PUT - Cambiar la contrasena del usuario logueado (primer cambio obligatorio o voluntario)
+app.put('/api/usuarios/cambiar-contrasena', verificarToken, async (req, res) => {
+
+  const { contrasenaActual, contrasenaNueva } = req.body;
+
+  const errorPolitica = validarPoliticaContrasena(contrasenaNueva);
+  if (errorPolitica) {
+    return res.status(400).json({ mensaje: errorPolitica });
+  }
+
+  try {
+    const resultados = await new Promise((resolve, reject) => {
+      conexion.query(
+        'SELECT contrasena, debe_cambiar_contrasena FROM cuenta_usuario WHERE id_cuenta = ?',
+        [req.usuario.id_cuenta],
+        (err, rows) => err ? reject(err) : resolve(rows)
+      );
+    });
+
+    if (resultados.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    // Primer acceso (contraseña temporal): no se pide la contraseña actual,
+    // el token ya demuestra que inicio sesion con la temporal.
+    const esPrimerAcceso = Number(resultados[0].debe_cambiar_contrasena) === 1;
+
+    if (!esPrimerAcceso) {
+      const actualValida = await bcrypt.compare(contrasenaActual || '', resultados[0].contrasena);
+      if (!actualValida) {
+        return res.status(401).json({ mensaje: 'La contraseña actual es incorrecta' });
+      }
+    }
+
+    const nuevoHash = await bcrypt.hash(contrasenaNueva, 10);
+
+    await new Promise((resolve, reject) => {
+      conexion.query(
+        'UPDATE cuenta_usuario SET contrasena = ?, debe_cambiar_contrasena = 0 WHERE id_cuenta = ?',
+        [nuevoHash, req.usuario.id_cuenta],
+        (err) => err ? reject(err) : resolve()
+      );
+    });
+
+    res.json({ mensaje: 'Contraseña actualizada correctamente' });
+
+  } catch (error) {
+    console.error('ERROR CAMBIAR CONTRASENA:', error);
+    res.status(500).json({ mensaje: 'Error al cambiar la contraseña' });
+  }
+
+});
+
+// POST - Restablecer contrasena de un usuario: genera una contraseña temporal
+app.post('/api/usuarios/:id/restablecer', verificarToken, soloAdmin, async (req, res) => {
+
+  const { id } = req.params;
+
+  try {
+    const resultados = await new Promise((resolve, reject) => {
+      conexion.query(
+        'SELECT id_rol FROM cuenta_usuario WHERE id_cuenta = ?',
+        [id],
+        (err, rows) => err ? reject(err) : resolve(rows)
+      );
+    });
+
+    if (resultados.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    if (resultados[0].id_rol === 7 && req.usuario.id_rol !== 7) {
+      return res.status(403).json({
+        mensaje: 'Solo un desarrollador puede restablecer la contraseña del desarrollador'
+      });
+    }
+
+    const contrasenaTemporal = generarContrasena();
+    const hash = await bcrypt.hash(contrasenaTemporal, 10);
+
+    await new Promise((resolve, reject) => {
+      conexion.query(
+        'UPDATE cuenta_usuario SET contrasena = ?, debe_cambiar_contrasena = 1, intentos_fallidos = 0 WHERE id_cuenta = ?',
+        [hash, id],
+        (err) => err ? reject(err) : resolve()
+      );
+    });
+
+    res.json({
+      mensaje: 'Contraseña restablecida. El usuario deberá crear una nueva contraseña en su primer inicio de sesión.',
+      contrasenaTemporal
+    });
+
+  } catch (error) {
+    console.error('ERROR RESTABLECER CONTRASENA:', error);
+    res.status(500).json({ mensaje: 'Error al restablecer la contraseña' });
+  }
+
+});
+
 app.use('/api', catalogosRoutes);
 app.use('/api', solicitantesRoutes);
 app.use('/api', recursosRoutes);
@@ -237,12 +393,14 @@ app.post('/api/usuarios', verificarToken, soloAdmin, async (req, res) => {
     correoElectronico,
     idCargo,
     nombreUsuario,
-    contrasena,
     idRol,
     idEstadoUsuario
   } = req.body;
 
-  const contrasenaHash = await bcrypt.hash(contrasena, 10);
+  // La contraseña ya no la escribe el administrador: se genera una temporal
+  // que el usuario usara una sola vez para crear su propia contraseña.
+  const contrasenaTemporal = generarContrasena();
+  const contrasenaHash = await bcrypt.hash(contrasenaTemporal, 10);
 
   const sqlPersona = `
     INSERT INTO datos_usuario (
@@ -301,9 +459,10 @@ console.log('ID PERSONA INSERTADA:', idUsuario);
             id_rol,
             nombre_usuario,
             contrasena,
-            id_estado_usuario
+            id_estado_usuario,
+            debe_cambiar_contrasena
           )
-          VALUES (?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, 1)
         `;
 
         conexion.query(
@@ -338,7 +497,8 @@ console.log('ID PERSONA INSERTADA:', idUsuario);
               }
 
               res.status(201).json({
-                mensaje: 'Usuario registrado correctamente'
+                mensaje: 'Usuario registrado correctamente',
+                contrasenaTemporal
               });
 
             });
@@ -403,7 +563,6 @@ app.get('/api/usuarios/:id', verificarToken, (req, res) => {
       c.id_usuario,
       c.id_rol,
       c.nombre_usuario,
-      c.contrasena,
       c.id_estado_usuario,
       d.primer_nombre,
       d.segundo_nombre,
@@ -463,10 +622,14 @@ app.put('/api/usuarios/:id', verificarToken, soloAdmin, async (req, res) => {
     idEstadoUsuario
   } = req.body;
 
-  const contrasenaHash = contrasena.startsWith('$2b$') ? contrasena : await bcrypt.hash(contrasena, 10);
+  // Si no viene contraseña nueva (o viene el hash actual), se conserva la existente
+  let contrasenaHash = null;
+  if (contrasena && typeof contrasena === 'string' && !contrasena.startsWith('$2b$')) {
+    contrasenaHash = await bcrypt.hash(contrasena, 10);
+  }
 
   const sqlBuscar = `
-    SELECT id_usuario
+    SELECT id_usuario, id_rol
     FROM cuenta_usuario
     WHERE id_cuenta = ?
   `;
@@ -484,6 +647,13 @@ app.put('/api/usuarios/:id', verificarToken, soloAdmin, async (req, res) => {
     if (resultados.length === 0) {
       return res.status(404).json({
         mensaje: 'Usuario no encontrado'
+      });
+    }
+
+    // Proteccion: solo un desarrollador puede modificar la cuenta del desarrollador
+    if (resultados[0].id_rol === 7 && req.usuario.id_rol !== 7) {
+      return res.status(403).json({
+        mensaje: 'Solo un desarrollador puede modificar la cuenta del desarrollador'
       });
     }
 
@@ -530,9 +700,10 @@ app.put('/api/usuarios/:id', verificarToken, soloAdmin, async (req, res) => {
           UPDATE cuenta_usuario
           SET
             nombre_usuario = ?,
-            contrasena = ?,
+            contrasena = COALESCE(?, contrasena),
             id_rol = ?,
-            id_estado_usuario = ?
+            id_estado_usuario = ?,
+            intentos_fallidos = IF(? = 1, 0, intentos_fallidos)
           WHERE id_cuenta = ?
         `;
 
@@ -542,6 +713,7 @@ app.put('/api/usuarios/:id', verificarToken, soloAdmin, async (req, res) => {
             nombreUsuario,
             contrasenaHash,
             idRol,
+            idEstadoUsuario,
             idEstadoUsuario,
             id
           ],
@@ -582,7 +754,7 @@ app.delete('/api/usuarios/:id', verificarToken, soloAdmin, (req, res) => {
   const idCuenta = req.params.id;
 
   const sqlUsuario = `
-    SELECT id_usuario
+    SELECT id_usuario, id_rol
     FROM cuenta_usuario
     WHERE id_cuenta = ?
   `;
@@ -600,6 +772,13 @@ app.delete('/api/usuarios/:id', verificarToken, soloAdmin, (req, res) => {
     if (resultados.length === 0) {
       return res.status(404).json({
         mensaje: 'Usuario no encontrado'
+      });
+    }
+
+    // Proteccion: solo un desarrollador puede eliminar la cuenta del desarrollador
+    if (resultados[0].id_rol === 7 && req.usuario.id_rol !== 7) {
+      return res.status(403).json({
+        mensaje: 'Solo un desarrollador puede eliminar la cuenta del desarrollador'
       });
     }
 

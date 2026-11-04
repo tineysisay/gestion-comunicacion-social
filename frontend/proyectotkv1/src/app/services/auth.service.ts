@@ -18,15 +18,19 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/login`, { usuario, contrasena }).pipe(
       tap((respuesta: any) => {
         localStorage.setItem(this.tokenKey, respuesta.token);
-        localStorage.setItem(this.usuarioKey, JSON.stringify(respuesta.usuario));
+        const datos = {
+          ...respuesta.usuario,
+          debe_cambiar_contrasena: respuesta.debe_cambiar_contrasena
+        };
+        localStorage.setItem(this.usuarioKey, JSON.stringify(datos));
       })
     );
   }
 
-  logout(): void {
+  logout(queryParams?: any): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.usuarioKey);
-    this.router.navigate(['/login']);
+    this.router.navigate(['/login'], queryParams ? { queryParams } : undefined);
   }
 
   getToken(): string | null {
@@ -40,7 +44,13 @@ export class AuthService {
 
   esAdmin(): boolean {
     const usuario = this.getUsuario();
-    return usuario && usuario.id_rol === 1;
+    // Admin (1) y Desarrollador (7) tienen los mismos permisos de gestion
+    return usuario && (usuario.id_rol === 1 || usuario.id_rol === 7);
+  }
+
+  esDesarrollador(): boolean {
+    const usuario = this.getUsuario();
+    return usuario && usuario.id_rol === 7;
   }
 
   esLector(): boolean {
@@ -62,6 +72,28 @@ export class AuthService {
     return usuario ? usuario.nombre_rol : '';
   }
 
+  // Indica que el usuario debe crear una nueva contraseña (primer inicio con contraseña temporal)
+  debeCambiarContrasena(): boolean {
+    const usuario = this.getUsuario();
+    return !!(usuario && usuario.debe_cambiar_contrasena);
+  }
+
+  // Limpia el flag tras completar el cambio de contraseña
+  marcarCambioContrasenaRealizado(): void {
+    const usuario = this.getUsuario();
+    if (usuario) {
+      usuario.debe_cambiar_contrasena = false;
+      localStorage.setItem(this.usuarioKey, JSON.stringify(usuario));
+    }
+  }
+
+  cambiarContrasena(contrasenaActual: string, contrasenaNueva: string): Observable<any> {
+    const token = this.getToken();
+    return this.http.put(`${this.apiUrl}/usuarios/cambiar-contrasena`, { contrasenaActual, contrasenaNueva }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
   estaAutenticado(): boolean {
     const token = this.getToken();
     if (!token) return false;
@@ -72,6 +104,18 @@ export class AuthService {
       return Date.now() < expiracion;
     } catch {
       return false;
+    }
+  }
+
+  // id_usuario extraido del payload del JWT
+  getIdUsuario(): number {
+    const token = this.getToken();
+    if (!token) return 0;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.id_usuario || 0;
+    } catch {
+      return 0;
     }
   }
 

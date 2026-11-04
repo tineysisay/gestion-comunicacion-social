@@ -119,6 +119,7 @@ router.get('/reportes/solicitudes-por-fecha', (req, res) => {
     SELECT 
       sa.id_solicitud,
       sa.nombre_actividad,
+      sa.descripcion_actividad,
       sa.fecha_actividad,
       COALESCE(sa.fecha_fin_actividad, sa.fecha_actividad) AS fecha_fin_actividad,
       sa.hora_inicio,
@@ -126,7 +127,11 @@ router.get('/reportes/solicitudes-por-fecha', (req, res) => {
       sa.lugar_actividad,
       ea.nombre_estado,
       pa.nombre_prioridad,
-      CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS solicitante
+      CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS solicitante,
+      (SELECT GROUP_CONCAT(DISTINCT CONCAT(du.primer_nombre, ' ', du.primer_apellido) SEPARATOR ', ')
+       FROM asignacion_usuario au
+       INNER JOIN datos_usuario du ON au.id_usuario = du.id_usuario
+       WHERE au.id_solicitud = sa.id_solicitud) AS responsables
     FROM solicitud_actividad sa
     INNER JOIN estado_actividad ea ON sa.id_estado_actividad = ea.id_estado_actividad
     INNER JOIN prioridad_actividad pa ON sa.id_prioridad = pa.id_prioridad
@@ -163,6 +168,7 @@ router.get('/reportes/solicitudes-detalle-por-estado', (req, res) => {
     SELECT 
       sa.id_solicitud,
       sa.nombre_actividad,
+      sa.descripcion_actividad,
       sa.fecha_actividad,
       COALESCE(sa.fecha_fin_actividad, sa.fecha_actividad) AS fecha_fin_actividad,
       sa.hora_inicio,
@@ -170,7 +176,11 @@ router.get('/reportes/solicitudes-detalle-por-estado', (req, res) => {
       sa.lugar_actividad,
       ea.nombre_estado,
       pa.nombre_prioridad,
-      CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS solicitante
+      CONCAT(s.primer_nombre, ' ', s.primer_apellido) AS solicitante,
+      (SELECT GROUP_CONCAT(DISTINCT CONCAT(du.primer_nombre, ' ', du.primer_apellido) SEPARATOR ', ')
+       FROM asignacion_usuario au
+       INNER JOIN datos_usuario du ON au.id_usuario = du.id_usuario
+       WHERE au.id_solicitud = sa.id_solicitud) AS responsables
     FROM solicitud_actividad sa
     INNER JOIN estado_actividad ea ON sa.id_estado_actividad = ea.id_estado_actividad
     INNER JOIN prioridad_actividad pa ON sa.id_prioridad = pa.id_prioridad

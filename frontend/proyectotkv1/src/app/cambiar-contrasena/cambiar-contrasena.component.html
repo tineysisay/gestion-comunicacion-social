@@ -1,0 +1,93 @@
+<div class="cambiar-container">
+  <div class="cambiar-card">
+
+    <h3 class="cambiar-titulo">Crear nueva contraseña</h3>
+
+    <p class="cambiar-subtitulo">
+      <ng-container *ngIf="esPrimerAcceso; else cambioNormal">
+        Iniciaste sesión con una contraseña temporal. Crea tu propia contraseña
+        para continuar usando el sistema.
+      </ng-container>
+      <ng-template #cambioNormal>
+        Ingresa tu contraseña actual y crea una nueva contraseña.
+      </ng-template>
+    </p>
+
+    <form (ngSubmit)="guardar()">
+
+      <div class="campo" *ngIf="!esPrimerAcceso">
+        <label for="contrasenaActual">Contraseña actual</label>
+        <input
+          type="password"
+          id="contrasenaActual"
+          name="contrasenaActual"
+          [(ngModel)]="contrasenaActual"
+          placeholder="Ingresa tu contraseña actual"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+
+      <div class="campo">
+        <label for="contrasenaNueva">Nueva contraseña</label>
+        <input
+          type="password"
+          id="contrasenaNueva"
+          name="contrasenaNueva"
+          [(ngModel)]="contrasenaNueva"
+          placeholder="Crea tu nueva contraseña"
+          required
+          autocomplete="new-password"
+        >
+      </div>
+
+      <ul class="reglas">
+        <li [class.ok]="tiene8">
+          <span class="marca">{{ tiene8 ? '✓' : '○' }}</span>
+          Mínimo 8 caracteres
+        </li>
+        <li [class.ok]="tieneMayuscula">
+          <span class="marca">{{ tieneMayuscula ? '✓' : '○' }}</span>
+          Al menos una mayúscula
+        </li>
+        <li [class.ok]="tieneNumero">
+          <span class="marca">{{ tieneNumero ? '✓' : '○' }}</span>
+          Al menos un número
+        </li>
+        <li [class.ok]="coinciden">
+          <span class="marca">{{ coinciden ? '✓' : '○' }}</span>
+          Las contraseñas coinciden
+        </li>
+      </ul>
+
+      <div class="campo">
+        <label for="confirmarContrasena">Confirmar nueva contraseña</label>
+        <input
+          type="password"
+          id="confirmarContrasena"
+          name="confirmarContrasena"
+          [(ngModel)]="confirmarContrasena"
+          placeholder="Repite la nueva contraseña"
+          required
+          autocomplete="new-password"
+        >
+      </div>
+
+      <button type="submit" class="btn-guardar" [disabled]="enviando">
+        {{ enviando ? 'Guardando...' : 'Guardar contraseña' }}
+      </button>
+
+      <div class="error-message" *ngIf="error">
+        {{ error }}
+      </div>
+
+    </form>
+
+    <div class="cambiar-footer">
+      <button type="button" class="btn-salir" (click)="cerrarSesion()">
+        Cerrar sesión
+      </button>
+    </div>
+
+  </div>
+</div>

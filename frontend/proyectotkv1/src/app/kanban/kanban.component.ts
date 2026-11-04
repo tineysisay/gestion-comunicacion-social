@@ -31,6 +31,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
   columnaResaltada: number | null = null;
   private subscription: Subscription = new Subscription();
 
+  // Bitacora de la tarjeta (solo admin)
+  modoBitacora = false;
+  historialEstado: any[] = [];
+  cargandoHistorial = false;
+
   // Fecha actual en el encabezado del tablero
   hoy: Date = new Date();
   private intervaloFecha: any = null;
@@ -165,6 +170,23 @@ export class KanbanComponent implements OnInit, OnDestroy {
         col.solicitudes.push(sol);
       }
     });
+    // Ordenar cada columna: fecha mas cercana primero (vencidas → proximas)
+    this.columnas.forEach(col => {
+      col.solicitudes.sort((a: any, b: any) => {
+        const fechaA = a.fecha_actividad || '9999-12-31';
+        const fechaB = b.fecha_actividad || '9999-12-31';
+        if (fechaA !== fechaB) {
+          return fechaA < fechaB ? -1 : 1;
+        }
+        // Mismo dia: hora de inicio mas temprana primero
+        const horaA = a.hora_inicio || '99:99:99';
+        const horaB = b.hora_inicio || '99:99:99';
+        if (horaA !== horaB) {
+          return horaA < horaB ? -1 : 1;
+        }
+        return a.id_solicitud - b.id_solicitud;
+      });
+    });
   }
 
   // Las solicitudes FINALIZADO desaparecen del tablero 7 dias despues de finalizadas
@@ -203,6 +225,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   verDetalle(solicitud: any): void {
     this.modoEdicion = false;
+    this.modoBitacora = false;
+    this.historialEstado = [];
     this.solicitudService.obtenerPorId(solicitud.id_solicitud).subscribe({
       next: (detalle) => {
         this.solicitudSeleccionada = detalle;
@@ -216,6 +240,44 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.showModal = false;
     this.solicitudSeleccionada = null;
     this.modoEdicion = false;
+    this.modoBitacora = false;
+    this.historialEstado = [];
+  }
+
+  // === Permisos de arrastre: admin o usuario asignado a la solicitud ===
+
+  puedeMover(solicitud: any): boolean {
+    if (this.authService.esAdmin()) return true;
+    const idUsuario = this.authService.getIdUsuario();
+    if (!idUsuario || !solicitud?.ids_asignados) return false;
+    return String(solicitud.ids_asignados)
+      .split(',')
+      .map((id: string) => parseInt(id.trim(), 10))
+      .includes(idUsuario);
+  }
+
+  // === Bitacora de estados (solo admin) ===
+
+  verBitacora(): void {
+    if (!this.authService.esAdmin() || !this.solicitudSeleccionada) return;
+    this.modoBitacora = true;
+    this.cargandoHistorial = true;
+    this.historialEstado = [];
+    this.solicitudService.obtenerHistorial(this.solicitudSeleccionada.id_solicitud).subscribe({
+      next: (historial) => {
+        this.historialEstado = historial;
+        this.cargandoHistorial = false;
+      },
+      error: (err) => {
+        this.cargandoHistorial = false;
+        console.error('Error al cargar bitacora', err);
+      }
+    });
+  }
+
+  volverDetalle(): void {
+    this.modoBitacora = false;
+    this.historialEstado = [];
   }
 
   nuevaSolicitud(): void {
@@ -297,10 +359,27 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return `${inicioFmt.split('-').reverse().join('/')} - ${finFmt.split('-').reverse().join('/')}`;
   }
 
-  // === Arrastre entre columnas (solo admin) ===
+  // Colores del modal de detalle (segun estado de la solicitud)
+  colorEstadoDetalle(): string {
+    return coloresDeEstado(this.solicitudSeleccionada?.nombre_estado).color;
+  }
+
+  colorEstadoClaroDetalle(): string {
+    return coloresDeEstado(this.solicitudSeleccionada?.nombre_estado).claro;
+  }
+
+  colorPrioridadDetalle(): string {
+    const prioridad = (this.solicitudSeleccionada?.nombre_prioridad || '').toLowerCase();
+    if (prioridad.includes('urgente')) return '#DC2626';
+    if (prioridad.includes('alta')) return '#F59E0B';
+    if (prioridad.includes('media')) return '#3B82F6';
+    return '#64748B';
+  }
+
+  // === Arrastre entre columnas (admin o usuario asignado) ===
 
   onDragStart(event: DragEvent, solicitud: any): void {
-    if (!this.authService.esAdmin()) {
+    if (!this.puedeMover(solicitud)) {
       event.preventDefault();
       return;
     }
@@ -345,7 +424,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.solicitudArrastrada = null;
     this.columnaResaltada = null;
 
-    if (!solicitud || !this.authService.esAdmin()) return;
+    if (!solicitud || !this.puedeMover(solicitud)) return;
     if (solicitud.estado === columna.nombre) return;
 
     const estadoAnterior = solicitud.estado;
@@ -354,9 +433,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
     solicitud.estado = columna.nombre;
     this.asignarSolicitudesAColumnas();
 
+    const observacion = this.authService.esAdmin()
+      ? 'Cambio desde tablero Kanban (arrastre)'
+      : 'Cambio desde tablero Kanban (arrastre por responsable asignado)';
+
     this.solicitudService.cambiarEstado(solicitud.id_solicitud, {
       idEstadoNuevo: columna.id,
-      observacion: 'Cambio desde tablero Kanban (arrastre)'
+      observacion
     }).subscribe({
       next: (respuesta) => {
         this.notificacion.exito(

@@ -47,6 +47,9 @@ export class ReportesComponent implements OnInit, AfterViewInit {
   textoFiltro = '';
   cargarCompletado = false;
 
+  // Fecha en que se genero el reporte (se actualiza al aplicar un filtro)
+  fechaGeneracion = '';
+
   // Mes mostrado en el grafico de carga
   mesGrafica = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   private readonly MESES_GRAFICA = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -239,18 +242,29 @@ export class ReportesComponent implements OnInit, AfterViewInit {
   }
 
   getTextoFiltro(tipo: string): string {
+    const fechas = this.getFechasRango(tipo);
+    const inicio = this.formatearFechaCorta(fechas.inicio);
+    const fin = this.formatearFechaCorta(fechas.fin);
     switch (tipo) {
-      case 'hoy': return 'Hoy';
-      case 'semana': return 'Esta Semana';
-      case 'mes': return 'Este Mes';
+      case 'hoy': return `Hoy (${inicio})`;
+      case 'semana': return `Esta Semana (${inicio} - ${fin})`;
+      case 'mes': return `Este Mes (${inicio} - ${fin})`;
       case 'rango': return 'Rango Personalizado';
       default: return '';
     }
   }
 
+  formatearFechaCorta(iso: string): string {
+    return iso ? iso.substring(0, 10).split('-').reverse().join('/') : '';
+  }
+
   aplicarFiltro(tipo: string): void {
     this.filtroActivo = tipo;
     this.textoFiltro = this.getTextoFiltro(tipo);
+    this.fechaGeneracion = new Date().toLocaleString('es-GT', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
     this.cargarCompletado = false;
 
     if (tipo === 'rango') {
@@ -288,7 +302,11 @@ export class ReportesComponent implements OnInit, AfterViewInit {
       return;
     }
     this.filtroActivo = 'rango';
-    this.textoFiltro = `Del ${this.fechaInicio} al ${this.fechaFin}`;
+    this.textoFiltro = `Del ${this.formatearFechaCorta(this.fechaInicio)} al ${this.formatearFechaCorta(this.fechaFin)}`;
+    this.fechaGeneracion = new Date().toLocaleString('es-GT', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
     this.cargarCompletado = false;
 
     this.reporteService.solicitudesPorFecha(this.fechaInicio, this.fechaFin).subscribe({
@@ -355,6 +373,10 @@ export class ReportesComponent implements OnInit, AfterViewInit {
     const estadoSel = this.estadosActividad.find(e => e.id_estado_actividad === this.idEstadoReporte);
     this.filtroActivo = 'estado';
     this.textoFiltro = `Estado: ${estadoSel?.nombre_estado || ''}`;
+    this.fechaGeneracion = new Date().toLocaleString('es-GT', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
     this.cargarCompletado = false;
 
     this.reporteService.solicitudesPorEstadoDetalle(this.idEstadoReporte).subscribe({
@@ -366,41 +388,161 @@ export class ReportesComponent implements OnInit, AfterViewInit {
     });
   }
 
-  exportarPDF(): void {
+  // Logo de la municipalidad redimensionado para el PDF (el original pesa 7MB)
+  private cargarLogo(): Promise<string | null> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maximo = 240;
+          const lienzo = document.createElement('canvas');
+          const escala = Math.min(maximo / img.width, maximo / img.height);
+          lienzo.width = Math.round(img.width * escala);
+          lienzo.height = Math.round(img.height * escala);
+          const ctx = lienzo.getContext('2d');
+          if (!ctx) { resolve(null); return; }
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, lienzo.width, lienzo.height);
+          ctx.drawImage(img, 0, 0, lienzo.width, lienzo.height);
+          resolve(lienzo.toDataURL('image/jpeg', 0.9));
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = 'assets/LOGOT.png';
+    });
+  }
+
+  async exportarPDF(): Promise<void> {
     if (this.solicitudesPorFecha.length === 0) {
       this.notificacion.info('No hay datos para exportar. Primero aplique un filtro.');
       return;
     }
 
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+    const ancho = doc.internal.pageSize.getWidth();
+    const logo = await this.cargarLogo();
 
-    doc.setFontSize(18);
-    doc.text('Reporte de Solicitudes', 14, 20);
+    doc.setProperties({
+      title: 'Reporte de Solicitudes',
+      subject: 'Sistema web de gestión operativa bajo la metodología KANBAN',
+      creator: 'Municipalidad de Santiago Atitlán'
+    });
 
-    doc.setFontSize(11);
-    doc.text(`Filtro: ${this.textoFiltro}`, 14, 28);
-    doc.text(`Fecha generacion: ${new Date().toLocaleDateString('es-GT')}`, 14, 34);
-    doc.text(`Total resultados: ${this.solicitudesPorFecha.length}`, 14, 40);
+    // === ENCABEZADO INSTITUCIONAL ===
+    doc.setFillColor(27, 58, 107);
+    doc.rect(0, 0, ancho, 32, 'F');
+    doc.setFillColor(245, 158, 11);
+    doc.rect(0, 32, ancho, 1.5, 'F');
 
-    const encabezados = [['#', 'Actividad', 'Fecha', 'Lugar', 'Estado', 'Prioridad', 'Solicitante']];
+    if (logo) {
+      doc.setFillColor(255, 255, 255);
+      doc.circle(23, 16, 11, 'F');
+      doc.addImage(logo, 'JPEG', 15.5, 8.5, 15, 15);
+    }
+
+    const xTexto = logo ? 40 : 14;
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Municipalidad de Santiago Atitlán', xTexto, 14.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(191, 219, 254);
+    doc.text('Sistema web de gestión operativa bajo la metodología KANBAN', xTexto, 21.5);
+
+    // === TITULO DEL REPORTE ===
+    doc.setTextColor(27, 58, 107);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('Reporte de Solicitudes', 14, 47);
+    doc.setDrawColor(245, 158, 11);
+    doc.setLineWidth(1);
+    doc.line(14, 50, 54, 50);
+
+    // === CAJA DE DATOS GENERALES ===
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(14, 56, ancho - 28, 16, 2, 2, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text('FILTRO APLICADO', 19, 62);
+    doc.text('FECHA DE GENERACIÓN DEL REPORTE', 190, 62);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(30, 41, 59);
+    const filtro = this.textoFiltro.length > 80 ? this.textoFiltro.substring(0, 77) + '...' : this.textoFiltro;
+    doc.text(filtro, 19, 68);
+    doc.text(new Date().toLocaleDateString('es-GT'), 190, 68);
+
+    // === TABLA DE RESULTADOS (hoja horizontal) ===
+    const encabezados = [['#', 'Actividad', 'Descripción', 'Fecha', 'Lugar', 'Responsables', 'Estado', 'Prioridad', 'Solicitante']];
+
+    const recortar = (texto: string, max: number): string => {
+      const t = texto || '';
+      return t.length > max ? t.substring(0, max - 1) + '…' : t;
+    };
 
     const filas = this.solicitudesPorFecha.map((s, i) => [
       String(i + 1),
-      s.nombre_actividad || '',
+      recortar(s.nombre_actividad, 70),
+      recortar(s.descripcion_actividad, 130),
       this.rangoFechas(s.fecha_actividad, s.fecha_fin_actividad),
       s.lugar_actividad || '',
+      recortar(s.responsables || 'Sin asignar', 70),
       s.nombre_estado || '',
       s.nombre_prioridad || '',
       s.solicitante || ''
     ]);
 
+    let paginaActual = 0;
+
     autoTable(doc, {
       head: encabezados,
       body: filas,
-      startY: 46,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [7, 92, 168] },
-      alternateRowStyles: { fillColor: [240, 245, 250] }
+      startY: 80,
+      margin: { left: 14, right: 14, bottom: 18 },
+      styles: {
+        fontSize: 7.5,
+        cellPadding: 2,
+        textColor: [30, 41, 59],
+        lineColor: [226, 232, 240],
+        lineWidth: 0.1,
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [27, 58, 107],
+        textColor: 255,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: {
+        0: { cellWidth: 8, halign: 'center' },
+        1: { cellWidth: 42 },
+        2: { cellWidth: 58 },
+        3: { cellWidth: 26 },
+        4: { cellWidth: 24 },
+        5: { cellWidth: 38 },
+        6: { cellWidth: 22 },
+        7: { cellWidth: 20 },
+        8: { cellWidth: 31 }
+      },
+      didDrawPage: () => {
+        paginaActual++;
+        const alto = doc.internal.pageSize.getHeight();
+        // Pie de pagina en cada hoja
+        doc.setFillColor(27, 58, 107);
+        doc.rect(0, alto - 12, ancho, 12, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.text('Sistema web de gestión operativa bajo la metodología KANBAN', 14, alto - 7);
+        doc.text(`Página ${paginaActual}`, ancho - 14, alto - 7, { align: 'right' });
+      }
     });
 
     doc.save(`reporte_solicitudes_${new Date().toISOString().split('T')[0]}.pdf`);

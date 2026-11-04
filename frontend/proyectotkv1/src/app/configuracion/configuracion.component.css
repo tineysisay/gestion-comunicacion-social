@@ -205,14 +205,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-lg) var(--space-2xl);
-  border-bottom: 1px solid var(--border-color-light);
+  padding: 16px var(--space-2xl);
+  background: linear-gradient(135deg, #1B3A6B 0%, #2A5298 100%);
 }
 
 .formulario-header h2 {
   margin: 0;
-  font-size: 1.125rem;
-  color: var(--color-primary);
+  font-size: 1.25rem;
+  color: #fff;
 }
 
 .btn-cerrar {
@@ -221,20 +221,20 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: none;
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   font-size: 1.375rem;
-  color: var(--color-text-muted);
+  color: #fff;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   transition: all var(--transition-fast);
   line-height: 1;
   flex-shrink: 0;
 }
 
 .btn-cerrar:hover {
-  background: #F1F5F9;
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
 .formulario-body {
@@ -250,7 +250,8 @@
   justify-content: flex-end;
   gap: var(--space-md);
   padding: var(--space-lg) var(--space-2xl);
-  border-top: 1px solid var(--border-color-light);
+  background: #F8FAFC;
+  border-top: 1px solid #EDF2F7;
 }
 
 .btn-guardar {
@@ -368,6 +369,86 @@
 .perfil-campo:hover {
   border-color: var(--border-color);
   box-shadow: var(--shadow-sm);
+}
+
+/* === CAMBIAR CONTRASEÑA (perfil) === */
+.seguridad-container {
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border-color-light);
+}
+
+.seguridad-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.seguridad-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.seguridad-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-secondary-bg, #EFF6FF);
+  color: var(--color-secondary);
+  flex-shrink: 0;
+}
+
+.seguridad-icono svg {
+  width: 20px;
+  height: 20px;
+}
+
+.seguridad-titulo h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.seguridad-container .form-grid {
+  gap: 20px;
+}
+
+.reglas {
+  list-style: none;
+  margin: 0 0 var(--space-lg);
+  padding: 12px 14px;
+  background: var(--color-secondary-bg, #EFF6FF);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-md);
+}
+
+.reglas li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  padding: 3px 0;
+  transition: color var(--transition-fast);
+}
+
+.reglas li .marca {
+  font-weight: 700;
+  color: #94A3B8;
+}
+
+.reglas li.ok {
+  color: var(--color-success, #16A34A);
+}
+
+.reglas li.ok .marca {
+  color: var(--color-success, #16A34A);
 }
 
 .perfil-campo label {
