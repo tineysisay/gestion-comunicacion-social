@@ -57,13 +57,13 @@ export class ReportesComponent implements OnInit, AfterViewInit {
 
   chartCarga: Chart | null = null;
 
-  // Paleta Figma del proyecto para las barras del grafico
+  // Colores de las tarjetas del Kanban (estados) para distinguir cada barra
   private readonly PALETA_BARRAS: { color: string; hover: string }[] = [
-    { color: '#1B3A6B', hover: '#122850' },
-    { color: '#2A5298', hover: '#1B3A6B' },
-    { color: '#243F7A', hover: '#122850' },
-    { color: '#122850', hover: '#0C1A33' },
-    { color: '#A8BDD8', hover: '#8FA9C9' }
+    { color: '#B45309', hover: '#92400E' }, // REVISION (ambar)
+    { color: '#1D4ED8', hover: '#1E40AF' }, // AUTORIZADO (azul)
+    { color: '#6D28D9', hover: '#5B21B6' }, // EN PROCESO (violeta)
+    { color: '#15803D', hover: '#166534' }, // FINALIZADO (verde)
+    { color: '#475569', hover: '#334155' }  // CANCELADO (gris)
   ];
 
   constructor(

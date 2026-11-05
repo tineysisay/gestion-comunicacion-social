@@ -474,6 +474,13 @@
   margin: 0;
 }
 
+.aviso-responsable {
+  color: var(--color-danger, #d9534f);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: var(--space-md) 0 0;
+}
+
 /* === DETALLE === */
 .detalle-body {
   padding: var(--space-xl) var(--space-2xl) var(--space-2xl);

@@ -36,6 +36,8 @@ export class InicioComponent implements OnInit, OnDestroy {
     this.routerSub = this.router.events.subscribe((evento) => {
       if (evento instanceof NavigationEnd) {
         this.actualizarNoLeidas();
+        // En movil, elegir una opcion del menu tambien lo cierra
+        this.cerrarMenuMovil();
       }
     });
   }
@@ -55,6 +57,13 @@ export class InicioComponent implements OnInit, OnDestroy {
 
   toggleSidebar(): void {
     this.sidebarColapsado = !this.sidebarColapsado;
+  }
+
+  // En movil: al tocar la pagina se cierra el menu desplegado
+  cerrarMenuMovil(): void {
+    if (window.innerWidth <= 768 && this.sidebarColapsado) {
+      this.sidebarColapsado = false;
+    }
   }
 
   cerrarSesion(): void {

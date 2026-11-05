@@ -31,10 +31,18 @@
   </div>
 
   <div class="leyenda" *ngIf="estadosPresentes.length">
-    <span class="leyenda-item" *ngFor="let estado of estadosPresentes">
+    <span class="leyenda-titulo">Filtrar:</span>
+    <button type="button"
+            class="leyenda-item"
+            *ngFor="let estado of estadosPresentes"
+            [class.activa]="estadoActivo === estado"
+            (click)="alternarEstado(estado)">
       <span class="leyenda-punto" [style.background]="getColorEstado(estado)"></span>
       {{ estado }}
-    </span>
+    </button>
+    <button type="button" class="leyenda-limpiar" *ngIf="estadoActivo" (click)="estadoActivo = null">
+      &times; Quitar filtro
+    </button>
   </div>
 
   <!-- VISTA MES -->

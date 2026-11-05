@@ -1,16 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import {
   NotificacionUsuarioService,
   NotificacionUsuario
 } from '../services/notificacion-usuario.service';
 import { NotificacionService } from '../services/notificacion.service';
+import { SolicitudService } from '../services/solicitud.service';
+import { FormatoFechaPipe } from '../pipes/formato-fecha.pipe';
+import { coloresDeEstado } from '../shared/colores-estado';
 
 @Component({
   selector: 'app-notificaciones',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormatoFechaPipe],
   templateUrl: './notificaciones.component.html',
   styleUrl: './notificaciones.component.css'
 })
@@ -19,10 +21,14 @@ export class NotificacionesComponent implements OnInit {
   notificaciones: NotificacionUsuario[] = [];
   cargando = false;
 
+  // Modal de detalle estilo ficha del Kanban
+  mostrarFicha = false;
+  solicitudDetalle: any = null;
+
   constructor(
     private notificacionUsuarioService: NotificacionUsuarioService,
     private notificacion: NotificacionService,
-    private router: Router
+    private solicitudService: SolicitudService
   ) {}
 
   ngOnInit(): void {
@@ -66,19 +72,61 @@ export class NotificacionesComponent implements OnInit {
     return n.leida === true || n.leida === 1;
   }
 
-  // Clic en una notificacion -> marcar leida y ir a Solicitudes
+  // Clic en una notificacion -> marcar leida y abrir la ficha del detalle
   abrir(n: NotificacionUsuario): void {
-    if (this.convertidaALeida(n)) {
-      this.router.navigate(['/inicio/solicitudes']);
+    if (!n.id_solicitud) {
+      this.notificacion.info('Esta notificacion no tiene una solicitud asociada');
       return;
     }
-    this.notificacionUsuarioService.marcarLeida(n.id_notificacion).subscribe({
-      next: () => {
-        n.leida = true;
-        this.router.navigate(['/inicio/solicitudes']);
+
+    if (this.mostrarFicha && this.solicitudDetalle?.id_solicitud === n.id_solicitud) {
+      this.cerrarFicha();
+      return;
+    }
+
+    this.solicitudService.obtenerPorId(n.id_solicitud).subscribe({
+      next: (detalle) => {
+        this.solicitudDetalle = detalle;
+        this.mostrarFicha = true;
       },
-      error: () => this.router.navigate(['/inicio/solicitudes'])
+      error: () => this.notificacion.error('Error al cargar el detalle de la solicitud')
     });
+
+    if (this.convertidaALeida(n)) return;
+    this.notificacionUsuarioService.marcarLeida(n.id_notificacion).subscribe({
+      next: () => { n.leida = true; },
+      error: () => { this.notificacion.error('Error al marcar notificacion'); }
+    });
+  }
+
+  cerrarFicha(): void {
+    this.mostrarFicha = false;
+    this.solicitudDetalle = null;
+  }
+
+  // Colores del modal de detalle (segun estado de la solicitud)
+  colorEstadoDetalle(): string {
+    return coloresDeEstado(this.solicitudDetalle?.nombre_estado).color;
+  }
+
+  colorEstadoClaroDetalle(): string {
+    return coloresDeEstado(this.solicitudDetalle?.nombre_estado).claro;
+  }
+
+  colorPrioridadDetalle(): string {
+    const prioridad = (this.solicitudDetalle?.nombre_prioridad || '').toLowerCase();
+    if (prioridad.includes('urgente')) return '#DC2626';
+    if (prioridad.includes('alta')) return '#F59E0B';
+    if (prioridad.includes('media')) return '#3B82F6';
+    return '#64748B';
+  }
+
+  rangoFechas(inicio: string, fin: string): string {
+    if (!inicio) return '';
+    const i = inicio.substring(0, 10);
+    const f = fin ? fin.substring(0, 10) : i;
+    if (f === i) return i.split('-').reverse().join('/');
+    return `${i.split('-').reverse().join('/')} - ${f.split('-').reverse().join('/')}`;
   }
 
   marcarLeida(n: NotificacionUsuario, event: Event): void {

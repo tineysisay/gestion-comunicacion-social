@@ -26,6 +26,7 @@ export class CalendarioComponent implements OnInit, OnDestroy {
   solicitudes: any[] = [];
   solicitudesFiltradas: any[] = [];
   estadosPresentes: string[] = [];
+  estadoActivo: string | null = null;
 
   diasSemana = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
   nombreMes = '';
@@ -180,8 +181,15 @@ export class CalendarioComponent implements OnInit, OnDestroy {
     const fechaStr = this.formatearFecha(fecha);
     return this.solicitudes.filter(s => {
       const rango = this.rangoDe(s);
-      return !!rango && fechaStr >= rango.inicio && fechaStr <= rango.fin;
+      const coincideFecha = !!rango && fechaStr >= rango.inicio && fechaStr <= rango.fin;
+      const coincideEstado = !this.estadoActivo || s.estado === this.estadoActivo;
+      return coincideFecha && coincideEstado;
     });
+  }
+
+  // Clic en la leyenda: resalta y muestra solo ese estado (vuelve a clic para quitar)
+  alternarEstado(estado: string): void {
+    this.estadoActivo = this.estadoActivo === estado ? null : estado;
   }
 
   esMismoDia(fecha1: Date, fecha2: Date): boolean {

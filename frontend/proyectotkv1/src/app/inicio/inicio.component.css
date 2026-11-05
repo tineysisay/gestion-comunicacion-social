@@ -409,7 +409,8 @@
 
   .sidebar-collapsed .sidebar-header {
     justify-content: flex-start;
-    padding: var(--space-2xl) var(--space-xl);
+    /* Deja libre la zona del boton de menu (fixed arriba a la izquierda) */
+    padding: 72px var(--space-xl) var(--space-xl);
   }
 
   .sidebar-collapsed .sidebar-nav a {
@@ -435,6 +436,11 @@
     margin-left: 0;
     padding: var(--space-2xl) var(--space-lg);
     padding-top: 64px;
+  }
+
+  /* El titulo del Kanban tampoco debe chocar con el boton de menu */
+  .contenido:has(app-kanban) {
+    padding: 64px var(--space-lg) var(--space-lg);
   }
 }
 

@@ -192,6 +192,10 @@ router.post('/solicitudes', soloLectura, (req, res) => {
     return res.status(400).json({ mensaje: 'Faltan campos obligatorios' });
   }
 
+  if (!Array.isArray(personalAsignado) || personalAsignado.length === 0) {
+    return res.status(400).json({ mensaje: 'Debe asignar al menos un responsable' });
+  }
+
   if (fechaFinActividad && fechaFinActividad < fechaActividad) {
     return res.status(400).json({ mensaje: 'La fecha fin no puede ser anterior a la fecha inicio' });
   }
@@ -376,6 +380,11 @@ router.put('/solicitudes/:id', soloLectura, (req, res) => {
   });
 
   function ejecutarActualizacion(antes, asignadosAntes) {
+
+  const responsablesFinales = Array.isArray(personalAsignado) ? personalAsignado : asignadosAntes;
+  if (!responsablesFinales || responsablesFinales.length === 0) {
+    return res.status(400).json({ mensaje: 'Debe asignar al menos un responsable' });
+  }
 
   // Normaliza valores para comparar (mysql2 puede devolver Date u objeto)
   function normFecha(v) {

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { CatalogoService } from '../services/catalogo.service';
 import { SolicitanteService } from '../services/solicitante.service';
@@ -76,7 +76,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
     private api: ApiService,
     public authService: AuthService,
     private notificacion: NotificacionService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -87,6 +88,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.solicitudService.observarCambios().subscribe(() => {
         this.cargarSolicitudes();
+      })
+    );
+
+    // Apertura automatica del detalle: /inicio/kanban?detalle=<id> (desde notificaciones)
+    this.subscription.add(
+      this.route.queryParams.subscribe((params) => {
+        const detalle = params['detalle'];
+        if (detalle && !isNaN(parseInt(detalle, 10))) {
+          this.verDetalle({ id_solicitud: parseInt(detalle, 10) });
+        }
       })
     );
   }
@@ -242,6 +253,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.modoEdicion = false;
     this.modoBitacora = false;
     this.historialEstado = [];
+
+    // Limpia ?detalle= para que volver a clicar la notificacion reabra el modal
+    if (this.route.snapshot.queryParamMap.get('detalle')) {
+      this.router.navigate(['/inicio/kanban'], { queryParams: {} });
+    }
   }
 
   // === Permisos de arrastre: admin o usuario asignado a la solicitud ===
@@ -467,6 +483,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     if (this.fechaFinActividad && this.fechaFinActividad < this.fechaActividad) {
       this.notificacion.error('La fecha fin no puede ser anterior a la fecha de actividad');
+      return;
+    }
+
+    if (this.personalAsignado.length === 0) {
+      this.pestana = 'responsable';
+      this.notificacion.error('Seleccione al menos un responsable');
       return;
     }
 

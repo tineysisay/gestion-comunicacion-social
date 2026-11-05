@@ -85,14 +85,26 @@ router.post('/solicitudes/:id/asignaciones-usuario', soloLectura, (req, res) => 
 
 // DELETE - Eliminar asignacion de personal
 router.delete('/solicitudes/:id/asignaciones-usuario/:idAsignacion', soloLectura, (req, res) => {
-  const { idAsignacion } = req.params;
-  const sql = 'DELETE FROM asignacion_usuario WHERE id_asignacion_usuario = ?';
-  conexion.query(sql, [idAsignacion], (error) => {
+  const { id, idAsignacion } = req.params;
+  const sqlVerificar = 'SELECT id_asignacion_usuario FROM asignacion_usuario WHERE id_solicitud = ?';
+  conexion.query(sqlVerificar, [id], (error, resultados) => {
     if (error) {
       console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al eliminar asignacion' });
+      return res.status(500).json({ mensaje: 'Error al verificar asignacion' });
     }
-    res.json({ mensaje: 'Asignacion eliminada correctamente' });
+
+    if (resultados.length === 1 && String(resultados[0].id_asignacion_usuario) === String(idAsignacion)) {
+      return res.status(400).json({ mensaje: 'La solicitud debe conservar al menos un responsable' });
+    }
+
+    const sql = 'DELETE FROM asignacion_usuario WHERE id_asignacion_usuario = ?';
+    conexion.query(sql, [idAsignacion], (error) => {
+      if (error) {
+        console.error('ERROR MYSQL:', error);
+        return res.status(500).json({ mensaje: 'Error al eliminar asignacion' });
+      }
+      res.json({ mensaje: 'Asignacion eliminada correctamente' });
+    });
   });
 });
 

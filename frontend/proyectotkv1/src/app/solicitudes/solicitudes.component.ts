@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { CatalogoService } from '../services/catalogo.service';
 import { SolicitanteService } from '../services/solicitante.service';
@@ -71,7 +71,8 @@ export class SolicitudesComponent implements OnInit {
     private api: ApiService,
     public authService: AuthService,
     private notificacion: NotificacionService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -82,8 +83,13 @@ export class SolicitudesComponent implements OnInit {
     this.obtenerUsuarios();
     this.obtenerRecursos();
 
-    // Apertura automatica del formulario: /inicio/solicitudes?nueva=true o ?editar=<id>
+    // Apertura automatica: /inicio/solicitudes?detalle=<id> (notificaciones),
+    // ?nueva=true o ?editar=<id> (solo admin)
     this.route.queryParams.subscribe((params) => {
+      if (params['detalle']) {
+        this.verDetalle(parseInt(params['detalle'], 10));
+        return;
+      }
       if (!this.authService.esAdmin()) return;
       if (params['nueva'] === 'true') {
         this.nuevo();
@@ -154,7 +160,15 @@ export class SolicitudesComponent implements OnInit {
       );
     }
 
-    return resultado;
+    // Finalizado y cancelado siempre al final del listado (el resto conserva su orden)
+    return resultado.slice().sort((a, b) =>
+      (this.esEstadoFinal(a.estado) ? 1 : 0) - (this.esEstadoFinal(b.estado) ? 1 : 0)
+    );
+  }
+
+  private esEstadoFinal(estado: string): boolean {
+    const e = this.normalizarTexto(estado);
+    return e === 'finalizado' || e === 'cancelado';
   }
 
   // Minusculas + espacios multiples a uno solo (evita fallos con "Juan  Tzine")
@@ -267,6 +281,14 @@ export class SolicitudesComponent implements OnInit {
     });
   }
 
+  cerrarDetalle(): void {
+    this.mostrarDetalle = false;
+    // Limpia ?detalle= para que volver a clicar la notificacion reabra el modal
+    if (this.route.snapshot.queryParamMap.get('detalle')) {
+      this.router.navigate(['/inicio/solicitudes'], { queryParams: {} });
+    }
+  }
+
   guardar(): void {
     if (this.formSolicitud?.invalid) {
       this.formSolicitud.form.markAllAsTouched();
@@ -282,6 +304,12 @@ export class SolicitudesComponent implements OnInit {
 
     if (this.fechaFinActividad && this.fechaFinActividad < this.fechaActividad) {
       this.notificacion.error('La fecha fin no puede ser anterior a la fecha de actividad');
+      return;
+    }
+
+    if (this.personalAsignado.length === 0) {
+      this.pestana = 'responsable';
+      this.notificacion.error('Seleccione al menos un responsable');
       return;
     }
 
@@ -367,6 +395,10 @@ export class SolicitudesComponent implements OnInit {
   }
 
   eliminarAsignacionUsuario(idAsignacion: number): void {
+    if ((this.solicitudActual?.personal?.length || 0) <= 1) {
+      this.notificacion.error('La solicitud debe conservar al menos un responsable');
+      return;
+    }
     this.solicitudService.eliminarAsignacionUsuario(this.solicitudActual.id_solicitud, idAsignacion).subscribe({
       next: () => this.verDetalle(this.solicitudActual.id_solicitud),
       error: (error) => this.notificacion.error(error.error?.mensaje || 'Error al eliminar')
