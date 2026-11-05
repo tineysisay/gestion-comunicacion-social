@@ -3,9 +3,9 @@
 ## Project Overview
 - **Type**: University semester project ("1 SEMINARIO")
 - **Stack**: Angular 17.3 (standalone components, no NgModules, no Angular Material) + Node.js/Express + MySQL
-- **Database**: `gestion_comunicacion_social` on localhost, user `root`, password `12345678`
+- **Database**: `gestion_comunicacion_social` on localhost, user `root`, password in `backend/.env` (DB_PASSWORD)
 - **Backend port**: 3000 | **Frontend port**: 4200
-- **JWT secret**: `comunicacion_social_2024_secret_key`, expires 8h
+- **JWT secret**: in `backend/.env` (JWT_SECRET), expires 8h
 - **Git branch**: `fase-0-jwt`
 - **Custom CSS only** (no frameworks, no Angular Material)
 - **Chart.js** installed for reportes dashboard
@@ -15,7 +15,7 @@
 - Route mounting must be AFTER login endpoint (lesson learned)
 - `app.use('/api', catalogRoutes)` must come AFTER login route
 - PowerShell on Windows: use `;` not `&&` for chaining commands
-- MySQL full path: `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p12345678 gestion_comunicacion_social -e "..."`
+- MySQL full path: `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p$env:DB_PASSWORD gestion_comunicacion_social -e "..."` (get password from backend/.env)
 - Roles: Admin (1), Lector (2), Jefe (3), Desarrollador (7) — with `soloAdmin`, `soloAdminYJefe`, `soloLectura` middleware
 - **Desarrollador (id_rol=7)**: mismo acceso que Admin (soloAdmin acepta 1 y 7; esAdmin() en frontend acepta 1 y 7). Existe para rescatar cuentas (ej. si el admin olvida su contraseña). Cuenta: jtiney (Juan Luis Tiney Sisay). AuthService tiene `esDesarrollador()` para distinguirlo si se necesita.
 - **Nota BD vs código**: en la BD real `rol_usuario` tiene 2=DIRECTOR DE DEPENDENCIA, 3=LECTOR (no 2=Lector/3=Jefe como asume el código). Roles duplicados en ids 4,5,6. `esLector()`/`esJefe()` del frontend comparan por id (2 y 3) — cuidado al tocar.
