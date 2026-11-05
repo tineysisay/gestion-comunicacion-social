@@ -10,10 +10,6 @@
   margin-bottom: var(--space-lg);
 }
 
-.buscador-container {
-  margin-bottom: var(--space-lg);
-}
-
 .buscador-input {
   flex: 1;
   width: 100%;

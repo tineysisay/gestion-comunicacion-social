@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { AuthService } from '../services/auth.service';
@@ -11,7 +10,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-calendario',
   standalone: true,
-  imports: [CommonModule, FormsModule, FormatoFechaPipe],
+  imports: [CommonModule, FormatoFechaPipe],
   templateUrl: './calendario.component.html',
   styleUrl: './calendario.component.css'
 })

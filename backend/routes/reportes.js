@@ -69,48 +69,6 @@ router.get('/dashboard/estadisticas', (req, res) => {
   });
 });
 
-// GET - Solicitudes agrupadas por estado
-router.get('/reportes/solicitudes-por-estado', (req, res) => {
-  const sql = `
-    SELECT 
-      ea.nombre_estado,
-      COUNT(sa.id_solicitud) AS total,
-      ea.orden_kanban
-    FROM estado_actividad ea
-    LEFT JOIN solicitud_actividad sa ON ea.id_estado_actividad = sa.id_estado_actividad
-    GROUP BY ea.id_estado_actividad, ea.nombre_estado, ea.orden_kanban
-    ORDER BY ea.orden_kanban
-  `;
-  conexion.query(sql, (error, resultados) => {
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al obtener reporte por estado' });
-    }
-    res.json(resultados);
-  });
-});
-
-// GET - Solicitudes agrupadas por prioridad
-router.get('/reportes/solicitudes-por-prioridad', (req, res) => {
-  const sql = `
-    SELECT 
-      pa.nombre_prioridad,
-      COUNT(sa.id_solicitud) AS total,
-      pa.nivel_prioridad
-    FROM prioridad_actividad pa
-    LEFT JOIN solicitud_actividad sa ON pa.id_prioridad = sa.id_prioridad
-    GROUP BY pa.id_prioridad, pa.nombre_prioridad, pa.nivel_prioridad
-    ORDER BY pa.nivel_prioridad
-  `;
-  conexion.query(sql, (error, resultados) => {
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al obtener reporte por prioridad' });
-    }
-    res.json(resultados);
-  });
-});
-
 // GET - Solicitudes por rango de fechas
 router.get('/reportes/solicitudes-por-fecha', (req, res) => {
   const { fechaInicio, fechaFin } = req.query;
@@ -193,27 +151,6 @@ router.get('/reportes/solicitudes-detalle-por-estado', (req, res) => {
     if (error) {
       console.error('ERROR MYSQL:', error);
       return res.status(500).json({ mensaje: 'Error al obtener solicitudes por estado' });
-    }
-    res.json(resultados);
-  });
-});
-
-// GET - Solicitudes agrupadas por institucion
-router.get('/reportes/solicitudes-por-institucion', (req, res) => {
-  const sql = `
-    SELECT 
-      i.nombre_institucion,
-      COUNT(sa.id_solicitud) AS total
-    FROM institucion i
-    INNER JOIN solicitante s ON i.id_institucion = s.id_institucion
-    INNER JOIN solicitud_actividad sa ON s.id_solicitante = sa.id_solicitante
-    GROUP BY i.id_institucion, i.nombre_institucion
-    ORDER BY total DESC
-  `;
-  conexion.query(sql, (error, resultados) => {
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al obtener reporte por institucion' });
     }
     res.json(resultados);
   });

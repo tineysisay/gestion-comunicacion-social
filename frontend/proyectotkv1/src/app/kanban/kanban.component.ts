@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { SolicitudService } from '../services/solicitud.service';
 import { CatalogoService } from '../services/catalogo.service';
 import { SolicitanteService } from '../services/solicitante.service';
@@ -15,7 +15,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-kanban',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, FormatoFechaPipe],
+  imports: [CommonModule, FormsModule, FormatoFechaPipe],
   templateUrl: './kanban.component.html',
   styleUrl: './kanban.component.css'
 })

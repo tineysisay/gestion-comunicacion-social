@@ -41,11 +41,6 @@ export class SolicitudService {
     return this.cambios$.asObservable();
   }
 
-  // Obtener solicitudes con cache invalidation
-  obtenerTodasConNotificacion(): Observable<any[]> {
-    return this.api.get<any[]>('solicitudes');
-  }
-
   obtenerAsignacionesUsuario(id: number): Observable<any[]> {
     return this.api.get<any[]>(`solicitudes/${id}/asignaciones-usuario`);
   }

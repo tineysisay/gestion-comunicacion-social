@@ -448,10 +448,7 @@ app.post('/api/usuarios', verificarToken, soloAdmin, async (req, res) => {
           });
         }
 
-        //const idUsuario = resultadoPersona.insertId;
         const idUsuario = resultadoPersona.insertId;
-
-console.log('ID PERSONA INSERTADA:', idUsuario);
 
         const sqlCuenta = `
           INSERT INTO cuenta_usuario (
@@ -745,119 +742,6 @@ app.get('/', (req, res) => {
 
   res.json({
     mensaje: 'API funcionando correctamente'
-  });
-
-});
-
-app.delete('/api/usuarios/:id', verificarToken, soloAdmin, (req, res) => {
-
-  const idCuenta = req.params.id;
-
-  const sqlUsuario = `
-    SELECT id_usuario, id_rol
-    FROM cuenta_usuario
-    WHERE id_cuenta = ?
-  `;
-
-  conexion.query(sqlUsuario, [idCuenta], (error, resultados) => {
-
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-
-      return res.status(500).json({
-        mensaje: 'Error al buscar el usuario'
-      });
-    }
-
-    if (resultados.length === 0) {
-      return res.status(404).json({
-        mensaje: 'Usuario no encontrado'
-      });
-    }
-
-    // Proteccion: solo un desarrollador puede eliminar la cuenta del desarrollador
-    if (resultados[0].id_rol === 7 && req.usuario.id_rol !== 7) {
-      return res.status(403).json({
-        mensaje: 'Solo un desarrollador puede eliminar la cuenta del desarrollador'
-      });
-    }
-
-    const idUsuario = resultados[0].id_usuario;
-
-    conexion.beginTransaction((error) => {
-
-      if (error) {
-        console.error('ERROR MYSQL:', error);
-
-        return res.status(500).json({
-          mensaje: 'Error al iniciar la transacción'
-        });
-      }
-
-      const sqlCuenta = `
-        DELETE FROM cuenta_usuario
-        WHERE id_cuenta = ?
-      `;
-
-      conexion.query(sqlCuenta, [idCuenta], (error) => {
-
-        if (error) {
-          return conexion.rollback(() => {
-
-            console.error('ERROR MYSQL:', error);
-
-            res.status(500).json({
-              mensaje: 'Error al eliminar la cuenta'
-            });
-
-          });
-        }
-
-        const sqlPersona = `
-          DELETE FROM datos_usuario
-          WHERE id_usuario = ?
-        `;
-
-        conexion.query(sqlPersona, [idUsuario], (error) => {
-
-          if (error) {
-            return conexion.rollback(() => {
-
-              console.error('ERROR MYSQL:', error);
-
-              res.status(500).json({
-                mensaje: 'Error al eliminar los datos del usuario'
-              });
-
-            });
-          }
-
-          conexion.commit((error) => {
-
-            if (error) {
-              return conexion.rollback(() => {
-
-                console.error('ERROR MYSQL:', error);
-
-                res.status(500).json({
-                  mensaje: 'Error al confirmar la eliminación'
-                });
-
-              });
-            }
-
-            res.json({
-              mensaje: 'Usuario eliminado correctamente'
-            });
-
-          });
-
-        });
-
-      });
-
-    });
-
   });
 
 });

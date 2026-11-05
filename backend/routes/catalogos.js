@@ -376,58 +376,6 @@ router.delete('/prioridades/:id', soloAdmin, (req, res) => {
 });
 
 // =========================================================
-// TIPOS DE NOTIFICACION
-// =========================================================
-
-router.get('/tipos-notificacion', (req, res) => {
-  const sql = 'SELECT id_tipo_notificacion, nombre_tipo_notificacion, descripcion_tipo_notificacion FROM tipo_notificacion';
-  conexion.query(sql, (error, resultados) => {
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al obtener tipos de notificacion' });
-    }
-    res.json(resultados);
-  });
-});
-
-router.post('/tipos-notificacion', soloAdmin, (req, res) => {
-  const { nombreTipoNotificacion, descripcionTipoNotificacion } = req.body;
-  const sql = 'INSERT INTO tipo_notificacion (nombre_tipo_notificacion, descripcion_tipo_notificacion) VALUES (?, ?)';
-  conexion.query(sql, [nombreTipoNotificacion, descripcionTipoNotificacion], (error, resultado) => {
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al crear tipo de notificacion' });
-    }
-    res.status(201).json({ mensaje: 'Tipo de notificacion creado correctamente', id: resultado.insertId });
-  });
-});
-
-router.put('/tipos-notificacion/:id', soloAdmin, (req, res) => {
-  const { id } = req.params;
-  const { nombreTipoNotificacion, descripcionTipoNotificacion } = req.body;
-  const sql = 'UPDATE tipo_notificacion SET nombre_tipo_notificacion = ?, descripcion_tipo_notificacion = ? WHERE id_tipo_notificacion = ?';
-  conexion.query(sql, [nombreTipoNotificacion, descripcionTipoNotificacion, id], (error) => {
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al actualizar tipo de notificacion' });
-    }
-    res.json({ mensaje: 'Tipo de notificacion actualizado correctamente' });
-  });
-});
-
-router.delete('/tipos-notificacion/:id', soloAdmin, (req, res) => {
-  const { id } = req.params;
-  const sql = 'DELETE FROM tipo_notificacion WHERE id_tipo_notificacion = ?';
-  conexion.query(sql, [id], (error) => {
-    if (error) {
-      console.error('ERROR MYSQL:', error);
-      return res.status(500).json({ mensaje: 'Error al eliminar tipo de notificacion' });
-    }
-    res.json({ mensaje: 'Tipo de notificacion eliminado correctamente' });
-  });
-});
-
-// =========================================================
 // INSTITUCIONES
 // =========================================================
 

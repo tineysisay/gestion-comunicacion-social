@@ -9,13 +9,6 @@ const soloAdmin = (req, res, next) => {
   next();
 };
 
-const soloAdminYJefe = (req, res, next) => {
-  if (req.usuario.id_rol !== 1 && req.usuario.id_rol !== 3) {
-    return res.status(403).json({ mensaje: 'Acceso solo para administradores y jefes' });
-  }
-  next();
-};
-
 const soloLectura = (req, res, next) => {
   if (req.usuario.id_rol === 2 || req.usuario.id_rol === 3) {
     if (req.method !== 'GET') {
@@ -44,4 +37,4 @@ const soloAdminOAsignado = (req, res, next) => {
   });
 };
 
-module.exports = { soloAdmin, soloAdminYJefe, soloLectura, soloAdminOAsignado };
+module.exports = { soloAdmin, soloLectura, soloAdminOAsignado };

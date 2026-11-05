@@ -264,83 +264,6 @@ h4 { font-size: 0.9375rem; font-weight: 600; color: var(--color-text); line-heig
   transform: none;
 }
 
-/* Botón primario (acciones principales) */
-.btn-primary {
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
-  transition: background-color 0.12s ease, box-shadow 0.12s ease;
-}
-
-.btn-primary:hover {
-  background: var(--color-accent-hover);
-  box-shadow: 0 2px 8px rgba(27, 58, 107, 0.35);
-}
-
-/* Botón secundario */
-.btn-secondary {
-  background: var(--color-secondary);
-  color: var(--color-text-inverse);
-}
-
-.btn-secondary:hover {
-  background: var(--color-secondary-hover);
-  box-shadow: 0 2px 8px rgba(27, 58, 107, 0.35);
-}
-
-/* Botón neutro */
-.btn-neutral {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border: 1px solid transparent;
-}
-
-.btn-neutral:hover {
-  background: var(--border-color-light);
-  border-color: transparent;
-}
-
-/* Botón de peligro */
-.btn-danger {
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-  border: 1px solid transparent;
-}
-
-.btn-danger:hover {
-  background: var(--color-danger);
-  color: var(--color-text-inverse);
-}
-
-/* Botón de éxito */
-.btn-success {
-  background: var(--color-success-bg);
-  color: var(--color-success);
-  border: 1px solid transparent;
-}
-
-.btn-success:hover {
-  background: var(--color-success);
-  color: var(--color-text-inverse);
-}
-
-/* Botón de advertencia */
-.btn-warning {
-  background: var(--badge-alta-bg);
-  color: var(--badge-alta);
-  border: 1px solid transparent;
-}
-
-.btn-warning:hover {
-  background: var(--color-warning);
-  color: var(--color-text);
-}
-
-/* Botón pequeño */
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 0.8125rem;
-}
-
 /* Botón nuevo (específico) */
 .btn-nuevo {
   display: inline-flex;
@@ -392,7 +315,6 @@ h4 { font-size: 0.9375rem; font-weight: 600; color: var(--color-text); line-heig
 .btn-login,
 .btn-logout,
 .btn-nuevo,
-.btn-ojo,
 .btn-pdf,
 .btn-ver {
   border-radius: 999px !important;
@@ -727,42 +649,6 @@ h4 { font-size: 0.9375rem; font-weight: 600; color: var(--color-text); line-heig
   font-weight: 600;
 }
 
-/* === ACORDEON === */
-.accordion {
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--space-md);
-  overflow: hidden;
-}
-
-.accordion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  background: #F8FAFC;
-  cursor: pointer;
-  user-select: none;
-  font-weight: 500;
-  color: var(--color-text);
-  transition: background var(--transition-fast);
-}
-
-.accordion-header:hover {
-  background: #F1F5F9;
-}
-
-.accordion-header .flecha {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  transition: transform var(--transition-normal);
-}
-
-.accordion-contenido {
-  padding: var(--space-lg) var(--space-xl);
-  border-top: 1px solid var(--border-color-light);
-}
-
 /* === SCROLLBAR === */
 ::-webkit-scrollbar {
   width: 5px;
@@ -781,37 +667,6 @@ h4 { font-size: 0.9375rem; font-weight: 600; color: var(--color-text); line-heig
 ::-webkit-scrollbar-thumb:hover {
   background: #A0AEC0;
 }
-
-/* === UTILIDADES === */
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.text-muted { color: var(--color-text-muted); }
-.text-danger { color: var(--color-danger); }
-.text-success { color: var(--color-success); }
-.text-warning { color: var(--badge-alta); }
-
-.mt-0 { margin-top: 0; }
-.mt-1 { margin-top: var(--space-sm); }
-.mt-2 { margin-top: var(--space-md); }
-.mt-3 { margin-top: var(--space-lg); }
-.mt-4 { margin-top: var(--space-2xl); }
-
-.mb-0 { margin-bottom: 0; }
-.mb-1 { margin-bottom: var(--space-sm); }
-.mb-2 { margin-bottom: var(--space-md); }
-.mb-3 { margin-bottom: var(--space-lg); }
-.mb-4 { margin-bottom: var(--space-2xl); }
-
-.gap-sm { gap: var(--space-sm); }
-.gap-md { gap: var(--space-md); }
-.gap-lg { gap: var(--space-lg); }
-
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.justify-end { justify-content: flex-end; }
-.flex-wrap { flex-wrap: wrap; }
 
 /* === ANIMACIONES (FIGMA) === */
 @keyframes fadeInOverlay {

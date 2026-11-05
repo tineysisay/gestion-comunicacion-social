@@ -230,27 +230,6 @@
   opacity: 0.85;
 }
 
-.evento.estado-revision {
-  background: var(--badge-revision);
-}
-
-.evento.estado-autorizado {
-  background: var(--badge-autorizado);
-}
-
-.evento.estado-proceso {
-  background: var(--badge-proceso);
-  color: #B45309;
-}
-
-.evento.estado-finalizado {
-  background: var(--badge-finalizado);
-}
-
-.evento.estado-cancelado {
-  background: var(--badge-cancelado);
-}
-
 .mas-eventos {
   font-size: 0.8125rem;
   color: var(--color-text-muted);
@@ -698,10 +677,6 @@
 
   .semana-dia {
     min-height: 0;
-  }
-
-  .detalle-info {
-    grid-template-columns: 1fr;
   }
 
   .detalle-grid {

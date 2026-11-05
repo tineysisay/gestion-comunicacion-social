@@ -37,24 +37,6 @@
   color: white;
 }
 
-.btn-eliminar {
-  padding: 6px 12px;
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font-family: inherit;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-eliminar:hover {
-  background: var(--color-danger);
-  color: white;
-}
-
 .btn-editar:disabled,
 .btn-protegido {
   opacity: 0.4;
@@ -264,38 +246,6 @@
 .btn-cancelar:hover {
   background: #F8FAFC;
   border-color: #CBD5E0;
-}
-
-/* === CAMPO CONTRASEÑA CON OJO === */
-.campo-contrasena {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.campo-contrasena input {
-  flex: 1;
-  padding-right: 42px !important;
-}
-
-.btn-ojo {
-  position: absolute;
-  right: 8px;
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition-fast);
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-ojo:hover {
-  background: rgba(0, 0, 0, 0.06);
 }
 
 /* === MODAL DE CREDENCIALES TEMPORALES === */

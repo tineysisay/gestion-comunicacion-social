@@ -81,14 +81,6 @@ export class CatalogoService {
     return this.api.post<any>('tipos-recurso', data);
   }
 
-  actualizarTipoRecurso(id: number, data: any): Observable<any> {
-    return this.api.put<any>(`tipos-recurso/${id}`, data);
-  }
-
-  eliminarTipoRecurso(id: number): Observable<any> {
-    return this.api.delete<any>(`tipos-recurso/${id}`);
-  }
-
   obtenerEstadosActividad(): Observable<any[]> {
     return this.api.get<any[]>('estados-actividad');
   }
@@ -127,13 +119,5 @@ export class CatalogoService {
 
   crearInstitucion(data: any): Observable<any> {
     return this.api.post<any>('instituciones', data);
-  }
-
-  actualizarInstitucion(id: number, data: any): Observable<any> {
-    return this.api.put<any>(`instituciones/${id}`, data);
-  }
-
-  eliminarInstitucion(id: number): Observable<any> {
-    return this.api.delete<any>(`instituciones/${id}`);
   }
 }

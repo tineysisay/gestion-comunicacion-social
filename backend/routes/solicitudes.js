@@ -4,7 +4,6 @@ const conexion = require('../db');
 const verificarToken = require('../middleware/auth');
 const { soloLectura } = require('../middleware/roles');
 const {
-  notificarUsuario,
   notificarAsignados,
   notificarVarios,
   obtenerDatosSolicitud,

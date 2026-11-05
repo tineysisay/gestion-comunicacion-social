@@ -63,28 +63,10 @@ export class AuthService {
     return usuario && usuario.id_rol === 3;
   }
 
-  puedeEditar(): boolean {
-    return this.esAdmin();
-  }
-
-  getNombreRol(): string {
-    const usuario = this.getUsuario();
-    return usuario ? usuario.nombre_rol : '';
-  }
-
   // Indica que el usuario debe crear una nueva contraseña (primer inicio con contraseña temporal)
   debeCambiarContrasena(): boolean {
     const usuario = this.getUsuario();
     return !!(usuario && usuario.debe_cambiar_contrasena);
-  }
-
-  // Limpia el flag tras completar el cambio de contraseña
-  marcarCambioContrasenaRealizado(): void {
-    const usuario = this.getUsuario();
-    if (usuario) {
-      usuario.debe_cambiar_contrasena = false;
-      localStorage.setItem(this.usuarioKey, JSON.stringify(usuario));
-    }
   }
 
   cambiarContrasena(contrasenaActual: string, contrasenaNueva: string): Observable<any> {
