@@ -200,7 +200,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1200;
   padding: var(--space-xl);
 }
 
@@ -681,11 +681,49 @@
 
 /* === RESPONSIVE === */
 @media (max-width: 700px) {
+  .formulario-container,
+  .detalle-container {
+    padding: 0;
+    align-items: stretch;
+  }
+
   .formulario-container .formulario-card,
   .detalle-container .detalle-card {
     width: 100%;
+    max-width: 100%;
     max-height: 100vh;
+    height: 100vh;
     border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .formulario-header,
+  .detalle-header {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+  }
+
+  .formulario-header h2 {
+    font-size: 1.0625rem;
+  }
+
+  /* El form del modal tambien debe desplazarse dentro del card */
+  .formulario-card form {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  .detalle-header-icono {
+    width: 38px;
+    height: 38px;
+  }
+
+  .detalle-header-icono svg {
+    width: 20px;
+    height: 20px;
   }
 
   .form-grid {
@@ -697,11 +735,26 @@
   }
 
   .detalle-body {
-    padding: var(--space-lg) var(--space-xl) var(--space-xl);
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-lg) var(--space-lg) var(--space-xl);
   }
 
   .detalle-info {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .detalle-footer {
+    flex-wrap: wrap;
+    justify-content: stretch;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .detalle-footer button {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
   }
 
   .asignar-row {
