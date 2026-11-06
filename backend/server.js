@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -371,6 +373,11 @@ app.post('/api/usuarios/:id/restablecer', verificarToken, soloAdmin, async (req,
 
 });
 
+// Health check de la API (antes de los routers para no caer en verificarToken)
+app.get('/api', (req, res) => {
+  res.json({ mensaje: 'API funcionando correctamente' });
+});
+
 app.use('/api', catalogosRoutes);
 app.use('/api', solicitantesRoutes);
 app.use('/api', recursosRoutes);
@@ -738,12 +745,27 @@ app.put('/api/usuarios/:id', verificarToken, soloAdmin, async (req, res) => {
 
 });
 
-app.get('/', (req, res) => {
+// Sirve el frontend compilado (Angular 17 → frontend/dist/proyectotkv1/browser)
+const distPath = path.join(__dirname, '..', 'frontend', 'dist', 'proyectotkv1', 'browser');
 
-  res.json({
-    mensaje: 'API funcionando correctamente'
-  });
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
 
+// Fallback SPA: cualquier GET que no sea /api responde index.html
+// (Angular maneja sus propias rutas: /login, /inicio/kanban, etc.)
+app.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    return next();
+  }
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ mensaje: 'Endpoint no encontrado' });
+  }
+  const indexHtml = path.join(distPath, 'index.html');
+  if (!fs.existsSync(indexHtml)) {
+    return res.status(404).send('Frontend no compilado. Ejecuta: npm run build');
+  }
+  res.sendFile(indexHtml);
 });
 
 const PORT = process.env.PORT || 3000;

@@ -8,7 +8,7 @@ import { Observable, tap } from 'rxjs';
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = '/api';
   private tokenKey = 'auth_token';
   private usuarioKey = 'auth_usuario';
 
