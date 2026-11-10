@@ -15,6 +15,8 @@
 - Route mounting must be AFTER login endpoint (lesson learned)
 - `app.use('/api', catalogRoutes)` must come AFTER login route
 - PowerShell on Windows: use `;` not `&&` for chaining commands
+- **mysqldump UTF-8**: NUNCA usar pipe de PowerShell (`mysqldump | Set-Content`) — decodifica con CP437 y corrompe tildes (ó→├│). Usar siempre `--result-file=...` + `--default-character-set=utf8mb4` (+ `--set-gtid-purged=OFF` al reimportar en el contenedor)
+- **SSH a la VM**: clave en `C:\Users\HUAWEI MATE BOOK\Desktop\ÚLTIMO SEMESTRE\claves de mi proyecto oracle 2\ssh-key-2026-11-10.key`, usuario `ubuntu@168.138.78.119`. Ojo: PowerShell se come espacios antes de dígitos en comandos ssh y rompe comillas dobles dentro de args ssh — usar archivos SQL + scp cuando haya queries complejas
 - MySQL full path: `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p$env:DB_PASSWORD gestion_comunicacion_social -e "..."` (get password from backend/.env)
 - Roles: Admin (1), Lector (2), Jefe (3), Desarrollador (7) — with `soloAdmin`, `soloAdminYJefe`, `soloLectura` middleware
 - **Desarrollador (id_rol=7)**: mismo acceso que Admin (soloAdmin acepta 1 y 7; esAdmin() en frontend acepta 1 y 7). Existe para rescatar cuentas (ej. si el admin olvida su contraseña). Cuenta: jtiney (Juan Luis Tiney Sisay). AuthService tiene `esDesarrollador()` para distinguirlo si se necesita.
@@ -74,3 +76,12 @@
   - `/inicio/recursos` — RecursosComponent (list for all roles, CRUD only admin)
   - `/inicio/configuracion` — ConfiguracionComponent
   - `/inicio/reportes` — ReportesComponent (admin only)
+
+## Despliegue en producción (Nov 2026)
+- **URL**: https://comunicacion-social.duckdns.org (DuckDNS → IP fija)
+- **VPS**: Oracle Cloud Always Free, Ubuntu24.04,1 GB RAM +2 GB swap, `ubuntu@168.138.78.119` (clave SSH en `Desktop\ÚLTIMO SEMESTRE\claves de mi proyecto oracle 2\`)
+- **Stack en la VM**: `docker compose` con3 servicios — `db` (mysql:8.0, buffer-pool64M), `api` (node:20-slim sirve Express + dist Angular), `web` (nginx TLS reverse-proxy). Repo clonado en `~/gestion-comunicacion-social`
+- **HTTPS**: Let's Encrypt vía `certbot --webroot` (webroot=`certbot/www`), timer automático + deploy-hook que recarga nginx. Renewal hooks en `/etc/letsencrypt/renewal-hooks/deploy/`
+- **BD**: migrada desde Aiven (Aiven se da de baja antes del21/dic/2026); backup del dump en `~/gestion-comunicacion-social/dump_v3.sql`
+- **Commits clave**: `e532cb8` (archivos Docker), `743ce7a` (HTTPS/nginx)
+- **Nota**: el `.env` del servidor (root `.env` del repo, gitignored) tiene DB_USER=gestionsocial y passwords distintos a `backend/.env`; el `backend/.env` local solo sirve para dev local (apunta a Aiven)
