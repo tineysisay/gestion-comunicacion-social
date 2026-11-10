@@ -1,0 +1,13 @@
+# Excluir TODO y re-incluir solo lo necesario para la imagen
+**
+!backend/
+!backend/**
+!frontend/dist/
+!frontend/dist/**
+
+# Aunque re-incluido, quitar lo que no debe entrar en la imagen
+backend/node_modules
+backend/.env
+backend/backups
+**/.env
+**/node_modules
